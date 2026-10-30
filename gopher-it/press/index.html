@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gopher It Press Kit</title>
+<meta name="description" content="Press kit for Gopher It: Office Intern Simulator, a cozy first-person job sim for 1 to 4 players by Lys Games. Free demo out now, full game November 9, 2026.">
+<meta property="og:title" content="Gopher It: Office Intern Simulator — Press Kit">
+<meta property="og:description" content="Cozy first-person job sim for 1 to 4 players. Free demo out now, full game November 9, 2026 on Steam.">
+<meta property="og:image" content="img/key-art.jpg">
+<link rel="icon" href="img/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4ead2;--surface:#fbf5e6;--surface-2:#eadcb8;--ink:#3a2418;--ink-soft:#6b4c38;--line:#dccaa0;
+  --accent:#e46c24;--accent-ink:#b4501a;--walnut:#573523;--sage:#66756e;--sage-soft:#dfe5dc;--on-accent:#fff8ec;
+  --shadow:0 2px 0 rgba(87,53,35,.10),0 8px 24px rgba(87,53,35,.08);
+  --logo-ground:#ece0bd;--logo-ground-dark:#1c1410;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1c1410;--surface:#271c16;--surface-2:#33251c;--ink:#f2e6c4;--ink-soft:#cbb898;--line:#43312a;
+    --accent:#ef7d36;--accent-ink:#f59a5c;--walnut:#d9b48c;--sage:#9fb3a8;--sage-soft:#24302b;--on-accent:#1c1410;
+    --shadow:0 2px 0 rgba(0,0,0,.25),0 8px 24px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito",ui-rounded,"Segoe UI",system-ui,-apple-system,sans-serif;font-size:17px;line-height:1.6;overflow-x:hidden}
+img,video{max-width:100%;height:auto;display:block}
+a{color:var(--accent-ink);text-underline-offset:3px;text-decoration-thickness:1.5px}
+a:hover{color:var(--accent)}
+h1,h2,h3{font-family:"Fredoka","Nunito",ui-rounded,system-ui,sans-serif;line-height:1.2;color:var(--ink);margin:0;text-wrap:balance}
+h1{font-size:2.2rem;font-weight:700;margin-bottom:.6rem}
+h2{font-size:1.75rem;font-weight:600;margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem}
+h2::before{content:"";width:.55rem;height:1.5rem;border-radius:4px;background:var(--accent);flex:none}
+h3{font-size:1.15rem;font-weight:600;margin:1.4rem 0 .5rem}
+p{margin:0 0 1rem}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+section{padding:2.5rem 0;border-top:1px solid var(--line)}
+.muted{color:var(--ink-soft)}
+.small{font-size:.92rem}
+.topbar{padding-block:.75rem;font-weight:700;font-size:.95rem}
+.topbar a{text-decoration:none}
+.hero{background:var(--walnut)}
+.hero img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.intro{padding-block:1.75rem 2.25rem}
+.lede{font-size:1.2rem;max-width:44rem}
+.pills{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.25rem 0 0;padding:0;list-style:none}
+.pills li{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.3rem .85rem;font-size:.92rem;font-weight:600}
+.pills li.hot{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.cta{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.25rem}
+.btn{display:inline-block;background:var(--accent);color:var(--on-accent);font-weight:700;padding:.55rem 1.1rem;border-radius:10px;text-decoration:none}
+.btn.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn:hover{color:var(--on-accent);filter:brightness(1.05)}
+.btn.alt:hover{color:var(--ink)}
+nav.toc{margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:.35rem 1rem;font-weight:600;font-size:.95rem}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:2rem}
+@media (min-width:860px){.cols{grid-template-columns:minmax(0,340px) minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.25rem;box-shadow:var(--shadow)}
+dl.facts{margin:0}
+dl.facts dt{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-top:1rem}
+dl.facts dt:first-child{margin-top:0}
+dl.facts dd{margin:.15rem 0 0;overflow-wrap:anywhere}
+dl.facts ul{margin:0;padding-left:1.1rem}
+.short{font-size:1.1rem;background:var(--sage-soft);border-left:5px solid var(--sage);padding:1rem 1.1rem;border-radius:0 12px 12px 0}
+ul.features{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.9rem}
+@media (min-width:720px){ul.features{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ul.features li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem}
+ul.features b{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.05rem;margin-bottom:.2rem}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+@media (min-width:640px){.grid.two,.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:900px){.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+figure a{display:block}
+figcaption{padding:.6rem .85rem .75rem;font-size:.92rem;color:var(--ink-soft)}
+figcaption b{color:var(--ink);font-weight:700}
+.video{border-radius:14px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.video video{width:100%;aspect-ratio:16/9}
+.logo-tile{display:flex;align-items:center;justify-content:center;padding:1.5rem;min-height:180px}
+.logo-tile.light{background:var(--logo-ground)}
+.logo-tile.dark{background:var(--logo-ground-dark)}
+.logo-tile img{max-height:150px;width:auto}
+.icon-tile{display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--sage-soft)}
+.icon-tile img{width:150px;border-radius:22%}
+.note{background:var(--surface-2);border-radius:12px;padding:.85rem 1rem;font-size:.95rem}
+.ai{font-style:italic}
+.contact-mail{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;overflow-wrap:anywhere;user-select:all}
+footer{border-top:1px solid var(--line);padding:1.5rem 0 2.5rem;font-size:.9rem;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+
+<div class="wrap topbar"><a href="../../">&larr; Lys Games</a></div>
+
+<header class="hero">
+  <img src="img/key-art.jpg" alt="Gopher It key art: interns in orange shirts carrying a crate, a tray of drinks and a stack of paper through an open-plan office while coworkers work at their desks." width="1920" height="1080">
+</header>
+
+<main>
+<div class="wrap intro">
+  <h1>Gopher It: Office Intern Simulator</h1>
+  <p class="lede">A cozy first-person job sim about being the newest intern. Nobody brings you work: when a coworker calls, you walk over, hear what they need, and go and do it. Play alone or with up to three friends.</p>
+  <ul class="pills">
+    <li class="hot">Free demo out now</li>
+    <li class="hot">Out November 9, 2026</li>
+    <li>Windows (Steam)</li>
+    <li>1 to 4 players</li>
+    <li>$7.99</li>
+    <li>12 languages</li>
+  </ul>
+  <div class="cta">
+    <a class="btn" href="gopher-it-press-assets.zip">Download all assets (zip)</a>
+    <a class="btn alt" href="https://store.steampowered.com/app/5398160/?utm_source=presskit&amp;utm_medium=web&amp;utm_campaign=press">Steam page</a>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#factsheet">Factsheet</a>
+    <a href="#description">Description</a>
+    <a href="#features">Features</a>
+    <a href="#trailer">Trailer</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#gifs">GIFs</a>
+    <a href="#logos">Logos</a>
+    <a href="#key-art">Key art</a>
+    <a href="#creators">Creators</a>
+    <a href="#ai">AI</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</div>
+
+<div class="wrap">
+<section id="factsheet">
+  <div class="cols">
+    <div>
+      <h2>Factsheet</h2>
+      <div class="card">
+        <dl class="facts">
+          <dt>Developer and publisher</dt>
+          <dd>Lys Games</dd>
+          <dt>Release dates</dt>
+          <dd>Free demo: out now (released October 27, 2026)<br>Full game: Monday, November 9, 2026, 10am Pacific</dd>
+          <dt>Platform</dt>
+          <dd>Windows, on Steam</dd>
+          <dt>Price</dt>
+          <dd>$7.99 USD, 25% off in launch week</dd>
+          <dt>Players</dt>
+          <dd>1 to 4. Online co-op with Steam friends and invites. Solo play is the same game, hosted for one.</dd>
+          <dt>Languages</dt>
+          <dd>Interface and text in English, French, German, Spanish (Spain), Italian, Polish, Portuguese (Brazil), Turkish, Russian, Japanese, Korean and Simplified Chinese. No voice acting.</dd>
+          <dt>Engine</dt>
+          <dd>Godot 4</dd>
+          <dt>Steam features</dt>
+          <dd>Achievements, full controller support, Family Sharing</dd>
+          <dt>Accessibility</dt>
+          <dd>No timed input, play at your own pace, camera comfort options, separate volume controls</dd>
+          <dt>Links</dt>
+          <dd>
+            <ul>
+              <li><a href="https://store.steampowered.com/app/5398160/?utm_source=presskit&amp;utm_medium=web&amp;utm_campaign=press">Steam store page</a></li>
+              <li><a href="https://youtu.be/TVJ0QT1E9js">Trailer on YouTube</a></li>
+              <li>X: <a href="https://x.com/lysgamedev">@lysgamedev</a></li>
+              <li>Bluesky: <a href="https://bsky.app/profile/lysgames.bsky.social">@lysgames.bsky.social</a></li>
+              <li>YouTube: <a href="https://www.youtube.com/@lysgamedev">@lysgamedev</a></li>
+              <li>TikTok: <a href="https://www.tiktok.com/@lysgamedev">@lysgamedev</a></li>
+            </ul>
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <div id="description">
+      <h2>Description</h2>
+      <h3 style="margin-top:0">Short</h3>
+      <p class="short">Gopher It is a cozy first-person job sim about being the newest intern. When a coworker calls, you go and do what they want: copies, coffee, the post, a birthday card to pass round. Play solo or with up to three friends. No timers, no game over.</p>
+
+      <h3>Long</h3>
+      <p>You are the new intern, and you happen to be a gopher. Nobody brings you work. Someone waves from two desks over, or shouts from behind a door, and you walk over to find out what they need. Then you go and do it.</p>
+      <p>Marcel needs four sets collated. Beatrice wants a drink and will tell you exactly how she takes it. Pixel needs something moved that weighs more than Pixel does. The jobs are small and hands-on. At the copier you load the paper, set the count, clear the jam, staple the sets and carry them back. For a drink you put the cup in, press the right button, add the sugar they asked for, then cross the floor without spilling it.</p>
+      <p>The clock only moves when you finish a task, so you can never fall behind. If you do spill that coffee, you fetch the mop. Errands earn intern points, and the points unlock things: copier duty, a desk of your own, a drinks tray, a keycard to the archive on the eighth floor and, eventually, a promotion.</p>
+      <p>With friends it is the same office. The day's list grows with the group, every finished errand moves the clock on for everyone, and anything you can't finish can be left on the spare desk for someone else to pick up. Some jobs, like the crate, only turn up when there are at least two of you.</p>
+      <p>The free demo covers your first three days on the job, in solo or co-op.</p>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <h2>Features</h2>
+  <ul class="features">
+    <li><b>You go to the work</b>A sign pops up over a coworker's head, or a voice calls from a side room. You go to them, hear the request in person, and fetch what they asked for.</li>
+    <li><b>Over forty kinds of errand</b>The copier, the drink round, desk-to-desk post, a courier at the lobby door with a pallet nobody ordered, the shredder, and a birthday card everyone has to sign before its owner notices.</li>
+    <li><b>No timers, no game over</b>Time only passes when a task is done. Mistakes turn into small jobs, like mopping up a spill, or cost a few points on the end-of-day fax.</li>
+    <li><b>27 unlocks</b>Intern points open new rooms, tools, kinds of errand, and coworkers who weren't asking you for anything before, all the way to the end of your internship.</li>
+    <li><b>Co-op for up to four</b>Friends join through Steam. The errand list scales with the group, and the spare desk lets you hand off a job you can't finish.</li>
+    <li><b>A whole office to meet</b>Nine coworkers hand out errands: Marcel, Beatrice and Pixel from day one, and six more as you go, plus Colette on reception and Gus the courier.</li>
+    <li><b>Two floors to learn</b>Floor seven holds the lobby, the bullpen, the print room, the break room, the meeting room, the stock room and more. The records archive upstairs needs a keycard, and the lift has its own music.</li>
+    <li><b>Plays with a pad</b>Full controller support and 41 Steam achievements.</li>
+  </ul>
+</section>
+
+<section id="trailer">
+  <h2>Trailer</h2>
+  <div class="video">
+    <video controls preload="none" playsinline poster="img/key-art.jpg" width="1280" height="720">
+      <source src="img/trailer-720p.mp4" type="video/mp4">
+    </video>
+  </div>
+  <p class="small muted" style="margin-top:.75rem">Gopher It trailer, 32 seconds. <a href="img/trailer-1080p.mp4">Download the 1080p MP4</a>, or watch and embed it from <a href="https://youtu.be/TVJ0QT1E9js">YouTube</a>.</p>
+</section>
+
+<section id="screenshots">
+  <h2>Screenshots</h2>
+  <p class="muted small">The six screenshots from the Steam page, 1920 &times; 1080. Click one to open it full size, then right-click (or long-press) to save.</p>
+  <div class="grid two">
+    <figure><a href="img/screenshot-1.jpg"><img src="img/screenshot-1.jpg" alt="Three interns in the bullpen, each with an errand listed over their head, while coworkers call for help." loading="lazy" width="1920" height="1080"></a><figcaption><b>The bullpen in co-op.</b> Three interns, three errands, and two more coworkers calling.</figcaption></figure>
+    <figure><a href="img/screenshot-2.jpg"><img src="img/screenshot-2.jpg" alt="A coworker at his desk with a glowing yellow exclamation sign above his head." loading="lazy" width="1920" height="1080"></a><figcaption><b>Someone needs you.</b> The sign over a coworker's head means it's time to walk over.</figcaption></figure>
+    <figure><a href="img/screenshot-3.jpg"><img src="img/screenshot-3.jpg" alt="An intern next to the photocopier in the print room, with the request shown at the bottom of the screen." loading="lazy" width="1920" height="1080"></a><figcaption><b>The print room.</b> Marcel wants copies for Beatrice.</figcaption></figure>
+    <figure><a href="img/screenshot-4.jpg"><img src="img/screenshot-4.jpg" alt="Three interns in the break room, one carrying a box and one holding a coffee mug." loading="lazy" width="1920" height="1080"></a><figcaption><b>The break room.</b> Plants, coffee and dishes, all running at once.</figcaption></figure>
+    <figure><a href="img/screenshot-5.jpg"><img src="img/screenshot-5.jpg" alt="An intern mopping a brown coffee spill on the corridor runner." loading="lazy" width="1920" height="1080"></a><figcaption><b>Spills happen.</b> No penalty screen, just a mop.</figcaption></figure>
+    <figure><a href="img/screenshot-6.jpg"><img src="img/screenshot-6.jpg" alt="The tea and coffee machine in the break room, with a request asking for coffee with sugar and no milk." loading="lazy" width="1920" height="1080"></a><figcaption><b>The drink round.</b> Doug wants the usual: coffee with sugar, no milk.</figcaption></figure>
+  </div>
+</section>
+
+<section id="gifs">
+  <h2>GIFs</h2>
+  <p class="muted small">Short loops, 640 &times; 360 (the co-op one is 560 &times; 315). Right-click (or long-press) to save.</p>
+  <div class="grid three">
+    <figure><img src="img/gif-call.gif" alt="Walking up to a coworker who is calling." loading="lazy" width="640" height="360"><figcaption><b>Answering a call</b></figcaption></figure>
+    <figure><img src="img/gif-coop.gif" alt="Two interns carrying a wooden crate down a corridor together." loading="lazy" width="560" height="315"><figcaption><b>Two hands on the crate</b></figcaption></figure>
+    <figure><img src="img/gif-copier.gif" alt="Setting the copy count on the photocopier." loading="lazy" width="640" height="360"><figcaption><b>Running the copier</b></figcaption></figure>
+    <figure><img src="img/gif-drink.gif" alt="Making a cup of coffee at the break room machine." loading="lazy" width="640" height="360"><figcaption><b>Making a coffee</b></figcaption></figure>
+    <figure><img src="img/gif-spill.gif" alt="A cup of coffee spilling on the corridor runner." loading="lazy" width="640" height="360"><figcaption><b>Oops</b></figcaption></figure>
+  </div>
+</section>
+
+<section id="logos">
+  <h2>Logos and icon</h2>
+  <p class="muted small">Transparent PNGs at full resolution. The first has a walnut outline for light backgrounds, the second a cream outline for dark ones.</p>
+  <div class="grid three">
+    <figure><a href="img/logo-for-light-backgrounds.png"><div class="logo-tile light"><img src="img/logo-for-light-backgrounds.png" alt="Gopher It logo with a walnut outline, for light backgrounds." loading="lazy" width="2392" height="756"></div></a><figcaption><b>For light backgrounds</b> &middot; 2392 &times; 756 PNG</figcaption></figure>
+    <figure><a href="img/logo-for-dark-backgrounds.png"><div class="logo-tile dark"><img src="img/logo-for-dark-backgrounds.png" alt="Gopher It logo with a cream outline, for dark backgrounds." loading="lazy" width="2378" height="832"></div></a><figcaption><b>For dark backgrounds</b> &middot; 2378 &times; 832 PNG</figcaption></figure>
+    <figure><a href="img/icon-512.png"><div class="icon-tile"><img src="img/icon-512.png" alt="Gopher It icon: the intern's face, with buck teeth and an orange shirt collar." loading="lazy" width="512" height="512"></div></a><figcaption><b>Game icon</b> &middot; 512 &times; 512 PNG</figcaption></figure>
+  </div>
+</section>
+
+<section id="key-art">
+  <h2>Key art</h2>
+  <div class="grid two">
+    <figure><a href="img/key-art.jpg"><img src="img/key-art.jpg" alt="Key art with the Gopher It logo in the ceiling band." loading="lazy" width="1920" height="1080"></a><figcaption><b>Key art with logo</b> &middot; 1920 &times; 1080</figcaption></figure>
+    <figure><a href="img/key-art-textless.jpg"><img src="img/key-art-textless.jpg" alt="The same key art without the logo." loading="lazy" width="1920" height="1080"></a><figcaption><b>Key art, no text</b> &middot; 1920 &times; 1080</figcaption></figure>
+  </div>
+  <figure style="margin-top:1rem"><a href="img/hero-wide-3840.jpg"><img src="img/hero-wide-3840.jpg" alt="Wide banner of the office with the interns at work, no text." loading="lazy" width="3840" height="1240"></a><figcaption><b>Wide banner, no text</b> &middot; 3840 &times; 1240, good for headers</figcaption></figure>
+
+  <h3>Store capsules</h3>
+  <div class="grid two">
+    <figure><a href="img/capsule-main.jpg"><img src="img/capsule-main.jpg" alt="Main store capsule with the logo." loading="lazy" width="1232" height="706"></a><figcaption><b>Main capsule</b> &middot; 1232 &times; 706</figcaption></figure>
+    <figure><a href="img/capsule-header.jpg"><img src="img/capsule-header.jpg" alt="Header store capsule with the logo." loading="lazy" width="920" height="430"></a><figcaption><b>Header capsule</b> &middot; 920 &times; 430</figcaption></figure>
+    <figure><a href="img/capsule-vertical.jpg"><img src="img/capsule-vertical.jpg" alt="Vertical store capsule with the logo." loading="lazy" width="748" height="896"></a><figcaption><b>Vertical capsule</b> &middot; 748 &times; 896</figcaption></figure>
+    <figure><a href="img/capsule-library.jpg"><img src="img/capsule-library.jpg" alt="Library capsule with the logo." loading="lazy" width="600" height="900"></a><figcaption><b>Library capsule</b> &middot; 600 &times; 900</figcaption></figure>
+  </div>
+</section>
+
+<section id="creators">
+  <h2>For streamers and video creators</h2>
+  <p>You are welcome to stream Gopher It and to make videos of it, and you can monetize them. You don't need to ask first. A link to the <a href="https://store.steampowered.com/app/5398160/?utm_source=presskit&amp;utm_medium=web&amp;utm_campaign=creators">Steam page</a> in the description is appreciated but not required.</p>
+  <p>Keys are available on request. Email lysgamedev@gmail.com with a link to your channel. Keys are only sent to the email address listed on that channel, so please write from that address or make sure it is visible on your channel page.</p>
+  <p class="note">The free demo is out now and covers your first three days on the job, so you can play the start without a key.</p>
+</section>
+
+<section id="ai">
+  <h2>Use of AI</h2>
+  <p class="ai">"Some of the art (store images, icons, in-game paintings and textures) and translations were created with the help of generative AI tools."</p>
+  <p class="muted small">This is the disclosure on the Steam page. The game does not generate anything with AI while you play.</p>
+</section>
+
+<section id="contact">
+  <h2>Contact</h2>
+  <p>Press, creators and anything else: write to</p>
+  <p class="contact-mail">lysgamedev@gmail.com</p>
+  <p>Or find Lys Games on <a href="https://x.com/lysgamedev">X</a>, <a href="https://bsky.app/profile/lysgames.bsky.social">Bluesky</a>, <a href="https://www.youtube.com/@lysgamedev">YouTube</a> and <a href="https://www.tiktok.com/@lysgamedev">TikTok</a>.</p>
+</section>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">Gopher It &copy; 2026 Lys Games. Images and video on this page may be used for coverage of the game.</div>
+</footer>
+
+</body>
+</html>
