@@ -7,7 +7,7 @@
 
 export const ROUND = 6;          // seconds of pulling
 export const WINDOW = 1.2;       // seconds of taps that count toward the rate
-export const R0 = 11.5;          // taps per second for 63% of a metre
+export const R0 = 13;            // taps per second for 63% of a metre
 export const RISE = 0.6, FALL = 1.1;
 export const PC_BOOST = 1.35;    // a mouse or a space bar is slower than two thumbs
 
