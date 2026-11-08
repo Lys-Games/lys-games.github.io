@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>区境つなひき / Border Tug</title>
+<meta name="description" content="Taito and Sumida wards really move their border with a tug of war on Sakurabashi. Pick a side and tap to move the shared online border by up to 1 m. A free mini game by Lys Games.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="区境つなひき / Border Tug">
+<meta property="og:description" content="台東区か墨田区か。連打で、みんなの区境を最大1m動かせ。Pick a ward and tap to move the real border by up to 1 m.">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/border-tug/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/border-tug/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="https://lys-games.github.io/gopher-it/press/img/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="leaflet.css">
+<style>
+:root{--ink:#111;--yellow:#ffe14a;--red:#e8392b;--taito:#e8392b;--sumida:#1f78e0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#cfe6f5;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+body{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;color:#fff}
+#map{position:fixed;inset:0;background:#cfe6f5}
+#attr{position:absolute;right:0;bottom:env(safe-area-inset-bottom);z-index:5;font:600 10px/1.4 system-ui,sans-serif;color:#333;background:rgba(255,255,255,.8);padding:1px 6px;border-top-left-radius:6px;pointer-events:auto}
+#attr a{color:#0b57a8;text-decoration:none}
+#ov{position:fixed;inset:0;pointer-events:none;z-index:500}
+#ui{position:fixed;inset:0;pointer-events:none;z-index:600;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.t{-webkit-text-stroke:.13em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em}
+.en{font-family:system-ui,sans-serif;font-weight:800;font-size:max(15px,.45em);letter-spacing:0;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;display:block;margin-top:.25em}
+#telop{position:absolute;left:0;right:0;bottom:calc(30% + env(safe-area-inset-bottom));text-align:center;font-size:clamp(24px,7.5vw,46px);padding:0 16px;display:none}
+#telop .jp{color:var(--yellow)}
+#big{position:absolute;left:0;right:0;top:32%;text-align:center;font-size:clamp(44px,16vw,120px);color:var(--yellow);display:none;white-space:nowrap}
+#flash{position:absolute;inset:0;background:#fff;opacity:0}
+#pops span{position:absolute;transform:translate(-50%,-50%);color:#fff;animation:pop .9s ease-out forwards;white-space:nowrap}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.3) rotate(-8deg);opacity:1}25%{transform:translate(-50%,-50%) scale(1.15) rotate(4deg);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-80%) scale(1) rotate(0);opacity:0}}
+#rankup{position:absolute;left:50%;top:27%;transform:translateX(-50%);text-align:center;white-space:nowrap;display:none}
+
+/* pull HUD */
+#hud{position:absolute;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top));display:none;text-align:center}
+#timer{height:16px;border:4px solid var(--ink);border-radius:10px;background:#fff;overflow:hidden}
+#tfill{height:100%;width:100%;background:var(--yellow)}
+#meters{font-size:clamp(48px,16vw,96px);color:#fff;margin-top:4px;white-space:nowrap}
+#meters small{font-size:.45em}
+#effort{font-size:clamp(20px,6vw,32px);color:var(--yellow);min-height:1.3em}
+#rope{position:absolute;left:0;right:0;bottom:calc(7% + env(safe-area-inset-bottom));height:110px;display:none}
+#rope .cord{position:absolute;left:-10%;right:-10%;top:50px;height:16px;border:3px solid var(--ink);border-radius:9px;background:repeating-linear-gradient(115deg,#d8b06a 0 10px,#b98a45 10px 20px)}
+#rope .flag{position:absolute;left:50%;top:6px;width:0;height:0}
+#rope .flag i{position:absolute;left:-14px;top:0;width:28px;height:52px;background:var(--yellow);border:4px solid var(--ink);border-radius:4px 4px 14px 14px}
+#rope .end{position:absolute;top:76px;font-size:clamp(18px,5vw,26px);padding:2px 12px;border:3px solid var(--ink);border-radius:999px;-webkit-text-stroke:0;text-shadow:none}
+#rope .end.l{left:12px;background:var(--taito)}
+#rope .end.r{right:12px;background:var(--sumida)}
+#rope .end.me{box-shadow:0 0 0 4px var(--yellow)}
+#rope .mid{position:absolute;left:50%;top:34px;width:4px;height:48px;margin-left:-2px;background:var(--ink)}
+#hint{position:absolute;left:0;right:0;bottom:calc(7% + 118px + env(safe-area-inset-bottom));text-align:center;font-size:clamp(28px,9vw,54px);color:var(--yellow);display:none}
+
+/* panels */
+.panel{position:absolute;left:50%;transform:translateX(-50%);width:min(92vw,460px);text-align:center;pointer-events:auto;display:none}
+#title{top:calc(10px + env(safe-area-inset-top));bottom:calc(20px + env(safe-area-inset-bottom));flex-direction:column;justify-content:space-between;align-items:center}
+#title h1{margin:0;font-weight:400;white-space:nowrap;font-size:clamp(36px,11.5vw,72px);color:var(--yellow)}
+#title h1 .en{font-size:.4em;color:#fff}
+.card{font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-weight:800;font-size:12.5px;line-height:1.4;color:var(--ink);background:#fff;border:4px solid var(--ink);border-radius:16px;padding:.6em .9em;box-shadow:0 5px 0 var(--ink)}
+.card .e{display:block;font-family:system-ui,sans-serif;font-size:11px;color:#555;margin-top:.2em}
+#status{margin:.4em 0 .1em}
+#status b{font-family:"Dela Gothic One",system-ui,sans-serif;font-weight:400;font-size:20px}
+.areas{display:flex;gap:6px;margin-top:.45em}
+.areas div{flex:1;border:3px solid var(--ink);border-radius:10px;padding:.25em .3em;color:#fff;font-size:12px}
+.areas div b{display:block;font-family:"Dela Gothic One",system-ui,sans-serif;font-weight:400;font-size:clamp(14px,4.4vw,19px);-webkit-text-stroke:.12em var(--ink);paint-order:stroke fill;white-space:nowrap}
+.areas .ta{background:var(--taito)}.areas .su{background:var(--sumida)}
+.areas .gone{background:#444}
+#title .go{display:flex;flex-direction:column;align-items:center;width:100%}
+#title .ask{font-size:clamp(18px,5.5vw,26px);margin:.15em 0}
+#title .ask .en{display:inline;margin-left:.4em}
+.sides{display:flex;gap:10px;justify-content:center;width:100%}
+button,.btn{display:inline-block;text-decoration:none;font:inherit;font-size:clamp(22px,6vw,30px);color:#fff;background:var(--red);border:4px solid var(--ink);border-radius:999px;padding:.35em 1.2em;box-shadow:0 5px 0 var(--ink);cursor:pointer;margin:.3em}
+button:active,.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+button.alt,.btn.alt{background:#222}
+.sides button{flex:1;margin:.2em 0;padding:.35em .4em;-webkit-text-stroke:.1em var(--ink);paint-order:stroke fill;line-height:1.1}
+.sides button small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:13px;-webkit-text-stroke:0}
+#pickT{background:var(--taito)}#pickS{background:var(--sumida)}
+#result{bottom:calc(20px + env(safe-area-inset-bottom));font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-weight:800;background:#fff;color:var(--ink);border:5px solid var(--ink);border-radius:20px;padding:14px 14px 12px;box-shadow:0 8px 0 var(--ink);max-height:calc(100% - 20px);overflow:auto;padding-bottom:10px}
+#result .label{font-family:system-ui,sans-serif;font-weight:800;font-size:13px;color:#666}
+#rm,#rrank,#result .btn,#result button{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400}
+#rm{white-space:nowrap;font-size:clamp(40px,12vw,60px);color:var(--red);line-height:1.1}
+#rrank{font-size:clamp(22px,6.5vw,30px)}
+#rrank small,#rgain small,#rtotal small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:12px;color:#666}
+#rgain{font-size:14px;margin:.3em 0;line-height:1.35}
+#rgain b{color:var(--red)}
+#rtotal{font-size:14px;margin:.4em 0 .2em}
+#rgone{display:none;font-family:"Dela Gothic One",system-ui,sans-serif;font-weight:400;font-size:22px;color:var(--red);margin:.2em 0}
+#result .small{font-family:system-ui,sans-serif;font-size:12px;margin-top:.5em}
+#result a{color:var(--ink)}
+#result a.btn{color:#fff}
+#result .row{display:flex;justify-content:center;gap:8px;margin-top:.3em}
+#result .row button,#result .row .btn{font-size:clamp(18px,5.2vw,24px);padding:.3em .9em;margin:.2em 0;white-space:nowrap}
+#net{font-family:system-ui,sans-serif;font-size:11px;color:#a33;margin-top:.3em;display:none}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<canvas id="ov"></canvas>
+<div id="ui">
+  <div id="hud"><div id="timer"><div id="tfill"></div></div><div id="meters" class="t">0.00<small> m</small></div><div id="effort" class="t"></div></div>
+  <div id="hint" class="t">連打！<span class="en">TAP TAP TAP!</span></div>
+  <div id="rope"><div class="cord"></div><div class="mid"></div><div class="flag"><i></i></div><span class="end l t">台東区</span><span class="end r t">墨田区</span></div>
+  <div id="rankup" class="t"></div>
+  <div id="pops"></div>
+  <div id="big" class="t"></div>
+  <div id="telop" class="t"><span class="jp"></span><span class="en"></span></div>
+  <div id="flash"></div>
+  <div id="attr"><a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a> | <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a> | 区境 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+  <div id="title" class="panel">
+    <h1 class="t">区境つなひき<span class="en">Border Tug</span></h1>
+    <div class="go">
+      <div class="card">台東区と墨田区は毎年、桜橋の綱引きで本当に区境を動かしています。これはそのネット版。1回で動くのは最大1m。<span class="e">Taito and Sumida really move their border with a tug of war on Sakurabashi every year. Online, each pull moves it up to 1 m.</span>
+        <div id="status"></div>
+        <div class="areas"><div class="ta" id="aT"></div><div class="su" id="aS"></div></div>
+      </div>
+      <div class="ask t">どっちの味方？<span class="en">Pick a side</span></div>
+      <div class="sides"><button id="pickT">台東区<small>Taito</small></button><button id="pickS">墨田区<small>Sumida</small></button></div>
+    </div>
+  </div>
+  <div id="result" class="panel">
+    <div class="label" id="rlabel"></div>
+    <div id="rm"></div>
+    <div id="rrank"></div>
+    <div id="rgone"></div>
+    <div id="rgain"></div>
+    <div class="areas"><div class="ta" id="rT"></div><div class="su" id="rS"></div></div>
+    <div id="rtotal"></div>
+    <div id="net"></div>
+    <div class="row"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでシェア</a></div>
+    <div class="small"><a href="#" id="switch">陣営を変える / Switch sides</a></div>
+    <div class="small">by <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=bordertug" target="_blank" rel="noopener">Gopher It on Steam</a></div>
+  </div>
+</div>
+<script src="leaflet.js"></script>
+<script type="module">
+import {makeGeo} from './geo.js?v=6';
+import {makePull, target, ROUND} from './tug.js?v=6';
+import {makeStore} from './store.js?v=6';
+
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const rnd = (a=0, b=1) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const Q = new URLSearchParams(location.search);
+const URL_PUBLIC = 'https://lys-games.github.io/mini-games/border-tug/';
+
+// ---------- data ----------
+const data = await (await fetch('wards.json?v=6')).json();
+const geo = makeGeo(data);
+const SIDE = {
+  taito:  {ja:'台東区', en:'Taito',  color:'#e8392b', sign:+1},
+  sumida: {ja:'墨田区', en:'Sumida', color:'#1f78e0', sign:-1},
+};
+const RANKS = [ // `at` = metres
+  {at:0,    ja:'ほぼ動かず',     en:'Barely moved'},
+  {at:0.10, ja:'町内会級',   en:'Neighbourhood club'},
+  {at:0.25, ja:'区の代表級', en:'Ward team'},
+  {at:0.45, ja:'オールスター級', en:'All-star'},
+  {at:0.65, ja:'横綱級',         en:'Yokozuna'},
+  {at:0.85, ja:'人間ウインチ',   en:'Human winch'},
+  {at:0.95, ja:'伝説の引き手',   en:'Legendary puller'},
+];
+const rankOf = m => RANKS.reduce((r, R, i) => m >= R.at ? i : r, 0);
+const TATAMI = 1.62;   // m² per mat, the size Japanese property listings use
+
+// ---------- storage ----------
+const ns = Q.get('ns') || (location.hostname === 'lys-games.github.io' ? 'lysgames-border-tug' : 'lysgames-border-tug-dev');
+let store = makeStore({ns, offline: Q.has('offline') || Q.has('s')});
+if (Q.has('s')) try { localStorage.setItem('border-tug.' + ns, +Q.get('s')); } catch {}
+let shared = 0;          // the border everyone sees, metres toward Sumida
+let netOk = true;
+const sClamp = s => clamp(s, geo.taitoGoneAt, geo.sumidaGoneAt);
+async function refresh(){
+  try { shared = await store.get(); netOk = true; }
+  catch (e) {
+    console.warn('store', e); netOk = false;
+    if (store.online && e instanceof TypeError) { store = makeStore({ns, offline:true}); shared = await store.get(); }   // unreachable: play on this device
+  }
+  return shared;
+}
+
+// ---------- map ----------
+const map = L.map('map', {zoomControl:false, attributionControl:false, zoomSnap:0, maxZoom:26, dragging:false, touchZoom:false, scrollWheelZoom:false,
+  doubleClickZoom:false, boxZoom:false, keyboard:false, tap:false, inertia:false});
+L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {maxNativeZoom:18, maxZoom:26, minZoom:5,
+}).addTo(map);
+const LL = ([lon, lat]) => L.latLng(lat, lon);
+const allLL = [...data.taito.ring, ...data.sumida.ring].map(LL);
+const wardsBounds = L.latLngBounds(allLL);
+// fit both wards in the gap the title screen leaves between its heading and its card
+function overview(){
+  if ($('title').style.display !== 'flex') return {paddingTopLeft:[10, 10 + innerHeight*.03], paddingBottomRight:[10, innerHeight*.62]};
+  const top = $('title').querySelector('h1').getBoundingClientRect().bottom, bottom = $('title').querySelector('.go').getBoundingClientRect().top;
+  return {paddingTopLeft:[10, top + 4], paddingBottomRight:[10, Math.max(10, innerHeight - bottom + 4)]};
+}
+// zoom where one metre covers `px` screen pixels, at this latitude
+const zoomFor = px => Math.log2(156543.03392 * Math.cos(data.bridge.lonlat[1] * Math.PI/180) * px);
+const closeZoom = () => zoomFor(Math.min(innerWidth, innerHeight*.8) * .55);
+
+// ---------- overlay ----------
+const cv = $('ov'), cx = cv.getContext('2d');
+let DPR = 1;
+function resize(){ DPR = Math.min(devicePixelRatio || 1, 2); cv.width = innerWidth*DPR; cv.height = innerHeight*DPR; cv.style.width = innerWidth+'px'; cv.style.height = innerHeight+'px'; }
+addEventListener('resize', resize); resize();
+const ringT = data.taito.ring.map(LL), ringS = data.sumida.ring.map(LL), outline = data.bridge.outline?.map(LL);
+const pt = ll => map.latLngToContainerPoint(ll);
+const xyPt = xy => pt(LL(geo.toLonLat(xy)));
+function path(ring){ ring.forEach((ll, i) => { const p = pt(ll); i ? cx.lineTo(p.x, p.y) : cx.moveTo(p.x, p.y); }); cx.closePath(); }
+function xyPath(xys, close){ xys.forEach((xy, i) => { const p = xyPt(xy); i ? cx.lineTo(p.x, p.y) : cx.moveTo(p.x, p.y); }); if (close) cx.closePath(); }
+const FAR = 120000;
+const eastPoly = s => { const L = geo.line(s); return [...L, [FAR, L[L.length-1][1]], [FAR, L[0][1]]]; };
+const westPoly = s => { const L = geo.line(s); return [...L, [-FAR, L[L.length-1][1]], [-FAR, L[0][1]]]; };
+
+// what the overlay shows; the game moves these
+const view = {line:0, ghost:null, tape:null, tapeSide:1, glow:0, labels:true, mark:null};
+function draw(){
+  const z = map.getZoom(), W = innerWidth, H = innerHeight;
+  cx.setTransform(DPR, 0, 0, DPR, 0, 0); cx.clearRect(0, 0, W, H);
+  // close up: the tiles stop at 18, so paint the ground ourselves: the river and the bridge deck when
+  // the border is still near Sakurabashi, plain paving once it has moved off into the streets
+  const deck = clamp((z - 19.2) / 1.2, 0, 1);
+  const c = map.getCenter(), [vx, vy] = geo.toXY([c.lng, c.lat]), onBridge = Math.abs(vx) < 150 && Math.abs(vy) < 80;
+  if (deck > 0 && !onBridge) {
+    cx.globalAlpha = deck; cx.fillStyle = '#ebe5d8'; cx.fillRect(0, 0, W, H);
+    if (z > 21.5) { cx.globalAlpha = deck * clamp(z - 21.5, 0, 1); paving(); }
+    cx.globalAlpha = 1;
+  } else if (deck > 0) {
+    cx.globalAlpha = deck; cx.fillStyle = '#69b4dc'; cx.fillRect(0, 0, W, H);
+    if (outline) {
+      cx.beginPath(); path(outline); cx.fillStyle = '#efe7d6'; cx.fill();
+      cx.lineWidth = Math.max(3, Math.min(14, 2 ** (z - 19))); cx.strokeStyle = '#6d6a63'; cx.stroke();
+      if (z > 21.5) { cx.save(); cx.clip(); cx.globalAlpha = deck * clamp(z - 21.5, 0, 1); paving(); cx.restore(); }
+    }
+    cx.globalAlpha = 1;
+  }
+  const s = sClamp(view.line);
+  // the two wards as they are now: Taito's colour west of the line, Sumida's east, clipped to the wards
+  cx.save();
+  cx.beginPath(); path(ringT); path(ringS); cx.clip();
+  const fa = deck > 0 ? .22 : .34;
+  cx.globalAlpha = fa; cx.fillStyle = SIDE.taito.color; cx.beginPath(); xyPath(westPoly(s), true); cx.fill();
+  cx.fillStyle = SIDE.sumida.color; cx.beginPath(); xyPath(eastPoly(s), true); cx.fill();
+  // land that changed hands since the original border
+  if (Math.abs(s) > 1e-6) {
+    cx.globalAlpha = .35 + .3*view.glow; cx.fillStyle = s > 0 ? SIDE.taito.color : SIDE.sumida.color;
+    cx.beginPath(); xyPath([...geo.line0, ...geo.line(s).reverse()], true); cx.fill();
+  }
+  cx.globalAlpha = 1;
+  // the original border, dashed
+  cx.setLineDash([8, 6]); cx.lineWidth = 2.5; cx.strokeStyle = 'rgba(17,17,17,.75)';
+  cx.beginPath(); xyPath(geo.line0); cx.stroke(); cx.setLineDash([]);
+  if (view.ghost != null) { cx.lineWidth = 3; cx.strokeStyle = 'rgba(255,255,255,.9)'; cx.beginPath(); xyPath(geo.line(sClamp(view.ghost))); cx.stroke(); }
+  // the live border
+  const lw = deck > 0 ? 9 : 5;
+  cx.lineJoin = 'round';
+  cx.lineWidth = lw + 5; cx.strokeStyle = '#111'; cx.beginPath(); xyPath(geo.line(s)); cx.stroke();
+  cx.lineWidth = lw; cx.strokeStyle = '#ffe14a'; cx.stroke();
+  cx.restore();
+  // ward outlines
+  cx.lineWidth = deck > 0 ? 0 : 2; cx.strokeStyle = 'rgba(17,17,17,.55)';
+  if (!deck) { cx.beginPath(); path(ringT); cx.stroke(); cx.beginPath(); path(ringS); cx.stroke(); }
+  if (view.tape != null) drawTape(anchor0, view.tapeSide);
+  if (view.labels && z < 16) drawLabels(s);
+  if (view.mark && z < 17) drawMark(view.mark);
+}
+// on the zoomed-out map: a ring on the bridge with how far this pull moved it
+function drawMark({at, text, t0}){
+  const p = xyPt(at), u = ((performance.now() - t0) / 1200) % 1, size = clamp(innerWidth*.055, 16, 30);
+  cx.strokeStyle = '#ffe14a'; cx.lineWidth = 4; cx.globalAlpha = 1 - u;
+  cx.beginPath(); cx.arc(p.x, p.y, 8 + u*40, 0, 7); cx.stroke(); cx.globalAlpha = 1;
+  cx.fillStyle = '#fff'; cx.strokeStyle = '#111'; cx.lineWidth = 4; cx.beginPath(); cx.arc(p.x, p.y, 8, 0, 7); cx.fill(); cx.stroke();
+  cx.font = `${size}px "Dela Gothic One", system-ui`; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
+  const w = cx.measureText(text).width, tx = clamp(p.x + 16, 8, innerWidth - 8 - w);
+  cx.lineWidth = size*.28; cx.strokeText(text, tx, p.y - size*.9); cx.fillStyle = '#ffe14a'; cx.fillText(text, tx, p.y - size*.9);
+}
+// half-metre paving slabs, square to the border, so a metre reads as a metre
+function paving(){
+  const c = [[0,0],[innerWidth,0],[0,innerHeight],[innerWidth,innerHeight]].map(([x, y]) => { const ll = map.containerPointToLatLng([x, y]); return geo.toXY([ll.lng, ll.lat]); });
+  const xs = c.map(p => p[0]), ys = c.map(p => p[1]), S = .5;
+  const x0 = Math.floor(Math.min(...xs)/S)*S, x1 = Math.max(...xs), y0 = Math.floor(Math.min(...ys)/S)*S, y1 = Math.max(...ys);
+  if ((x1 - x0)/S > 200 || (y1 - y0)/S > 200) return;
+  cx.strokeStyle = '#c9bea6'; cx.lineWidth = 2; cx.beginPath();
+  for (let x = x0; x <= x1; x += S) { const a = xyPt([x, y0]), b = xyPt([x, y1]); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); }
+  for (let y = y0; y <= y1; y += S) { const a = xyPt([x0, y]), b = xyPt([x1, y]); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); }
+  cx.stroke();
+}
+// a measuring tape along the bridge, from the border where the pull started to 1 m into the other ward
+function drawTape([ax, ay], dir){
+  const a = xyPt([ax, ay]), b = xyPt([ax + dir, ay]);
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+  if (len < 40) return;
+  const ux = dx/len, uy = dy/len, w = clamp(len*.13, 26, 46);
+  cx.save(); cx.translate(a.x, a.y); cx.rotate(Math.atan2(uy, ux));
+  cx.fillStyle = '#ffd400'; cx.strokeStyle = '#111'; cx.lineWidth = 3;
+  cx.beginPath(); cx.rect(-6, -w/2, len + 12, w); cx.fill(); cx.stroke();
+  cx.fillStyle = '#111'; cx.textAlign = 'center'; cx.textBaseline = 'top';
+  for (let cm = 0; cm <= 100; cm += 5) {
+    const x = len * cm / 100, h = cm % 50 === 0 ? w*.7 : cm % 10 === 0 ? w*.45 : w*.25;
+    cx.fillRect(x - 1, -w/2, 2, h);
+  }
+  cx.font = `${Math.round(w*.5)}px "Dela Gothic One", system-ui`;
+  for (const cm of [0, 50, 100]) {
+    cx.save(); cx.translate(len*cm/100, w*.16); if (Math.cos(Math.atan2(uy, ux)) < 0) cx.rotate(Math.PI);
+    cx.fillText(cm === 100 ? '1m' : cm + '', 0, -w*.08); cx.restore();
+  }
+  cx.restore();
+}
+function drawLabels(s){
+  const a = geo.areas(s), size = clamp(innerWidth*.06, 17, 36);
+  cx.font = `${size}px "Dela Gothic One", system-ui`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.lineJoin = 'round'; cx.lineWidth = size*.26; cx.strokeStyle = '#111';
+  const L = ['taito', 'sumida'].map(k => { const p = xyPt(geo.labelAt(k, s)), txt = SIDE[k].ja + (a[k] < 1 ? ' 消滅' : ''); return {k, x:p.x, y:p.y, txt, w:cx.measureText(txt).width}; });
+  // the smaller ward's name steps down when the two would overlap
+  const [big, small] = a.taito >= a.sumida ? L : [L[1], L[0]];
+  if (Math.abs(big.x - small.x) < (big.w + small.w)/2 && Math.abs(big.y - small.y) < size*1.2) small.y = big.y + size*1.3;
+  for (const l of L) { cx.strokeText(l.txt, l.x, l.y); cx.fillStyle = a[l.k] < 1 ? '#bbb' : '#fff'; cx.fillText(l.txt, l.x, l.y); }
+}
+
+// ---------- UI helpers (the PEN game's telop style) ----------
+function telop(jp, en){ const t = $('telop'); if (!jp) { t.style.display = 'none'; return; } t.querySelector('.jp').textContent = jp; t.querySelector('.en').textContent = en; t.style.display = 'block'; }
+function big(text){ const b = $('big'); b.style.display = text ? 'block' : 'none'; b.innerHTML = text || ''; if (text) b.animate([{transform:'scale(2)', opacity:0}, {transform:'scale(1)', opacity:1}], {duration:220, easing:'ease-out'}); }
+function pop(text, x, y, size=1, color){
+  const s = document.createElement('span');
+  s.className = 't'; s.textContent = text;
+  s.style.fontSize = `clamp(24px, ${7*size}vw, ${60*size}px)`; s.style.color = color || pick(['#ffe14a','#ffffff','#ff8a3d']);
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  $('pops').append(s);
+  const hw = s.offsetWidth/2 + 8; s.style.left = clamp(x, hw, innerWidth - hw) + 'px';
+  setTimeout(() => s.remove(), 900);
+}
+function flash(o=1, color='#fff'){ const f = $('flash'); f.style.background = color; f.style.transition = 'none'; f.style.opacity = o; requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity .6s'; f.style.opacity = 0; })); }
+const bump = (el, s=1.25, ms=140) => el.animate([{transform:`scale(${s})`}, {transform:'scale(1)'}], {duration:ms, easing:'ease-out'});
+function rankUp(i, ms=2200){
+  const R = RANKS[i], el = $('rankup');
+  el.innerHTML = `${R.ja}！<span class="en">${R.en}!</span>`;
+  el.style.color = ['#fff','#fff','#ffe14a','#ffd23a','#ffb03a','#ff8a3d','#ff3d6e'][i];
+  el.style.fontSize = `clamp(26px, ${Math.min(8 + i, 84/(R.ja.length+1))}vw, ${44 + i*6}px)`;
+  el.style.display = 'block';
+  el.getAnimations().forEach(a => a.cancel());
+  el.animate([{transform:'translateX(-50%) scale(2.2) rotate(-6deg)', opacity:0}, {transform:'translateX(-50%) scale(.9) rotate(2deg)', opacity:1, offset:.25}, {transform:'translateX(-50%) scale(1)', opacity:1, offset:.8}, {transform:'translateX(-50%) scale(1)', opacity:0}], {duration:ms, easing:'ease-out', fill:'forwards'});
+}
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+const fmtArea = n => n < 10 ? n.toFixed(1) : fmtInt(n);
+const fmtM = m => Math.abs(m).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtKm2 = m2 => (m2/1e6).toFixed(4);
+let shakeAmt = 0;
+function shake(a){ if (!REDUCED) shakeAmt = Math.max(shakeAmt, a); }
+
+function borderLine(s){
+  s = sClamp(s);
+  if (Math.abs(s) < .005) return ['区境はいま、元の位置', 'The border is where it started'];
+  const into = s > 0 ? SIDE.sumida : SIDE.taito;
+  return [`区境はいま <b>${into.ja}側へ ${fmtM(s)} m</b>`, `The border is now ${fmtM(s)} m into ${into.en}`];
+}
+// one ward's box: name, m² (counting up from before the pull when `delta` is given), and km² or the change
+function areaBox(el, k, a, delta){
+  const gone = a < 1;
+  if (Math.abs(delta) < .5) delta = 0;
+  el.className = (k === 'taito' ? 'ta' : 'su') + (gone ? ' gone' : '');
+  el.innerHTML = `${SIDE[k].ja}${gone ? ' 消滅' : ''}<b>${fmtInt(a)} m²</b>${delta ? (delta > 0 ? '+' : '−') + fmtInt(Math.abs(delta)) + ' m²' : fmtKm2(a) + ' km²'}`;
+  if (!delta || REDUCED) return;
+  const b = el.querySelector('b'), from = Math.max(0, a - delta), t0 = performance.now(), T = 1100;
+  (function tick(now){
+    const u = Math.min(1, (now - t0)/T), e = 1 - Math.pow(1 - u, 3);
+    b.textContent = fmtInt(from + (a - from)*e) + ' m²';
+    if (u < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+function showStatus(){
+  const [ja, en] = borderLine(shared), a = geo.areas(sClamp(shared));
+  const p = store.pulled();
+  const tot = p && (p.taito || p.sumida) ? `<span class="e">みんなが引いた合計 / Pulled so far: 台東区 ${fmtM(p.taito)} m · 墨田区 ${fmtM(p.sumida)} m</span>` : '';
+  $('status').innerHTML = `${ja}<span class="e">${en}${netOk ? '' : ' (offline)'}</span>${tot}`;
+  areaBox($('aT'), 'taito', a.taito); areaBox($('aS'), 'sumida', a.sumida);
+}
+
+// ---------- audio ----------
+let ac, master, noise; const sfx = {};
+const SOUNDS = ['k_select_003','k_confirmation_001','k_open_002','k_maximize_003','k_bong_001','k_impactPunch_heavy_000','k_impactWood_heavy_000','k_impactSoft_heavy_000',
+  ...['title','taito','sumida','bridge','ready','pull','oes','stop','moved','gone_taito','gone_sumida', ...RANKS.map((_, i) => 'r' + i)].map(n => 'v_' + n)];
+const BUILD = 6;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
+const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3?v=${BUILD}`).then(r => r.arrayBuffer()).catch(() => null)]));
+async function initAudio(){
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  master = ac.createGain(); master.gain.value = .9; master.connect(ac.destination);
+  noise = ac.createBuffer(1, ac.sampleRate*2, ac.sampleRate);
+  const d = noise.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+  await Promise.all(Object.entries(raw).map(async ([n, p]) => { try { const b = await p; if (b) sfx[n] = await ac.decodeAudioData(b.slice(0)); } catch (e) { console.warn('audio', n, e); } }));
+}
+// play a Kenney sample (CC0, see sfx/KENNEY-LICENSE.txt)
+function sample(name, rate=1, gain=.6){
+  if (!ac || !sfx[name]) return null;
+  const src = ac.createBufferSource(), g = ac.createGain();
+  src.buffer = sfx[name]; src.playbackRate.value = rate; g.gain.value = gain;
+  src.connect(g); g.connect(master); src.start();
+  return src;
+}
+// spoken lines (macOS text-to-speech, Kyoko and Otoya): a new one cuts the previous
+let speaking = null;
+function say(name, gain=1.3, rate=1){
+  try { speaking?.stop(); } catch {}
+  speaking = sample('v_' + name, rate, gain);
+  return speaking ? speaking.buffer.duration*1000/rate : 0;
+}
+const line = (name, ms) => wait(Math.max(ms, say(name) + 300));
+function noiseBurst({dur=.3, freq=800, q=1, gain=.5, type='bandpass', at=0}={}){
+  if (!ac) return;
+  const src = ac.createBufferSource(); src.buffer = noise; src.loop = true;
+  const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const g = ac.createGain(), t = ac.currentTime + at;
+  g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(gain, t + Math.min(.05, dur/4)); g.gain.exponentialRampToValueAtTime(.001, t+dur);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t, rnd(0, 1.5)); src.stop(t+dur+.05);
+}
+// a referee's whistle: a pea whistle trills, so wobble a high tone fast
+function whistle(dur=.35, gain=.35){
+  if (!ac) return;
+  const t = ac.currentTime, o = ac.createOscillator(), lfo = ac.createOscillator(), lg = ac.createGain(), g = ac.createGain(), f = ac.createBiquadFilter();
+  o.type = 'triangle'; o.frequency.value = 2650; lfo.frequency.value = 38; lg.gain.value = 140;
+  lfo.connect(lg); lg.connect(o.frequency);
+  f.type = 'bandpass'; f.frequency.value = 2700; f.Q.value = 2;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t+.02); g.gain.setValueAtTime(gain, t+dur-.05); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+  o.connect(f); f.connect(g); g.connect(master); o.start(t); lfo.start(t); o.stop(t+dur+.02); lfo.stop(t+dur+.02);
+  noiseBurst({dur, freq:3000, q:3, gain:gain*.25});
+}
+function cheer(gain=.35, dur=1.6){ noiseBurst({dur, freq:1100, q:.6, gain}); noiseBurst({dur:dur*.8, freq:2300, q:1.2, gain:gain*.5, at:.05}); }
+
+// ---------- game ----------
+let anchor0 = [0, 0], played = false, topRank = 0, phase = 'title', side = null, pull = null, pullStart = 0, taps = 0, lastOes = 0, best = 0;
+try { best = +localStorage.getItem('border-tug.best') || 0; } catch {}
+
+function onTap(e){
+  if (phase !== 'pull') return;
+  if (e.type === 'keydown' && (e.repeat || e.metaKey || e.ctrlKey)) return;
+  if (e.cancelable) e.preventDefault();
+  const now = performance.now();
+  pull.tap((now - pullStart)/1000); taps++;
+  const x = pull.x;
+  sample('k_select_003', .8 + x*1.2, .3);
+  bump($('meters'), 1.12, 90);
+  shake(2 + x*4);
+  if (taps % 5 === 0 && now - lastOes > 650) {
+    lastOes = now; say('oes', 1.1, 1 + x*.15);
+    const px = e.clientX ?? innerWidth/2, py = e.clientY ?? innerHeight*.6;
+    pop('オーエス！', clamp(px, 0, innerWidth), clamp(py - 60, 80, innerHeight - 200), .9 + x*.4);
+  }
+  $('hint').style.display = 'none';
+}
+addEventListener('pointerdown', onTap, {passive:false});
+addEventListener('keydown', onTap);
+
+function setRope(x){   // x: 0..1 metres, the flag heads to the puller's end
+  const w = innerWidth, dir = side === 'taito' ? -1 : 1;
+  $('rope').querySelector('.flag').style.left = (w/2 + dir * x * w * .38) + 'px';
+  $('rope').querySelector('.cord').style.transform = `translateX(${dir * x * w * .38}px)`;
+}
+
+function flyTo(center, zoom, dur){ return new Promise(r => { map.once('moveend', () => r()); map.flyTo(center, zoom, {duration: REDUCED ? .01 : dur, easeLinearity:.2}); }); }
+
+async function choose(k){
+  if (phase !== 'title') return;
+  side = k; phase = 'intro';
+  await initAudio();
+  sample('k_confirmation_001', 1, .6);
+  say(k, 1.4);
+  play();
+}
+
+async function play(){
+  phase = 'intro';
+  $('title').style.display = $('result').style.display = 'none';
+  $('rankup').style.display = 'none';
+  const s0 = sClamp(shared), me = SIDE[side];
+  view.line = s0; view.ghost = null; view.tape = null; view.glow = 0; view.mark = null;
+  // 1. down to the bridge (first round only)
+  if (!played) {
+    telop('桜橋のまんなかが区境', 'The ward border runs across the middle of Sakurabashi');
+    const flight = flyTo(LL(geo.bridgeAt(s0)), 19.2, 2.6);
+    await wait(500); say('bridge');
+    await flight; await wait(700);
+  }
+  played = true;
+  // 2. onto the deck, with the tape laid out toward the other ward
+  view.tape = s0; view.tapeSide = me.sign; anchor0 = geo.anchor(s0);
+  telop(`${me.ja}のために引け！`, `Pull for ${me.en}!`);
+  await flyTo(LL(geo.toLonLat([anchor0[0] + me.sign*.5, anchor0[1]])), closeZoom(), map.getZoom() < 17 ? 2.4 : 1.6);
+  // 3. ready... whistle
+  $('rope').style.display = 'block'; setRope(0);
+  $('rope').querySelectorAll('.end').forEach(el => el.classList.toggle('me', el.classList.contains(side === 'taito' ? 'l' : 'r')));
+  $('hud').style.display = 'block'; $('tfill').style.width = '100%'; $('meters').innerHTML = '0.00<small> m</small>'; $('effort').textContent = '';
+  telop();
+  big('よーい'); say('ready', 1.4); await wait(1100);
+  big('ピッ！'); whistle(.3, .4); flash(.5); await wait(250);
+  say('pull', 1.5); big();
+  $('hint').style.display = 'block';
+  // 4. the pull
+  pull = makePull(!TOUCH); taps = 0; topRank = 0; pullStart = performance.now(); phase = 'pull';
+  await new Promise(done => {
+    let last = pullStart;
+    (function step(now){
+      const t = (now - pullStart)/1000, dt = Math.min(.05, (now - last)/1000); last = now;
+      const x = pull.step(t, dt);
+      view.line = s0 + me.sign * x;
+      $('meters').innerHTML = `${x.toFixed(2)}<small> m</small>`;
+      $('tfill').style.width = Math.max(0, 1 - t/ROUND)*100 + '%';
+      const want = target(pull.rate(t));
+      $('effort').textContent = taps === 0 ? '' : want < .2 ? 'もっと！' : want < .45 ? 'いい調子！' : want < .7 ? 'すごい！' : want < .9 ? '怪力！' : '限界突破！';
+      setRope(x);
+      // each new rank reached during the pull gets its own pop
+      const r = rankOf(x);
+      if (r > topRank) { topRank = r; rankUp(r, 1300); sample('k_maximize_003', .8 + r*.12, .45); shake(4 + r*2); }
+      if (t >= ROUND) return done();
+      requestAnimationFrame(step);
+    })(pullStart);
+  });
+  // 5. whistle: only where the rope is now counts
+  phase = 'stop';
+  $('hint').style.display = 'none';
+  whistle(.9, .45); flash(.6); shake(10);
+  const x = Math.round(pull.x * 100) / 100;
+  // never push past the far edge of a ward that is already gone
+  const room = geo.areas(s0)[me.sign > 0 ? 'sumida' : 'taito'] < 1 ? 0 : me.sign > 0 ? geo.sumidaGoneAt - s0 : s0 - geo.taitoGoneAt;
+  const moved = Math.max(0, Math.min(x, room));
+  view.line = s0 + me.sign * moved; view.ghost = s0;
+  const save = moved >= .01 ? store.add(me.sign * moved).then(v => { netOk = true; return v; }, e => { console.warn('store', e); netOk = false; return null; }) : Promise.resolve(shared);
+  big('それまで！'); say('stop', 1.5);
+  await wait(1100); big();
+  $('hud').style.display = 'none'; $('rope').style.display = 'none'; $('effort').textContent = '';
+  // 6. how far
+  const r = rankOf(moved);
+  const [mx, my] = (() => { const p = xyPt([anchor0[0] + view.line - s0, anchor0[1]]); return [p.x, p.y]; })();
+  pop(`${moved > 0 ? '+' : ''}${moved.toFixed(2)} m`, mx, my - 40, 1.6, '#ffe14a');
+  sample(r >= 4 ? 'k_impactPunch_heavy_000' : 'k_impactWood_heavy_000', .9, .9); sample('k_maximize_003', .8 + r*.1, .5);
+  if (r >= 3) cheer(.25 + r*.05);
+  rankUp(r); await wait(250); await line('r' + r, 1400);
+  const before = geo.areas(s0), after = geo.areas(view.line);
+  const gain = Math.abs(after.taito - before.taito);
+  // 7. back up to the whole map
+  telop('区境が動きました', `The border moved ${moved.toFixed(2)} m`);
+  say('moved');
+  view.tape = null; view.glow = 1;
+  await new Promise(r => { map.once('moveend', r); map.flyToBounds(wardsBounds, {...overview(), duration: REDUCED ? .01 : 2.6}); });
+  telop();
+  const newShared = await Promise.race([save, wait(8000).then(() => null)]);
+  if (newShared != null) shared = newShared; else shared = s0 + me.sign * moved;
+  view.line = shared; view.ghost = null;
+  if (moved > 0) { const at = geo.anchor(sClamp(shared)); view.mark = {at, text: `${Math.abs(at[1]) < 80 ? '桜橋' : '区境'} ${me.sign > 0 ? '→' : '←'} ${moved.toFixed(2)} m`, t0: performance.now()}; }
+  const a = geo.areas(sClamp(shared));
+  const goneKey = a.sumida < 1 ? 'sumida' : a.taito < 1 ? 'taito' : null;
+  if (goneKey) { flash(.8, '#000'); shake(14); sample('k_impactPunch_heavy_000', .5, 1); big(`${SIDE[goneKey].ja}<br>消滅`); await line('gone_' + goneKey, 1800); big(); }
+  if (moved > best) { best = moved; try { localStorage.setItem('border-tug.best', best); } catch {} }
+  showResult({moved, r, gain, a, goneKey});
+}
+
+function showResult({moved, r, gain, a, goneKey}){
+  const me = SIDE[side], other = SIDE[side === 'taito' ? 'sumida' : 'taito'];
+  $('rlabel').textContent = `${me.ja}のために引いた / YOUR PULL FOR ${me.en.toUpperCase()}`;
+  $('rm').textContent = moved.toFixed(2) + ' m';
+  const next = RANKS[r + 1], cm = next ? Math.max(1, Math.round((next.at - moved) * 100)) : 0;
+  $('rrank').innerHTML = `${RANKS[r].ja}<small>${RANKS[r].en} · 自己ベスト / Best ${best.toFixed(2)} m</small>`
+    + (next && !goneKey ? `<small>「${next.ja}」まで あと${cm}cm / ${cm} cm short of ${next.en}</small>` : '');
+  const g = $('rgone');
+  if (goneKey) { g.style.display = 'block'; g.innerHTML = goneKey === side ? `${me.ja}が消えた！取り返せ！<small style="display:block;font-family:system-ui;font-size:12px;color:#666">${me.en} is gone. Pull it back!</small>` : `${other.ja}は地図から消えた<small style="display:block;font-family:system-ui;font-size:12px;color:#666">${other.en} is off the map</small>`; }
+  else g.style.display = 'none';
+  $('rgain').innerHTML = moved > 0
+    ? `${other.ja}から <b>${fmtArea(gain)} m²</b> うばった（畳 ${fmtArea(gain / TATAMI)} 枚分）<small>You took ${fmtArea(gain)} m² from ${other.en}, about ${fmtArea(gain / TATAMI)} tatami mats</small>`
+    : (goneKey && goneKey !== side ? `もう引く土地がない<small>There is no land left to take</small>` : `区境は動かなかった<small>The border didn't move</small>`);
+  areaBox($('rT'), 'taito', a.taito, side === 'taito' ? gain : -gain);
+  areaBox($('rS'), 'sumida', a.sumida, side === 'sumida' ? gain : -gain);
+  if (gain >= 1) for (let i = 0; i < 8; i++) setTimeout(() => sample('k_select_003', 1.2 + i*.08, .2), 120 + i*120);
+  const [ja, en] = borderLine(shared);
+  $('rtotal').innerHTML = `みんなの結果：${ja.replace(/<\/?b>/g, '')}<small>Everyone so far: ${en.replace('The border is now', 'the border is')}</small>`;
+  $('net').style.display = netOk && store.online ? 'none' : 'block';
+  $('net').textContent = !store.online ? 'オフライン：この端末にだけ記録しています。 / Offline: saved on this device only.'
+    : 'みんなの区境に届きませんでした。 / Could not reach the shared border; this pull was not saved.';
+  const into = shared > 0 ? `墨田区側へ${fmtM(shared)}m` : shared < 0 ? `台東区側へ${fmtM(shared)}m` : '元の位置';
+  const what = moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
+  const gone = goneKey ? `\n${SIDE[goneKey].ja}は地図から消えました` : '';
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(`区境つなひき！ ${what}\nいまの区境：${into}${gone}\n#区境つなひき`) + '&url=' + encodeURIComponent(URL_PUBLIC);
+  $('result').style.display = 'block';
+  $('result').animate([{transform:'translate(-50%,40%) scale(.8)', opacity:0}, {transform:'translate(-50%,-3%) scale(1.02)', opacity:1, offset:.7}, {transform:'translate(-50%,0) scale(1)'}], {duration:340, easing:'ease-out'});
+  sample('k_open_002', 1, .6);
+  phase = 'result';
+}
+
+async function toTitle(){
+  phase = 'title';
+  $('result').style.display = 'none';
+  view.line = sClamp(shared); view.tape = null; view.ghost = null; view.glow = 0; view.mark = null;
+  $('title').style.display = 'flex';
+  say('title');
+  map.flyToBounds(wardsBounds, {...overview(), duration: REDUCED ? .01 : 1.2});
+  showStatus();
+  await refresh(); view.line = sClamp(shared); showStatus();
+}
+
+// ---------- frame ----------
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  if (view.glow > 0 && phase !== 'pull') view.glow = Math.max(0, view.glow - dt*.25);
+  if (shakeAmt > .1) { $('ui').style.transform = cv.style.transform = `translate(${rnd(-1,1)*shakeAmt}px, ${rnd(-1,1)*shakeAmt}px)`; shakeAmt *= Math.exp(-dt*12); }
+  else if (shakeAmt) { shakeAmt = 0; $('ui').style.transform = cv.style.transform = ''; }
+  draw();
+  requestAnimationFrame(frame);
+}
+
+// ---------- boot ----------
+window.bt = {map, view, geo};   // for poking at it from the console
+// buttons drop focus, so a space bar mashed during the pull can't press them again
+$('pickT').onclick = e => { e.stopPropagation(); e.currentTarget.blur(); choose('taito'); };
+$('pickS').onclick = e => { e.stopPropagation(); e.currentTarget.blur(); choose('sumida'); };
+$('again').onclick = async e => {
+  e.stopPropagation(); e.currentTarget.blur();
+  if (phase !== 'result') return;
+  phase = 'intro';
+  await initAudio(); await Promise.race([refresh(), wait(2500)]); play();
+};
+$('switch').onclick = e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.blur(); if (phase === 'result') toTitle(); };
+$('title').style.display = 'flex';
+if (!TOUCH) $('hint').querySelector('.en').textContent = 'CLICK OR MASH SPACE!';
+showStatus();
+map.fitBounds(wardsBounds, overview());
+requestAnimationFrame(frame);
+document.fonts?.load('40px "Dela Gothic One"', '台東区墨田区消滅');
+refresh().then(() => { view.line = sClamp(shared); showStatus(); });
+// keep the title's numbers fresh while someone reads it
+setInterval(() => { if (phase === 'title' && !document.hidden) refresh().then(() => { view.line = sClamp(shared); showStatus(); }); }, 30000);
+</script>
+</body>
+</html>
