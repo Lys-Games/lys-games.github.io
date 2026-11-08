@@ -107,7 +107,7 @@ const reachOf = p => 3 * Math.pow(900, Math.pow(p, 1.25)); // metres; p=1 → 27
 const MOON_AT = 2000;                      // a gust reaching this leaves the planet
 const TIERS = [ // `at` = gust distance that reaches it
   {at:0,    rank:['そよ風レベル','Light breeze'],      what:['ティッシュ','the tissue']},
-  {at:2.5,  rank:['くしゃみレベル','Sneeze'],          what:['机の上の書類','the papers on the desk'], pop:'バサッ'},
+  {at:2.5,  rank:['くしゃみレベル','Sneeze'],          what:['キャスターのカツラ','the presenter\'s wig'], pop:'バサッ'},
   {at:5,    rank:['扇風機レベル','Electric fan'],      what:['スタジオ','the studio'], pop:'ガシャーン'},
   {at:29.5, rank:['台風レベル','Typhoon'],             what:['スタジオの壁','the studio wall'], pop:'バキィッ'},
   {at:33,   rank:['竜巻レベル','Tornado'],             what:['商店街','the street'], pop:'ドカーン'},
@@ -167,13 +167,11 @@ function person({shirt, pants, skin='#f2c7a0', hair, big=1}){
   return p;
 }
 function presenter(){
-  const p = person({shirt:'#1f2a48', pants:'#1f2a48', hair:'#2a1a12'});
-  p.g.add(box(.2,.26,.01,'#ffffff',0,1.36,.172));                        // blouse
-  p.tie = box(.14,.16,.03,'#e8392b',0,1.44,.18); p.g.add(p.tie);           // scarf
-  p.hair.scale.set(1.06,1.1,1.06);
-  p.head.add(box(.5,.44,.14,'#2a1a12',0,-.04,-.19),                       // bob: back and sides
-             box(.08,.36,.36,'#2a1a12',-.235,-.02,-.04), box(.08,.36,.36,'#2a1a12',.235,-.02,-.04));
-  p.head.add(box(.07,.02,.01,'#c83a4a',0,-.1,.218));                      // lips
+  const p = person({shirt:'#1f2a48', pants:'#1f2a48', hair:'#151515'});
+  p.g.add(box(.18,.26,.01,'#ffffff',0,1.38,.172));
+  p.tie = box(.08,.4,.02,'#3a6fd8',0,1.24,.18); p.g.add(p.tie);
+  for (const x of [-.08,.08]) { const r = mesh(new THREE.TorusGeometry(.055,.012,4,12),'#111',x,.03,.22); p.head.add(r); }
+  p.head.add(box(.06,.012,.012,'#111',0,.04,.22));
   return p;
 }
 function gaijin(){
@@ -216,6 +214,7 @@ function buildWorld(){
   add(cyl(.05,.045,.11,'#ffffff',1.6,.81,.25), .5, {mat:'plate'});        // mug
   const pen = add(cyl(.012,.012,.16,'#2f5fe0',1.25,.77,.35), .5, {mat:'plate'}); pen.rotation.z = Math.PI/2;
   add(box(.5,.14,.04,'#ffe14a',2.6,.82,.5), .6);                          // name plate
+  thing(P.hair, .6, {dyn:true, soft:true, frags:0});                     // the wig
   // studio: backdrop, lights, cameras, crew, audience
   for (let x=-11; x<29; x+=2) for (let y=0; y<2; y++) add(box(2,3,.3,((x+11)/2+y)%2 ? '#ff9ec4' : '#ffd23a', x+1, 1.5+y*3, -3.6), 1.4);
   const poster = new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5), new THREE.MeshLambertMaterial({color:'#fff'}));
@@ -373,7 +372,8 @@ const IMPACTS = {   // Kenney Impact Sounds (CC0), a few variants per material
 };
 const VOICES = ['topic','guest','hi','tissue','test_ja','test_en','mash','result','boom', ...[1,2,3,4,5,6,7,8].map(i => 'rank' + i)].map(n => 'v_' + n);
 const SOUNDS = [...VOICES, 'ja','this','pen','k_bong_001','k_confirmation_001','k_select_003','k_open_002','k_maximize_003', ...new Set(Object.values(IMPACTS).flat().map(n => 'k_' + n))];
-const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3`).then(r => r.arrayBuffer())]));
+const BUILD = 12;   // bump on every release so phones fetch the new sounds
+const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3?v=${BUILD}`).then(r => r.arrayBuffer())]));
 async function initAudio(){
   if (ac) return;
   ac = new (window.AudioContext || window.webkitAudioContext)();
