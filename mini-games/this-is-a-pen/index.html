@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>これはペンです / This is a PEN</title>
+<meta name="description" content="Mash to charge the breath, then say &quot;this is a PEN&quot; and blow the whole world away. A free mini game by Lys Games.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="これはペンです / This is a PEN">
+<meta property="og:description" content="連打して、ペンの「P」で世界を吹き飛ばせ。Mash to charge, then blow the world away with one &quot;P&quot;.">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/this-is-a-pen/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/this-is-a-pen/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="https://lys-games.github.io/gopher-it/press/img/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111;--yellow:#ffe14a;--red:#e8392b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+body{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;color:#fff}
+canvas{display:block;position:fixed;inset:0}
+#ui{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.t{-webkit-text-stroke:.13em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em}
+.en{font-family:system-ui,sans-serif;font-weight:800;font-size:max(15px,.45em);letter-spacing:0;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;display:block;margin-top:.25em}
+#telop{position:absolute;left:0;right:0;bottom:calc(9% + env(safe-area-inset-bottom));text-align:center;font-size:clamp(26px,8vw,50px);padding:0 16px;display:none}
+#telop .jp{color:var(--yellow)}
+#bubble{position:absolute;transform:translate(-50%,-100%);background:#fff;color:var(--ink);border:4px solid var(--ink);border-radius:1em;padding:.3em .7em;font-size:clamp(18px,5vw,30px);white-space:nowrap;display:none}
+#bubble b{display:inline-block;color:var(--red)}
+#big{position:absolute;left:0;right:0;top:30%;text-align:center;font-size:clamp(56px,20vw,140px);color:var(--yellow);display:none}
+#hud{position:absolute;left:16px;right:16px;top:calc(16px + env(safe-area-inset-top));display:none}
+#meter{height:22px;border:4px solid var(--ink);border-radius:12px;background:#fff;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,#7fd4ff,var(--yellow),var(--red))}
+#hudrow{display:flex;justify-content:space-between;font-size:clamp(18px,5vw,28px);margin-top:6px}
+#dist{position:absolute;left:0;right:0;top:calc(16px + env(safe-area-inset-top));text-align:center;font-size:clamp(28px,9vw,56px);display:none}
+#pops span{position:absolute;transform:translate(-50%,-50%);color:#fff;animation:pop .9s ease-out forwards;white-space:nowrap}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.3) rotate(-8deg);opacity:1}25%{transform:translate(-50%,-50%) scale(1.15) rotate(4deg);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-80%) scale(1) rotate(0);opacity:0}}
+#combo{position:absolute;right:max(16px,env(safe-area-inset-right));top:calc(84px + env(safe-area-inset-top));font-size:clamp(22px,6vw,34px);color:#fff;display:none;transform-origin:right center}
+#combo b{color:var(--yellow);font-weight:400}
+#rankup{position:absolute;left:50%;top:26%;transform:translateX(-50%);text-align:center;white-space:nowrap;display:none}
+#rnext{font-size:16px;margin:.2em 0;line-height:1.35}
+#rnext b{color:var(--red);font-weight:900}
+#rnext small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:12px;color:#666}
+#rbroken{font-family:system-ui,sans-serif;font-weight:800;font-size:14px}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;transition:opacity .5s}
+.panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,460px);text-align:center;pointer-events:auto;display:none}
+#title{left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));top:calc(9% + env(safe-area-inset-top));bottom:calc(7% + env(safe-area-inset-bottom));width:auto;transform:none;flex-direction:column;justify-content:space-between;align-items:center}
+#title h1{margin:0;font-weight:400;white-space:nowrap;text-align:center;font-size:clamp(32px,11vw,76px);color:var(--yellow)}
+#title h1 .en{font-size:.45em;color:#fff}
+#title p{font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-weight:800;font-size:15px;line-height:1.5;margin:0 0 .6em;color:var(--ink);background:#fff;border:4px solid var(--ink);border-radius:16px;padding:.6em .9em;max-width:400px}
+#title .go{display:flex;flex-direction:column;align-items:center}
+button,.btn{display:inline-block;text-decoration:none;font:inherit;font-size:clamp(22px,6vw,30px);color:#fff;background:var(--red);border:4px solid var(--ink);border-radius:999px;padding:.35em 1.4em;box-shadow:0 5px 0 var(--ink);cursor:pointer;margin:.3em}
+button:active,.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+button.alt,.btn.alt{background:#222}
+#result{font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-weight:800;background:#fff;color:var(--ink);border:5px solid var(--ink);border-radius:20px;padding:18px 16px 14px;box-shadow:0 8px 0 var(--ink)}
+#result .label{font-family:system-ui,sans-serif;font-weight:800;font-size:13px;color:#666}
+#rdist,#rrank,#result .btn,#result button{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400}
+#rdist{white-space:nowrap;font-size:clamp(36px,11vw,58px);color:var(--red);line-height:1.1}
+#rrank{font-size:clamp(22px,6.5vw,32px)}
+#rrank small,#rwhat small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:13px;color:#666}
+#rwhat{font-size:16px;margin:.4em 0;line-height:1.35}
+#rbest{font-family:system-ui,sans-serif;font-weight:800;font-size:14px;margin-bottom:.4em}
+#result .small{font-family:system-ui,sans-serif;font-size:12px;margin-top:.6em}
+#result a{color:var(--ink)}
+#result a.btn{color:#fff}
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="hud"><div id="meter"><div id="fill"></div></div><div id="hudrow" class="t"><span id="mlabel"></span><span id="taps"></span></div></div>
+  <div id="dist" class="t"></div>
+  <div id="combo" class="t"></div>
+  <div id="rankup" class="t"></div>
+  <div id="bubble"></div>
+  <div id="pops"></div>
+  <div id="big" class="t"></div>
+  <div id="telop" class="t"><span class="jp"></span><span class="en"></span></div>
+  <div id="flash"></div>
+  <div id="title" class="panel">
+    <h1 class="t">これはペンです<span class="en">This is a PEN</span></h1>
+    <div class="go"><p>連打して、ペンの「P」で世界を吹き飛ばせ。<br>Mash to charge, then blow the world away with one "P".</p>
+    <button id="start">スタート</button></div>
+  </div>
+  <div id="result" class="panel">
+    <div class="label">飛距離 / DISTANCE</div>
+    <div id="rdist"></div>
+    <div id="rrank"></div>
+    <div id="rwhat"></div>
+    <div id="rnext"></div>
+    <div id="rbroken"></div>
+    <div id="rbest"></div>
+    <button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでシェア</a>
+    <div class="small">by <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pen" target="_blank" rel="noopener">Gopher It on Steam</a></div>
+  </div>
+</div>
+<script type="module">
+import * as THREE from './three.module.min.js';
+
+// ---------- tuning ----------
+const CHARGE_MS = 3000;
+const FULL_TAPS = 50;                      // ≈17 taps/s for the max
+const reachOf = p => 3 * Math.pow(900, Math.pow(p, 1.25)); // metres; p=1 → 2700, low charges fall short
+const MOON_AT = 2000;                      // a gust reaching this leaves the planet
+const TIERS = [ // `at` = gust distance that reaches it
+  {at:0,    rank:['そよ風レベル','Light breeze'],      what:['ティッシュ','the tissue']},
+  {at:2.5,  rank:['くしゃみレベル','Sneeze'],          what:['キャスターのカツラ','the presenter\'s wig'], pop:'バサッ'},
+  {at:5,    rank:['扇風機レベル','Electric fan'],      what:['スタジオ','the studio'], pop:'ガシャーン'},
+  {at:29.5, rank:['台風レベル','Typhoon'],             what:['スタジオの壁','the studio wall'], pop:'バキィッ'},
+  {at:33,   rank:['竜巻レベル','Tornado'],             what:['商店街','the street'], pop:'ドカーン'},
+  {at:128,  rank:['怪獣レベル','Kaiju'],               what:['ビル街','the city'], pop:'ドドドド'},
+  {at:700,  rank:['首都壊滅レベル','Capital wipeout'], what:['電波塔','the TV tower'], pop:'ボキッ'},
+  {at:1540, rank:['山頂消滅レベル','Peak remover'],    what:['山頂','the mountain top'], pop:'ゴゴゴゴ'},
+  {at:MOON_AT, rank:['月面爆破レベル','Moon destroyer'], what:['月','the Moon'], pop:'宇宙到達'},
+];
+const MOON_DIST = 384400000;
+
+// ---------- renderer ----------
+const renderer = new THREE.WebGLRenderer({antialias:true, logarithmicDepthBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const SKY = new THREE.Color('#bfe3ff');
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SKY_BY_TIER = ['#bfe3ff','#bfe3ff','#bfe3ff','#c6e2ff','#d4e0f5','#ffe2b8','#ffc08a','#ff8f6b','#05060f'].map(c => new THREE.Color(c));
+scene.background = SKY.clone();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.2, 30000);
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8070, 2.2);
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.bias = -0.002; sun.shadow.normalBias = .08;
+scene.add(hemi, sun, sun.target);
+function resize(){
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+// ---------- primitives ----------
+const mats = new Map();
+// flat shading only where the geometry needs it (spheres): it is computed from screen derivatives, which band on phone GPUs over large surfaces
+const M = (c, flat=false) => { const key = c + flat; if (!mats.has(key)) mats.set(key, new THREE.MeshLambertMaterial({color:c, flatShading:flat})); return mats.get(key); };
+function mesh(geo, c, x=0, y=0, z=0, flat=false){ const m = new THREE.Mesh(geo, M(c, flat)); m.position.set(x,y,z); m.castShadow = m.receiveShadow = true; return m; }
+const box = (w,h,d,c,x,y,z) => mesh(new THREE.BoxGeometry(w,h,d), c, x,y,z);
+const ball = (r,c,x,y,z) => mesh(new THREE.SphereGeometry(r,10,7), c, x,y,z, true);
+const cyl = (rt,rb,h,c,x,y,z,seg=8) => mesh(new THREE.CylinderGeometry(rt,rb,h,seg), c, x,y,z);
+const rnd = (a=1,b) => b===undefined ? Math.random()*a : a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+// A person built facing +z.
+function person({shirt, pants, skin='#f2c7a0', hair, big=1}){
+  const g = new THREE.Group(), p = {g};
+  g.add(box(.2,.8,.22,pants,-.13,.4,0), box(.2,.8,.22,pants,.13,.4,0));
+  p.torso = box(.56,.72,.34,shirt,0,1.16,0); g.add(p.torso);
+  p.armR = box(.15,.66,.16,shirt,.37,1.49,0); p.armR.geometry.translate(0,-.33,0);   // pivot at the shoulder
+  g.add(box(.15,.66,.16,shirt,-.37,1.16,0), p.armR);
+  p.head = new THREE.Group(); p.head.position.set(0,1.74,0); g.add(p.head);
+  p.head.add(ball(.23,skin,0,0,0), ball(.03,'#111',-.08,.03,.215), ball(.03,'#111',.08,.03,.215));
+  p.hair = box(.48,.14,.48,hair,0,.2,-.02); p.head.add(p.hair);
+  g.scale.setScalar(big);
+  return p;
+}
+function presenter(){
+  const p = person({shirt:'#1f2a48', pants:'#1f2a48', hair:'#151515'});
+  p.g.add(box(.18,.26,.01,'#ffffff',0,1.38,.172));
+  p.tie = box(.08,.4,.02,'#3a6fd8',0,1.24,.18); p.g.add(p.tie);
+  for (const x of [-.08,.08]) { const r = mesh(new THREE.TorusGeometry(.055,.012,4,12),'#111',x,.03,.22); p.head.add(r); }
+  p.head.add(box(.06,.012,.012,'#111',0,.04,.22));
+  return p;
+}
+function gaijin(){
+  const p = person({shirt:'#4f8fd8', pants:'#c9b48a', skin:'#f5d3b8', hair:'#f2cf55', big:1.05});
+  p.g.add(box(.2,.12,.01,'#ffffff',0,1.46,.172));                       // collar
+  p.hair.scale.set(1.04,1.15,1.06);
+  p.cheeks = [ball(.09,'#f5c0a8',-.12,-.06,.14), ball(.09,'#f5c0a8',.12,-.06,.14)];
+  p.cheeks.forEach(c => c.scale.setScalar(.01)); p.head.add(...p.cheeks);   // only puff up while charging
+  p.mouth = ball(.035,'#a33a32',0,-.1,.205); p.mouth.scale.set(1,.5,1); p.head.add(p.mouth);
+  return p;
+}
+
+// ---------- world ----------
+let world, things, P, G, tissue, tissueAng, tissueVel, space;
+const SPEAKER = new THREE.Vector3(-.7,0,0), SEAT = new THREE.Vector3(2.6,0,-1.05), GUEST_SEAT = new THREE.Vector3(1.5,0,-1.05);
+function thing(obj, k=1, opts={}){ const t = {obj, k, x:obj.position.x, launched:false, t:0, life:5, v:new THREE.Vector3(), w:new THREE.Vector3(), ...opts}; things.push(t); return t; }
+function add(obj, k, opts){ world.add(obj); thing(obj, k, opts); return obj; }
+
+function buildWorld(){
+  if (world) scene.remove(world);
+  world = new THREE.Group(); scene.add(world); things = [];
+  // ground
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(40000,40000,80,80), M('#9bb07a'));
+  ground.rotation.x = -Math.PI/2; ground.position.y = -.05; world.add(ground);   // no shadows on the grass: they band on phone GPUs
+  world.add(box(44,.1,12,'#c9c3cf',8,-.03,1));         // studio floor (top at y=.02)
+  world.add(mesh(new THREE.BoxGeometry(1600,.1,9,160,1,1),'#4d4d55',830,-.03,1));      // road (top at y=.02), split so no triangle is huge
+  // the cast
+  P = presenter(); world.add(P.g);
+  G = gaijin(); world.add(G.g);
+  place(P, SEAT, 0); place(G, GUEST_SEAT, 0);
+  // tissue on its stand
+  world.add(cyl(.02,.02,1.9,'#999',-.22,.95,-.35), box(.03,.03,.38,'#999',-.22,1.88,-.17), cyl(.18,.2,.04,'#777',-.22,.02,-.35));
+  const tg = new THREE.PlaneGeometry(.26,.3); tg.translate(0,-.15,0); tg.rotateY(Math.PI/2);
+  tissue = new THREE.Mesh(tg, new THREE.MeshLambertMaterial({color:'#ffffff', side:THREE.DoubleSide}));
+  tissue.position.set(-.22,1.87,0); tissue.castShadow = true;
+  add(tissue, .6, {x:-.3, soft:true, frags:0}); tissueAng = 0; tissueVel = 0;
+  // the desk and what's on it
+  add(box(4,.75,1.2,'#f08fb0',2.6,.375,0), 1.5, {x:4.2});
+  for (let i=0;i<6;i++) add(box(.21,.01,.3,'#ffffff',rnd(1,4.2),.76,rnd(-.4,.4)), .5, {soft:true, frags:0});
+  add(cyl(.05,.045,.11,'#ffffff',1.6,.81,.25), .5);                       // mug
+  const pen = add(cyl(.012,.012,.16,'#2f5fe0',1.25,.77,.35), .5); pen.rotation.z = Math.PI/2;
+  add(box(.5,.14,.04,'#ffe14a',2.6,.82,.5), .6);                          // name plate
+  thing(P.hair, .6, {dyn:true, soft:true, frags:0});                     // the wig
+  // studio: backdrop, lights, cameras, crew, audience
+  for (let x=-11; x<29; x+=2) for (let y=0; y<2; y++) add(box(2,3,.3,((x+11)/2+y)%2 ? '#ff9ec4' : '#ffd23a', x+1, 1.5+y*3, -3.6), 1.4);
+  const poster = new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5), new THREE.MeshLambertMaterial({color:'#fff'}));
+  new THREE.TextureLoader().load('poster.jpg', t => { t.colorSpace = THREE.SRGBColorSpace; poster.material.map = t; poster.material.needsUpdate = true; });
+  poster.position.set(9,2.4,-3.4); add(poster, 1.2);
+  for (let x=-6; x<29; x+=4) for (const z of [-1.5,1.5]) add(box(.6,.3,.6,'#333',x,5.2,z), 1);
+  for (const x of [6,11,16]) { const c = new THREE.Group(); c.add(box(.5,.45,.8,'#2b2b2b',0,1.5,0), cyl(.12,.12,.3,'#111',0,1.5,-.5), cyl(.03,.03,1.3,'#666',0,.65,0)); c.position.set(x,0,2.2); add(c,1.2); }
+  for (const x of [8,14,21]) { const c = person({shirt:pick(['#5a7','#57a','#a75']), pants:'#333', hair:'#222'}); c.g.position.set(x,0,1.8); c.g.rotation.y = -.6; add(c.g,1.2,{soft:true, frags:0}); }
+  for (let x=18; x<28; x+=1.1) for (const z of [-2.6,-1.6]) add(box(.8,.5+(z+2.6)*.5,.8,'#7a4ab0',x,.25+(z+2.6)*.25,z), 1);
+  // the studio end wall
+  for (let z=-6; z<6; z+=1.2) for (let y=0; y<6; y+=1.2) add(box(1.2,1.2,1.2,(z+y)%2.4 ? '#d9d4dd' : '#bdb6c4',30,y+.6,z+.6), 2);
+  // the street
+  for (let x=36; x<126; x+=rnd(7,13)) {
+    const r = Math.random();
+    if (r < .45) { // car
+      const c = new THREE.Group(), col = pick(['#f4f4f4','#ffd23a','#e8392b','#3a6fd8','#2b2b2b']);
+      c.add(box(4,.8,1.8,col,0,.65,0), box(2.2,.7,1.6,col,-.2,1.4,0));
+      for (const [wx,wz] of [[-1.3,.9],[1.3,.9],[-1.3,-.9],[1.3,-.9]]) { const w = cyl(.35,.35,.25,'#111',wx,.35,wz); w.rotation.x = Math.PI/2; c.add(w); }
+      c.position.set(x,0,rnd(-1,3)); add(c, 3);
+    } else if (r < .65) { const v = new THREE.Group(); v.add(box(1,1.9,.8,'#e8392b',0,.95,0), box(.8,1,.05,'#bfe3ff',0,1.2,.42)); v.position.set(x,0,-4); add(v, 2.5); }
+    else if (r < .8) { const s = new THREE.Group(); s.add(box(2.5,1,1.4,'#8a5a3a',0,.5,0), box(3,.2,1.8,'#c0392b',0,2.3,0), cyl(.05,.05,1.3,'#5a3a2a',-1.2,1.6,.6), cyl(.05,.05,1.3,'#5a3a2a',1.2,1.6,.6), ball(.22,'#e8392b',-.8,1.9,.8), ball(.22,'#e8392b',.8,1.9,.8)); s.position.set(x,0,-5); add(s, 3); }
+    else { const b = new THREE.Group(); b.add(box(11,2.6,2.5,'#59b36b',0,1.6,0), box(10.6,.8,2.55,'#bfe3ff',0,2.2,0)); for (const wx of [-3.5,3.5]) for (const wz of [-1.2,1.2]) { const w = cyl(.5,.5,.3,'#111',wx,.5,wz); w.rotation.x = Math.PI/2; b.add(w); } b.position.set(x,0,1.5); add(b, 5); x += 6; }
+  }
+  for (let x=34; x<124; x+=rnd(6,10)) { const h = rnd(4,9), w = rnd(5,8); add(box(w,h,5,pick(['#e6d3b3','#d6c0e0','#c7d9e0','#f0e0a0']),x,h/2,-10), 4); }
+  // the city: stacked blocks
+  for (let x=132; x<640; x+=rnd(12,20)) {
+    const w = rnd(9,20), d = rnd(9,16), z = rnd(-75,-16), n = Math.floor(rnd(3,6)), bh = rnd(5,13), col = pick(['#b8bcc8','#9fb3c8','#d8cbb0','#c8c8c8','#8a95a8']);
+    for (let i=0;i<n;i++) add(box(w,bh,d,col,x,bh*(i+.5),z), w/3);
+  }
+  // the broadcast tower
+  for (let i=0, y=0; i<6; i++) { const w = 22 - i*3.4, h = 26; add(box(w,h,w,i%2 ? '#ffffff' : '#e8392b',720,y+h/2,-45), w); y += h; }
+  // houses towards the mountain
+  // houses are big enough to read from ~150 m back
+  for (let x=800; x<1470; x+=rnd(70,100)) { const h = new THREE.Group(), s = rnd(34,52); h.add(box(s,s*.7,s,pick(['#f0e6d0','#e0d0c0','#d0e0e8']),0,s*.35,0)); const r = mesh(new THREE.ConeGeometry(s*.8,s*.5,4),pick(['#a33','#356','#553']),0,s*.95,0); r.rotation.y = Math.PI/4; h.add(r); h.position.set(x,0,rnd(-110,-50)); add(h, s/3); }
+  // the mountain (the snow cap is the only part that goes)
+  const mtn = mesh(new THREE.ConeGeometry(420,320,9), '#7a8a6a', 1560, 160, -520); mtn.castShadow = false; world.add(mtn);
+  const cap = mesh(new THREE.ConeGeometry(105,80,9), '#ffffff', 1560, 280, -520); cap.castShadow = false; world.add(cap); thing(cap, 30);
+  // space, far above: the Earth and the Moon
+  space = new THREE.Group(); space.position.set(0,60000,0); world.add(space);
+  space.add(mesh(new THREE.SphereGeometry(600,48,32),'#3b7dd8'));
+  for (let i=0;i<14;i++) { const c = mesh(new THREE.SphereGeometry(rnd(70,170),16,10),'#5aa05a'); c.position.setFromSphericalCoords(585, Math.acos(rnd(-1,1)), rnd(Math.PI*2)); c.scale.set(1,.12,1); c.lookAt(0,0,0); c.rotateX(Math.PI/2); space.add(c); }
+  for (let i=0;i<10;i++) { const c = mesh(new THREE.SphereGeometry(rnd(60,120),12,8),'#ffffff'); c.material = new THREE.MeshBasicMaterial({color:'#ffffff', transparent:true, opacity:.55}); c.position.setFromSphericalCoords(612, Math.acos(rnd(-1,1)), rnd(Math.PI*2)); c.scale.set(1,.08,1); c.lookAt(0,0,0); c.rotateX(Math.PI/2); space.add(c); }
+  space.add(mesh(new THREE.SphereGeometry(640,48,32),'#9fd0ff'));
+  space.children.at(-1).material = new THREE.MeshBasicMaterial({color:'#9fd0ff', transparent:true, opacity:.18, side:THREE.BackSide});   // thin atmosphere
+  space.moon = new THREE.Group(); space.moon.position.set(1400,1900,-900); space.add(space.moon);
+  const moonBall = mesh(new THREE.SphereGeometry(260,40,28),'#c9c9c9'); space.moonMat = moonBall.material = moonBall.material.clone(); space.moon.add(moonBall);
+  for (let i=0;i<12;i++) { const c = mesh(new THREE.CircleGeometry(rnd(18,55),14),'#a5a5a5'); c.position.setFromSphericalCoords(261, Math.acos(rnd(-1,1)), rnd(Math.PI*2)); c.lookAt(0,0,0); c.rotateY(Math.PI); space.moon.add(c); }
+  const sp = []; for (let i=0;i<1500;i++) { const v = new THREE.Vector3().randomDirection().multiplyScalar(rnd(7000,9000)); sp.push(v.x,v.y,v.z); }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp,3));
+  space.add(new THREE.Points(sg, new THREE.PointsMaterial({color:'#ffffff', size:2, sizeAttenuation:false})));
+  space.traverse(o => { o.castShadow = o.receiveShadow = false; });
+  // gust streaks
+  streaks = [];
+  for (let i=0;i<60;i++) { const s = new THREE.Mesh(new THREE.BoxGeometry(1,.04,.04), new THREE.MeshBasicMaterial({color:'#ffffff', transparent:true, opacity:.75})); s.visible = false; world.add(s); streaks.push(s); }
+  fx = [];
+}
+
+// ---------- juice: fragments, dust, shockwaves ----------
+let fx = [], fragCount = 0;
+const UNIT_BOX = new THREE.BoxGeometry(1,1,1), UNIT_BALL = new THREE.SphereGeometry(1,8,6), UNIT_RING = new THREE.RingGeometry(.85,1,40);
+function firstMat(o){ let m; o.traverse(c => { if (!m && c.isMesh) m = c.material; }); return m; }
+// a broken thing spits out smaller cubes of its own colour
+function shatter(t, at){
+  const n = Math.min(t.frags ?? Math.round(2 + t.k*1.5), 14), mat = firstMat(t.obj);
+  for (let i=0; i<n && fragCount<260; i++) {
+    const s = t.k*rnd(.12,.32), m = new THREE.Mesh(UNIT_BOX, mat);
+    m.scale.set(s, s*rnd(.5,1.2), s); m.position.copy(at).add(new THREE.Vector3(rnd(-.5,.5)*t.k, rnd(0,.8)*t.k, rnd(-.5,.5)*t.k));
+    world.add(m); fragCount++;
+    const f = thing(m, t.k*.7, {frag:true, life:rnd(2,3.2), launched:true});
+    f.v.set(rnd(8,34), rnd(4,22), rnd(-10,10)).multiplyScalar(t.k*.6*windBoost); f.w.set(rnd(-14,14), rnd(-14,14), rnd(-14,14));
+  }
+}
+function effect(geo, color, at, from, to, dur, opacity=.8, face){
+  if (fx.length > 60) return;
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color, transparent:true, opacity, depthWrite:false, side:THREE.DoubleSide}));
+  m.position.copy(at); if (face) m.lookAt(camera.position);
+  world.add(m); fx.push({m, from, to, dur, t:0, opacity});
+}
+const dust = (at, k) => effect(UNIT_BALL, '#f2eee6', at, k*.3, k*1.8, .9, .7);
+const shockwave = (at, size) => effect(UNIT_RING, '#ffffff', at, size*.05, size, .55, .9, true);
+function updateFx(dt){
+  for (let i=fx.length-1; i>=0; i--) {
+    const e = fx[i]; e.t += dt; const u = Math.min(1, e.t/e.dur), s = e.from + (e.to-e.from)*(1-(1-u)**3);
+    e.m.scale.setScalar(s); e.m.material.opacity = e.opacity*(1-u);
+    if (u >= 1) { world.remove(e.m); e.m.material.dispose(); fx.splice(i,1); }
+  }
+}
+function place(p, pos, rotY){ p.g.position.copy(pos); p.g.rotation.y = rotY; }
+
+// ---------- camera ----------
+const cam = {cur:null, want:{lx:0,ly:1.4,lz:0,d:7,h:1.5,yaw:.3}};
+function shot(w, cut){ cam.want = {...cam.want, ...w}; if (cut) cam.cur = {...cam.want}; }
+let shake = 0, kick = 0;
+let camOverride = null;
+function updateCamera(dt){
+  kick *= Math.exp(-dt*4); camera.fov = 50 + kick; camera.updateProjectionMatrix();
+  if (camOverride) { camOverride(camera); if (shake) { const s = shake*6*(REDUCED ? .3 : 1), t = performance.now()/1000; camera.position.x += s*Math.sin(t*37); camera.position.y += s*Math.sin(t*41.3); } return; }
+  if (!cam.cur) cam.cur = {...cam.want};
+  const k = 1 - Math.exp(-dt*5);
+  for (const key in cam.want) cam.cur[key] += (cam.want[key] - cam.cur[key]) * k;
+  const c = cam.cur, af = Math.max(1, 1.25 / camera.aspect);   // portrait screens pull back
+  camera.position.set(c.lx + Math.sin(c.yaw)*c.d*af, c.ly + c.h*af, c.lz + Math.cos(c.yaw)*c.d*af);
+  camera.lookAt(c.lx, c.ly, c.lz);
+  if (shake) { const s = shake*c.d*.02*(REDUCED ? .3 : 1), t = performance.now()/1000; camera.position.x += s*(Math.sin(t*37)+Math.sin(t*23.7))*.5; camera.position.y += s*(Math.sin(t*41.3)+Math.sin(t*29.1))*.5; }
+  // keep the shadow box around what we're looking at
+  const r = Math.min(Math.pow(2, Math.ceil(Math.log2(Math.max(4, c.d*af*1.2)))), 128), tx = 2*r/1024;
+  Object.assign(sun.shadow.camera, {left:-r, right:r, top:r, bottom:-r, far:r*6});
+  sun.shadow.camera.updateProjectionMatrix();
+  const sx = Math.round(c.lx/tx)*tx, sz = Math.round(c.lz/tx)*tx;
+  sun.target.position.set(sx, 0, sz); sun.position.set(sx + r*.8, r*2.5, sz + r*1.4);
+}
+
+// ---------- UI helpers ----------
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function telop(jp, en){ const t = $('telop'); if (!jp) { t.style.display = 'none'; return; } t.querySelector('.jp').textContent = jp; t.querySelector('.en').textContent = en; t.style.display = 'block'; }
+function big(text){ const b = $('big'); b.style.display = text ? 'block' : 'none'; b.innerHTML = text || ''; }
+let bubbleAt = null;
+function bubble(html, at){ const b = $('bubble'); b.innerHTML = html || ''; b.style.display = html ? 'block' : 'none'; bubbleAt = html ? at : null; }
+const tmp = new THREE.Vector3();
+function toScreen(v){ tmp.copy(v).project(camera); return [(tmp.x+1)/2*innerWidth, (1-tmp.y)/2*innerHeight]; }
+function pop(text, world, size=1){
+  const [x,y] = toScreen(world), s = document.createElement('span');
+  s.className = 't'; s.textContent = text;
+  s.style.left = Math.min(Math.max(x, 80), innerWidth-80) + 'px'; s.style.top = Math.min(Math.max(y, 80), innerHeight-80) + 'px';
+  s.style.fontSize = `clamp(28px, ${8*size}vw, ${70*size}px)`; s.style.color = pick(['#ffe14a','#ffffff','#ff8a3d']);
+  $('pops').append(s);
+  const hw = s.offsetWidth/2 + 8; s.style.left = Math.min(Math.max(x, hw), innerWidth - hw) + 'px';   // keep the whole word on screen
+  setTimeout(() => s.remove(), 900);
+}
+function flash(o=1, color='#fff'){ const f = $('flash'); f.style.background = color; f.style.transition = 'none'; f.style.opacity = o; requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity .6s'; f.style.opacity = 0; })); }
+const bump = (el, s=1.35, ms=140) => el.animate([{transform:`scale(${s})`}, {transform:'scale(1)'}], {duration:ms, easing:'ease-out'});
+function rankUp(i){
+  const T = TIERS[i], el = $('rankup');
+  el.innerHTML = `${T.rank[0]}！<span class="en">${T.rank[1]}!</span>`;
+  el.style.color = ['#fff','#fff','#ffe14a','#ffd23a','#ffb03a','#ff8a3d','#ff5a3d','#ff3d6e','#c86bff'][i];
+  el.style.fontSize = `clamp(22px, ${Math.min(6+i*.7, 84/(T.rank[0].length+1))}vw, ${40+i*6}px)`;
+  el.style.display = 'block';
+  el.getAnimations().forEach(a => a.cancel());
+  el.animate([{transform:'translateX(-50%) scale(2.2) rotate(-6deg)', opacity:0}, {transform:'translateX(-50%) scale(.9) rotate(2deg)', opacity:1, offset:.25}, {transform:'translateX(-50%) scale(1)', opacity:1, offset:.8}, {transform:'translateX(-50%) scale(1)', opacity:0}], {duration:1400, easing:'ease-out', fill:'forwards'});
+}
+const fmt = n => Math.round(n).toLocaleString('en-US');
+
+// ---------- audio ----------
+let ac, master, noise; const sfx = {};
+const SOUNDS = ['ja','this','pen','k_impactPlank_medium_000','k_impactSoft_medium_000','k_bong_001','k_confirmation_001','k_select_003','k_open_002','k_maximize_003'];
+const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3`).then(r => r.arrayBuffer())]));
+async function initAudio(){
+  if (ac) return;
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  master = ac.createGain(); master.gain.value = .9; master.connect(ac.destination);
+  noise = ac.createBuffer(1, ac.sampleRate*2, ac.sampleRate);
+  const d = noise.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+  for (const n in raw) try { sfx[n] = await ac.decodeAudioData((await raw[n]).slice(0)); } catch (e) { console.warn('audio', n, e); }
+}
+// play a voice line; `power` 0..1 makes it louder, deeper, crunchier and echoier
+function voice(name, power=0){
+  if (!ac || !sfx[name]) return .6;
+  const src = ac.createBufferSource(); src.buffer = sfx[name]; src.playbackRate.value = 1 - power*.35;
+  const g = ac.createGain(); g.gain.value = 1 + power*1.5;
+  let node = src;
+  if (power > 0) {
+    const sh = ac.createWaveShaper(), n = 256, curve = new Float32Array(n), k = power*60;
+    for (let i=0;i<n;i++) { const x = i/(n-1)*2-1; curve[i] = (1+k)*x/(1+k*Math.abs(x)); }
+    sh.curve = curve; node.connect(sh); node = sh;
+    const dl = ac.createDelay(1), fb = ac.createGain(); dl.delayTime.value = .16; fb.gain.value = power*.55;
+    g.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(master);
+  }
+  node.connect(g); g.connect(master); src.start();
+  return src.buffer.duration / src.playbackRate.value;
+}
+function noiseBurst({dur=.3, freq=800, q=1, gain=.5, type='bandpass', at=0}={}){
+  if (!ac) return;
+  const src = ac.createBufferSource(); src.buffer = noise; src.loop = true;
+  const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const g = ac.createGain(), t = ac.currentTime + at;
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.001, t+dur);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t, rnd(1.5)); src.stop(t+dur+.05);
+  return {f, g, src};
+}
+// play a Kenney sample (CC0, see sfx/KENNEY-LICENSE.txt)
+function sample(name, rate=1, gain=.6){
+  if (!ac || !sfx[name]) return;
+  const src = ac.createBufferSource(), g = ac.createGain();
+  src.buffer = sfx[name]; src.playbackRate.value = rate; g.gain.value = gain;
+  src.connect(g); g.connect(master); src.start();
+}
+let lastCrash = 0;
+function crash(t){
+  const now = performance.now(); if (now - lastCrash < 55) return; lastCrash = now;
+  const k = t.k, rate = Math.min(1.7, Math.max(.28, 1.5/Math.pow(k, .45))) * rnd(.9,1.1);
+  sample(t.soft ? 'k_impactSoft_medium_000' : 'k_impactPlank_medium_000', rate, Math.min(.9, .25 + k*.08));
+  if (k > 2.5) noiseBurst({dur:.2 + Math.min(k,30)*.03, freq:500/Math.sqrt(k), q:.7, gain:Math.min(.45, .1 + k*.02), type:'lowpass'});
+}
+// one milestone: everything gets bigger as the tiers climb
+function boom(i){
+  sample('k_impactPlank_medium_000', Math.max(.22, .9 - i*.09), 1);
+  sample('k_maximize_003', .75 + i*.1, .55);                 // rising pitch, tier after tier
+  noiseBurst({dur:.5 + i*.22, freq:Math.max(45, 320/(1+i*.6)), q:.6, gain:Math.min(1, .35 + i*.09), type:'lowpass'});
+}
+
+// ---------- game state ----------
+let waving = false, played = false;
+let phase = 'title', taps = 0, power = 0, gust = null, best = 0, timeScale = 1, windBoost = 1, broken = 0;
+// hit-stop: slow the world for a beat, then snap back
+let stopUntil = 0;
+function hitstop(ms, scale=.08){ timeScale = scale; stopUntil = performance.now() + ms; }
+try { best = +localStorage.getItem('pen.best') || 0; } catch {}
+
+function onTap(e){
+  if (phase !== 'charge') return;
+  if (e.type === 'keydown' && e.repeat) return;
+  taps++; power = Math.min(1, taps/FULL_TAPS);
+  sample('k_select_003', .8 + power*1.3, .35);
+  G.g.position.y = .06 + power*.06; G.g.scale.setScalar(1.05*(1.04 + power*.04));
+  $('taps').textContent = taps; $('fill').style.width = power*100 + '%'; bump($('taps'), 1.5, 100);
+  $('mlabel').textContent = power < .34 ? 'そよ風' : power < .67 ? '台風' : '天変地異';
+}
+addEventListener('pointerdown', onTap);
+addEventListener('keydown', onTap);
+
+async function run(){
+  phase = 'intro'; buildWorld(); taps = 0; power = 0; gust = null; broken = 0; fragCount = 0; windBoost = 1; timeScale = 1;
+  $('combo').style.display = 'none'; $('dist').style.color = '';
+  scene.background.copy(SKY);
+  $('title').style.display = $('result').style.display = 'none';
+  $('fill').style.width = '0'; $('taps').textContent = '0'; $('mlabel').textContent = 'そよ風';
+  if (!played) {
+    // 0. the interview opens: both behind the desk
+    shot({lx:2, ly:1.3, lz:-.6, d:4.6, h:.5, yaw:.25}, true);
+    telop('英語は飛沫が多い？', "Today's topic: does English spray more?");
+    await wait(2200);
+    shot({lx:2.4, ly:1.6, lz:-1, d:2.2, h:.1, yaw:.1}, true);
+    bubble('ゲストのマイクさんです', P.head); telop('ゲストのマイクさんです', 'Please welcome our guest, Mike.');
+    await wait(1800);
+    shot({lx:1.5, ly:1.6, lz:-1, d:2.2, h:.1, yaw:-.1}, true);
+    bubble('Hi!', G.head); telop('マイク（アメリカ出身）', 'Mike, from the USA'); waving = true;
+    await wait(1500); waving = false;
+    shot({lx:2.4, ly:1.6, lz:-1, d:2.2, h:.1, yaw:.1}, true);
+    bubble('ティッシュで確かめます', P.head); telop('ティッシュで確かめます', "We'll check with a tissue.");
+    await wait(1900); bubble();
+    // 1. the Japanese sample (the cut hides the walk to the stand)
+    place(P, SPEAKER, Math.PI/2);
+    shot({lx:-.35, ly:1.55, lz:0, d:2.6, h:.15, yaw:.75}, true);
+    telop('検証：日本語の場合', 'Test: in Japanese');
+    await wait(1300);
+    bubble('これはペンです', P.head);
+    voice('ja'); tissueVel += 1.2;
+    await wait(1300);
+    pop('ふわっ…', tissue.getWorldPosition(new THREE.Vector3()), .6);
+    await wait(1200); bubble();
+  }
+  played = true;
+  // 2. the gaijin's turn (camera cut hides the swap)
+  place(P, SEAT, 0);
+  for (const t of things) if (t.dyn) t.x = t.obj.getWorldPosition(tmp).x;
+  G.g.visible = true; place(G, SPEAKER, Math.PI/2);
+  shot({lx:-.3, ly:1.6, lz:0, d:3.4, h:.25, yaw:.6}, true);
+  telop('検証：英語の場合', 'Test: in English');
+  await wait(1400);
+  telop();
+  for (const n of ['3','2','1']) { big(n); bump($('big'), 1.6, 300); sample('k_bong_001', 1, .5); await wait(550); }
+  // 3. charge
+  big('連打！<span class="en">MASH!</span>'); bump($('big'), 1.8, 300); sample('k_confirmation_001', 1, .6); $('hud').style.display = 'block';
+  phase = 'charge';
+  setTimeout(() => big(), 700);
+  await wait(CHARGE_MS);
+  phase = 'line'; big(); $('hud').style.display = 'none';
+  // 4. the line
+  shot({lx:-.45, ly:1.75, lz:0, d:1.5, h:.05, yaw:.85});
+  await wait(500);
+  bubble('this is a', G.head);
+  await wait(voice('this')*1000 + 250);
+  const penSize = 1 + power*2.5;
+  bubble(`<b style="font-size:${penSize}em">PEN!</b>`, G.head);
+  voice('pen', power);
+  G.cheeks.forEach(c => c.scale.setScalar(.01)); G.mouth.scale.set(2.6,2.6,1.6);
+  launch(things.find(t => t.obj === tissue), 1);
+  pop('シュン', tissue.getWorldPosition(new THREE.Vector3()), .7);
+  flash(.35 + power*.3); shake = .4 + power; kick = 6 + power*10;
+  shockwave(G.head.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(.4,0,0)), 1 + power*3);
+  noiseBurst({dur:.5, freq:120, type:'lowpass', gain:.9});
+  await wait(350 + power*250);
+  setTimeout(() => bubble(), 1300);
+  // 5. the gust
+  const reach = reachOf(power);
+  await new Promise(done => { gust = {t:0, reach, T:1.5 + 1.7*Math.log10(reach+1), front:0, tier:0, done, wind:startWind()}; });
+  bubble(); shake = 0;
+  let dist = gust.front, tier = gust.tier;
+  if (gust.moon) { await toTheMoon(dist); dist = MOON_DIST; }
+  // 6. result
+  if (!gust.moon) await wait(900);
+  scene.background.copy(SKY); $('dist').style.display = 'none'; $('combo').style.display = 'none';
+  shot({lx:SEAT.x, ly:1.45, lz:SEAT.z, d:3.2, h:.2, yaw:.15}, true); camOverride = null;
+  telop('英語のほうが飛沫が多いことがわかりました', 'We have confirmed that English produces more droplets.');
+  await wait(2600); telop();
+  const T = TIERS[tier];
+  if (dist > best) { best = dist; try { localStorage.setItem('pen.best', best); } catch {} }
+  $('rdist').textContent = fmt(dist) + ' m';
+  $('rdist').style.fontSize = fmt(dist).length > 7 ? 'clamp(26px,8vw,44px)' : '';
+  $('rrank').innerHTML = `${T.rank[0]}<small>${T.rank[1]}</small>`;
+  $('rwhat').innerHTML = `最後に壊したもの：${T.what[0]}<small>Furthest thing destroyed: ${T.what[1]}</small>`;
+  const next = TIERS[tier+1];
+  $('rnext').innerHTML = next ? `「${next.what[0]}」まであと <b>${fmt(Math.max(1, next.at - dist))} m</b><small>${fmt(Math.max(1, next.at - dist))} m short of ${next.what[1]}</small>` : '全部壊した！<small>You broke everything!</small>';
+  $('rbroken').textContent = `破壊数 / Destroyed: ${fmt(broken)}`;
+  $('rbest').textContent = `自己ベスト / Best: ${fmt(best)} m`;
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(`これはペンです！ ${fmt(dist)}m 吹き飛ばした【${T.rank[0]}】破壊数${fmt(broken)}\n#これはペンです`) + '&url=' + encodeURIComponent(location.href);
+  $('result').style.display = 'block';
+  phase = 'result';
+}
+
+function startWind(){
+  const n = noiseBurst({dur:30, freq:300 + power*500, q:.5, gain:.001, type:'lowpass'});
+  if (n) n.g.gain.cancelScheduledValues(0), n.g.gain.setTargetAtTime(.25 + power*.5, ac.currentTime, .05);
+  return n;
+}
+function stopWind(w){ if (w) { w.g.gain.cancelScheduledValues(0); w.g.gain.setTargetAtTime(.0001, ac.currentTime, .4); w.src.stop(ac.currentTime + 2); } }
+
+function launch(t, speed){
+  if (!t || t.launched) return;
+  t.launched = true; t.t = 0;
+  if (t.obj.parent !== world) world.attach(t.obj);
+  const k = t.k * speed * windBoost;
+  t.v.set(rnd(10,30)*k, rnd(3,12)*k, rnd(-4,4)*k);
+  t.w.set(rnd(-8,8), rnd(-8,8), rnd(-8,8));
+  crash(t);
+  if (t.space) return;
+  const at = t.obj.getWorldPosition(new THREE.Vector3());
+  shatter(t, at);
+  if (t.k >= 2.5) dust(new THREE.Vector3(at.x, Math.max(at.y*.3, t.k*.3), at.z), t.k);
+  broken++; const c = $('combo'); c.style.display = 'block'; c.innerHTML = `破壊 <b>${fmt(broken)}</b>`; bump(c, 1.25, 90);
+}
+
+// run fn(u) every frame for ms milliseconds of world time, u going 0 → 1
+function animate(ms, fn){ return new Promise(r => { let t = 0, last = performance.now(); (function step(now){ t += (now - last) * timeScale; last = now; const u = Math.min(1, t/ms); fn(u); u < 1 ? requestAnimationFrame(step) : r(); })(performance.now()); }); }
+const lerp3 = (a, b, u) => a.clone().lerp(b, u);
+async function toTheMoon(fromDist){
+  flash(1); scene.background.set('#03040b'); kick = 0;
+  const S = space.position, moon = space.moon.getWorldPosition(new THREE.Vector3());
+  const start = S.clone().add(new THREE.Vector3(120, 600, 80)), dir = moon.clone().sub(start).normalize();
+  const hit = moon.clone().addScaledVector(dir, -260);
+  // the breath, as a glowing ball
+  const ball = new THREE.Group();
+  ball.add(new THREE.Mesh(UNIT_BALL, new THREE.MeshBasicMaterial({color:'#ffffff'})));
+  for (const [r, o] of [[2, .35], [3.4, .15]]) { const g = new THREE.Mesh(UNIT_BALL, new THREE.MeshBasicMaterial({color:'#cfefff', transparent:true, opacity:o, depthWrite:false})); g.scale.setScalar(r); ball.add(g); }
+  ball.scale.setScalar(26); world.add(ball);
+  pop('宇宙到達', start, 1.3); sample('k_maximize_003', 1.6, .6);
+  noiseBurst({dur:2.2, freq:600, q:.4, gain:.35, type:'lowpass'});
+  const side = new THREE.Vector3(-1, .35, 1.6).normalize();
+  const earthCam = S.clone().add(new THREE.Vector3(-700, 250, 1500)), earthLook = S.clone().add(new THREE.Vector3(200, 450, 0));
+  // 1. launch and chase
+  await animate(1900, u => {
+    const e = u*u*(3 - 2*u), p = lerp3(start, hit, u*u);
+    ball.position.copy(p);
+    effect(UNIT_BALL, '#e8f7ff', p, 18, 55, .7, .55);
+    // opens wide with the Earth in the foreground, then hands over to a chase behind the ball
+    const chase = p.clone().addScaledVector(side, 520 + 600*e).add(new THREE.Vector3(0, -80*e, 0)), k = e*e;
+    const camPos = lerp3(earthCam, chase, k), look = lerp3(lerp3(earthLook, moon, .3), lerp3(p, moon, .75), k);
+    camOverride = c => { c.position.copy(camPos); c.lookAt(look); };
+    $('dist').textContent = fmt(fromDist + (MOON_DIST - fromDist) * Math.pow(u, 4)) + ' m';
+  });
+  // 2. impact
+  world.remove(ball);
+  hitstop(650, .04); flash(1); kick = 30; shake = 2.2;
+  $('dist').textContent = fmt(MOON_DIST) + ' m'; bump($('dist'), 1.6, 300);
+  const n = dir.clone().negate();                       // the moon's surface normal at the hit
+  const crater = new THREE.Mesh(new THREE.CircleGeometry(110, 24), M('#6c6c6c'));
+  crater.position.copy(hit).addScaledVector(n, 1.5); crater.lookAt(hit.clone().add(n)); world.add(crater);
+  const rim = mesh(new THREE.TorusGeometry(115, 18, 8, 28), '#dcdcdc'); rim.position.copy(crater.position); rim.lookAt(hit.clone().add(n)); world.add(rim);
+  const ring = new THREE.Mesh(UNIT_RING, new THREE.MeshBasicMaterial({color:'#ffffff', transparent:true, opacity:.9, depthWrite:false, side:THREE.DoubleSide}));
+  ring.position.copy(hit).addScaledVector(n, 4); ring.lookAt(hit.clone().add(n)); world.add(ring); fx.push({m:ring, from:20, to:520, dur:.9, t:0, opacity:.9});
+  for (let i=0;i<46;i++) {
+    const c = box(1,1,1, pick(['#9a9a9a','#b5b5b5','#7d7d7d']), hit.x, hit.y, hit.z); c.scale.setScalar(rnd(8,26)); world.add(c);
+    const t = thing(c, 6, {space:true, life:6}); t.launched = true;
+    const tan = new THREE.Vector3().randomDirection(); tan.addScaledVector(n, -tan.dot(n)).normalize();   // mostly sideways, so nothing flies into the camera
+    t.v.copy(n).multiplyScalar(rnd(30,90)).addScaledVector(tan, rnd(90,240));
+    t.w.set(rnd(-4,4), rnd(-4,4), rnd(-4,4));
+  }
+  for (let i=0;i<10;i++) effect(UNIT_BALL, '#d8d8d8', hit.clone().addScaledVector(n, rnd(10,60)).add(new THREE.Vector3().randomDirection().multiplyScalar(40)), 30, rnd(90,160), 1.4, .6);
+  pop('ドーン', hit, 1.7); boom(7);
+  noiseBurst({dur:2.5, freq:70, type:'lowpass', gain:1});
+  const home = space.moon.position.clone(), mat = space.moonMat;
+  // 3. the moon reels, then cracks, glowing hotter and shaking harder
+  const c0 = camera.position.clone(), c1 = moon.clone().addScaledVector(n, 1350).add(new THREE.Vector3(-300, 200, 0));
+  await animate(1100, u => {
+    space.moon.position.copy(home).addScaledVector(dir, 70*Math.sin(Math.min(1, u*2.5)*Math.PI)*(1-u));
+    const cp = lerp3(c0, c1, (1 - (1-u)**3)*.5);
+    camOverride = c => { c.position.copy(cp); c.lookAt(moon); };
+    shake = 2.2*(1-u);
+  });
+  const rumble = noiseBurst({dur:1.6, freq:60, type:'lowpass', gain:.9});
+  pop('ゴゴゴゴ…', moon.clone().add(new THREE.Vector3(0, 320, 0)), 1.2);
+  const c2 = camera.position.clone();
+  await animate(1500, u => {
+    const pulse = .5 + .5*Math.sin(u*u*40);
+    mat.emissive.setRGB(1, .35 + .2*pulse, .1).multiplyScalar(u*u*(.4 + .6*pulse));
+    space.moon.scale.setScalar(1 + .06*u*u*pulse);
+    space.moon.position.copy(home).add(new THREE.Vector3(rnd(-1,1), rnd(-1,1), rnd(-1,1)).multiplyScalar(18*u*u));
+    shake = .4 + 2.6*u*u;
+    const cp = lerp3(c2, c1, u);
+    camOverride = c => { c.position.copy(cp); c.lookAt(moon); };
+  });
+  // 4. the moon explodes
+  space.moon.visible = false; world.remove(crater); world.remove(rim);
+  hitstop(700, .03); flash(1, '#fff6d8'); kick = 40; shake = 3;
+  for (let i=0;i<80;i++) {
+    const d = new THREE.Vector3().randomDirection(), r = rnd(20,75);
+    const c = mesh(i % 3 ? new THREE.IcosahedronGeometry(1, 0) : UNIT_BOX, pick(['#c9c9c9','#b0b0b0','#9a9a9a','#d6d6d6']), 0,0,0, true);
+    c.scale.set(r, r*rnd(.6,1.2), r); c.position.copy(moon).addScaledVector(d, rnd(60,230)); c.castShadow = false; world.add(c);
+    const t = thing(c, 6, {space:true, life:8}); t.launched = true;
+    t.v.copy(d).multiplyScalar(rnd(160,520)); t.w.set(rnd(-3,3), rnd(-3,3), rnd(-3,3));
+  }
+  for (let i=0;i<40;i++) {   // glowing embers
+    const c = new THREE.Mesh(UNIT_BOX, new THREE.MeshBasicMaterial({color:pick(['#ffd27a','#ff9a4a','#fff2c0'])}));
+    c.scale.setScalar(rnd(6,14)); c.position.copy(moon); world.add(c);
+    const t = thing(c, 3, {space:true, life:4}); t.launched = true; t.v.copy(new THREE.Vector3().randomDirection()).multiplyScalar(rnd(300,800));
+  }
+  effect(UNIT_BALL, '#fff3c4', moon, 120, 520, .7, 1);      // fireballs stay smaller than the camera distance
+  effect(UNIT_BALL, '#ffb35a', moon, 180, 650, .65, .55);
+  for (const e of fx.slice(-2)) e.m.material.blending = THREE.AdditiveBlending;   // glow, then fade to space instead of to brown
+  const blast = new THREE.Mesh(UNIT_RING, new THREE.MeshBasicMaterial({color:'#ffe9b0', transparent:true, opacity:.9, depthWrite:false, side:THREE.DoubleSide}));
+  blast.position.copy(moon); blast.lookAt(camera.position); blast.rotateX(1.1); world.add(blast); fx.push({m:blast, from:100, to:3200, dur:1.6, t:0, opacity:.9});
+  pop('大爆発', moon, 2); rankUp(TIERS.length-1); boom(8); sample('k_impactPlank_medium_000', .2, 1);
+  noiseBurst({dur:3.5, freq:55, type:'lowpass', gain:1}); noiseBurst({dur:1.2, freq:900, q:.5, gain:.5});
+  const c3 = camera.position.clone(), c4 = moon.clone().addScaledVector(n, 2600).add(new THREE.Vector3(-500, 400, 0));
+  await animate(3200, u => {
+    const cp = lerp3(c3, c4, 1 - (1-u)**3);
+    camOverride = c => { c.position.copy(cp); c.lookAt(moon); };
+    shake = 3*(1-u)**2;
+  });
+  shake = 0; await wait(500);   // run() releases the camera when it cuts back to the studio
+}
+
+// ---------- loop ----------
+let streaks = [], last = performance.now();
+function frame(now){
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  // tissue: a damped spring, nudged by breath
+  if (phase === 'charge') tissueVel += rnd(-1,1)*power*.8 + power*.15;
+  tissueVel += (-30*tissueAng - 3*tissueVel) * dt; tissueAng += tissueVel*dt;
+  if (tissue) tissue.rotation.z = tissueAng;
+  if (phase === 'title') tissueVel += Math.sin(now/700)*.01;
+  // charge: the gaijin inflates, the studio wobbles
+  if (phase === 'charge' || phase === 'line') {
+    G.torso.scale.set(1+.6*power, 1+.1*power, 1+.6*power);
+    if (phase === 'charge') G.cheeks.forEach(c => c.scale.setScalar(.6+1.6*power));
+    G.head.scale.setScalar(1+.08*power);
+    P.tie.rotation.x = -power*1.2 + rnd(-.1,.1)*power;
+    shake = phase === 'charge' ? power*.5 : shake;
+  }
+  // gaijin bounces back after each tap
+  if (G) { G.g.position.y *= Math.exp(-dt*18); const sc = G.g.scale.x; G.g.scale.setScalar(1.05 + (sc-1.05)*Math.exp(-dt*14)); G.armR.rotation.x = waving ? -2.6 + Math.sin(now/110)*.35 : 0; }
+  // hit-stop runs on real time; the world runs on scaled time
+  if (timeScale < 1 && now > stopUntil) timeScale = Math.min(1, timeScale + dt*6);
+  const wdt = dt * timeScale;
+  // the gust
+  if (gust && gust.done) {
+    gust.t += wdt;
+    const u = Math.min(1, gust.t / gust.T), e = 1 - (1-u)*(1-u);
+    gust.front = Math.pow(gust.reach + 1, e) - 1;
+    const f = gust.front, d = Math.min(6 + f*.15, 260);
+    windBoost = 1 + Math.log10(1 + f)*.45;                   // the further it goes, the harder things fly
+    shot({lx:f + d*.25, ly:Math.max(1.2, d*.28), lz:0, d, h:d*.12, yaw:0}, u === 0);
+    const de = $('dist'); de.style.display = 'block'; de.textContent = fmt(f) + ' m';
+    for (const t of things) if (!t.launched && !t.space && t.x < f) launch(t, 1);
+    while (gust.tier+1 < TIERS.length && TIERS[gust.tier+1].at <= f) {
+      const i = ++gust.tier, T = TIERS[i];
+      if (i === TIERS.length-1) break;                       // the Moon has its own scene
+      const at = new THREE.Vector3(f, Math.min(d*.3, 4 + i*i*6), 0);
+      hitstop(60 + i*55, .06);
+      shake = Math.max(shake, .25 * Math.pow(1.45, i));
+      kick = 3 + i*2.5;
+      shockwave(at, d*(.25 + i*.1));
+      if (i >= 5 && !REDUCED) flash(Math.min(.45, (i-4)*.12));
+      pop(T.pop, at, .8 + i*.22);
+      rankUp(i); boom(i);
+      de.style.color = TIERS[i] && ['#fff','#fff','#ffe14a','#ffd23a','#ffb03a','#ff8a3d','#ff5a3d','#ff3d6e','#c86bff'][i];
+      bump(de, 1.2 + i*.08, 220);
+    }
+    shake = Math.max(shake*Math.exp(-dt*3), .3*(1-u) + .04);
+    // the sky burns as the destruction scales up
+    scene.background.lerp(SKY_BY_TIER[gust.tier] || SKY, 1 - Math.exp(-dt*2));
+    const busy = .4 + gust.tier*.08;
+    for (const s of streaks) {
+      if (!s.visible || s.position.x > f + d*.6) { s.visible = Math.random() < busy; s.position.set(f - rnd(d*1.2), rnd(.3, d*.7), rnd(-d*.4, d*.3)); s.scale.set(d*rnd(.2,.5)*(1+gust.tier*.1), d*.02, d*.02); }
+      s.position.x += d*3*wdt;
+    }
+    if (f >= MOON_AT) { gust.moon = true; gust.tier = TIERS.length-1; }
+    if (u >= 1 || gust.moon) { for (const s of streaks) s.visible = false; stopWind(gust.wind); const done = gust.done; gust.done = null; done(); }
+  }
+  // flying debris
+  for (const t of things) {
+    if (!t.launched || !t.obj.parent) continue;
+    t.t += wdt;
+    if (!t.space) t.v.y -= 9.8 * t.k * .35 * wdt;
+    t.obj.position.addScaledVector(t.v, wdt);
+    t.obj.rotation.x += t.w.x*wdt; t.obj.rotation.y += t.w.y*wdt; t.obj.rotation.z += t.w.z*wdt;
+    if (t.t > t.life) { world.remove(t.obj); t.dead = true; if (t.frag) fragCount--; }
+  }
+  if (things.length > 50 && things.some(t => t.dead)) things = things.filter(t => !t.dead);
+  updateFx(wdt);
+  if (bubbleAt) { const [x,y] = toScreen(bubbleAt.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,.35,0))); const b = $('bubble'), hw = b.offsetWidth/2 + 8; Object.assign(b.style, {left: Math.min(Math.max(x, hw), innerWidth-hw)+'px', top: Math.max(y, b.offsetHeight + 70)+'px'}); }
+  updateCamera(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+// ---------- boot ----------
+buildWorld();
+shot({lx:.8, ly:1.3, lz:0, d:6, h:1.2, yaw:.35}, true);
+$('title').style.display = 'flex';
+$('start').onclick = async e => { e.stopPropagation(); await initAudio(); run(); };
+$('again').onclick = e => { e.stopPropagation(); run(); };
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
