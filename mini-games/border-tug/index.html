@@ -93,7 +93,9 @@ button.alt,.btn.alt{background:#222}
 #result .small{font-family:system-ui,sans-serif;font-size:12px;margin-top:.5em}
 #result a{color:var(--ink)}
 #result a.btn{color:#fff}
-#result .row{display:flex;justify-content:center;gap:8px;margin-top:.3em}
+#result .row{display:flex;flex-wrap:wrap;justify-content:center;gap:0 8px;margin-top:.3em}
+#save{display:none;line-height:1}
+#save small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:11px}
 #result .row button,#result .row .btn{font-size:clamp(18px,5.2vw,24px);padding:.3em .9em;margin:.2em 0;white-space:nowrap}
 #net{font-family:system-ui,sans-serif;font-size:11px;color:#a33;margin-top:.3em;display:none}
 </style>
@@ -131,16 +133,17 @@ button.alt,.btn.alt{background:#222}
     <div class="areas"><div class="ta" id="rT"></div><div class="su" id="rS"></div></div>
     <div id="rtotal"></div>
     <div id="net"></div>
-    <div class="row"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでシェア</a></div>
+    <div class="row"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでシェア</a><button id="save" class="alt">画像を保存<small>Save image</small></button></div>
     <div class="small"><a href="#" id="switch">陣営を変える / Switch sides</a></div>
     <div class="small">by <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=bordertug" target="_blank" rel="noopener">Gopher It on Steam</a></div>
   </div>
 </div>
 <script src="leaflet.js"></script>
 <script type="module">
-import {makeGeo} from './geo.js?v=7';
-import {makePull, target, ROUND} from './tug.js?v=7';
-import {makeStore} from './store.js?v=7';
+import {makeGeo} from './geo.js?v=8';
+import {makePull, target, ROUND} from './tug.js?v=8';
+import {makeStore} from './store.js?v=8';
+import {drawShareImage} from './share.js?v=8';
 
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -153,7 +156,7 @@ const Q = new URLSearchParams(location.search);
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/border-tug/';
 
 // ---------- data ----------
-const data = await (await fetch('wards.json?v=7')).json();
+const data = await (await fetch('wards.json?v=8')).json();
 const geo = makeGeo(data);
 const SIDE = {
   taito:  {ja:'台東区', en:'Taito',  color:'#e8392b', sign:+1},
@@ -190,7 +193,7 @@ async function refresh(){
 // ---------- map ----------
 const map = L.map('map', {zoomControl:false, attributionControl:false, zoomSnap:0, maxZoom:26, dragging:false, touchZoom:false, scrollWheelZoom:false,
   doubleClickZoom:false, boxZoom:false, keyboard:false, tap:false, inertia:false});
-L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {maxNativeZoom:18, maxZoom:26, minZoom:5,
+L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {crossOrigin:true, maxNativeZoom:18, maxZoom:26, minZoom:5,
 }).addTo(map);
 const LL = ([lon, lat]) => L.latLng(lat, lon);
 const allLL = [...data.taito.ring, ...data.sumida.ring].map(LL);
@@ -386,7 +389,7 @@ function showStatus(){
 let ac, master, noise; const sfx = {};
 const SOUNDS = ['k_select_003','k_confirmation_001','k_open_002','k_maximize_003','k_bong_001','k_impactPunch_heavy_000','k_impactWood_heavy_000','k_impactSoft_heavy_000',
   ...['title','taito','sumida','bridge','ready','pull','oes','stop','moved','gone_taito','gone_sumida', ...RANKS.map((_, i) => 'r' + i)].map(n => 'v_' + n)];
-const BUILD = 7;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
+const BUILD = 8;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
 const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3?v=${BUILD}`).then(r => r.arrayBuffer()).catch(() => null)]));
 async function initAudio(){
   if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
@@ -584,12 +587,49 @@ function showResult({moved, r, gain, a, goneKey}){
   const into = shared > 0 ? `墨田区側へ${fmtM(shared)}m` : shared < 0 ? `台東区側へ${fmtM(shared)}m` : '元の位置';
   const what = moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
   const gone = goneKey ? `\n${SIDE[goneKey].ja}は地図から消えました` : '';
-  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(`区境つなひき！ ${what}\nいまの区境：${into}${gone}\n#区境つなひき`) + '&url=' + encodeURIComponent(URL_PUBLIC);
+  const text = `区境つなひき！ ${what}\nいまの区境：${into}${gone}\n#区境つなひき`;
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(URL_PUBLIC);
+  prepareShare(text, {geo, data, shift: sClamp(shared), moved, sign: me.sign, sideJa: me.ja, rankJa: RANKS[r].ja,
+    lineJa: ja.replace(/<\/?b>/g, ''), areas: a, gain});
   $('result').style.display = 'block';
   $('result').animate([{transform:'translate(-50%,40%) scale(.8)', opacity:0}, {transform:'translate(-50%,-3%) scale(1.02)', opacity:1, offset:.7}, {transform:'translate(-50%,0) scale(1)'}], {duration:340, easing:'ease-out'});
   sample('k_open_002', 1, .6);
   phase = 'result';
 }
+
+// The result picture is drawn as soon as the card shows, so the share tap can call navigator.share
+// straight away: iOS only opens the sheet inside the tap's own task.
+let shareFile = null, shareText = '', shareJob = 0;
+async function prepareShare(text, opts){
+  const job = ++shareJob;
+  shareFile = null; shareText = text;
+  $('save').style.display = 'none';
+  try {
+    const blob = await drawShareImage(opts);
+    if (job !== shareJob || !blob) return;
+    shareFile = new File([blob], 'border-tug.png', {type: 'image/png'});
+    if (!canShareFile()) $('save').style.display = 'inline-block';
+  } catch (e) { console.warn('share image', e); }
+}
+// desktop browsers (Chrome and Safari on macOS) can share files too, but their sheet has no X: PC keeps the X link
+const canShareFile = () => !!(TOUCH && shareFile && navigator.canShare && navigator.share && navigator.canShare({files: [shareFile]}));
+$('share').addEventListener('click', e => {
+  e.stopPropagation();
+  if (!canShareFile()) return;                 // the X link opens as usual
+  e.preventDefault();
+  navigator.share({files: [shareFile], text: shareText, url: URL_PUBLIC}).catch(err => {
+    if (err.name === 'AbortError') return;     // closed the sheet
+    console.warn('share', err);
+    $('save').style.display = 'inline-block';  // the image can still be saved and posted by hand
+  });
+});
+$('save').onclick = e => {
+  e.stopPropagation(); e.currentTarget.blur();
+  if (!shareFile) return;
+  const a = document.createElement('a'), url = URL.createObjectURL(shareFile);
+  a.href = url; a.download = 'border-tug.png'; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+};
 
 async function toTitle(){
   phase = 'title';
@@ -614,7 +654,7 @@ function frame(now){
 }
 
 // ---------- boot ----------
-window.bt = {map, view, geo};   // for poking at it from the console
+window.bt = {map, view, geo, get shareFile(){ return shareFile; }};   // for poking at it from the console
 // buttons drop focus, so a space bar mashed during the pull can't press them again
 $('pickT').onclick = e => { e.stopPropagation(); e.currentTarget.blur(); choose('taito'); };
 $('pickS').onclick = e => { e.stopPropagation(); e.currentTarget.blur(); choose('sumida'); };
