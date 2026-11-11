@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>一気にはがせ！</title>
+<meta name="description" content="毛深井さんの絆創膏を一気にはがすゲーム。速くはがすほど、毛深井さんは痛くない。Lys Gamesの無料ミニゲーム。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="一気にはがせ！">
+<meta property="og:description" content="毛深井さんの絆創膏を一気にはがせ。速くはがすほど、毛深井さんは痛くない。">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/bandage/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/bandage/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="https://lys-games.github.io/gopher-it/press/img/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111;--yellow:#ffe14a;--red:#e8392b;--u:1px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#a5e6d3;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+body{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;color:#fff}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+#ui{position:fixed;top:0;height:100%;pointer-events:none;will-change:transform}
+.t{-webkit-text-stroke:.13em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em}
+.abs{position:absolute;left:0;right:0;text-align:center;display:none}
+
+#title{top:calc(var(--u)*10 + env(safe-area-inset-top));transform:rotate(-3deg)}
+#title .s{display:block;font-size:calc(var(--u)*30);color:#fff}
+#title .b{display:block;font-size:calc(var(--u)*76);color:var(--yellow);line-height:1;animation:beri 1.6s ease-in-out infinite}
+@keyframes beri{0%,100%{transform:scale(1) rotate(0)}8%{transform:scale(1.12) rotate(-3deg)}16%{transform:scale(.97) rotate(2deg)}24%{transform:scale(1)}}
+#start{bottom:calc(var(--u)*6 + env(safe-area-inset-bottom));pointer-events:auto}
+#start .tag{font-size:calc(var(--u)*24);color:var(--yellow)}
+#start .sub{font-size:calc(var(--u)*16);color:#fff;margin-top:calc(var(--u)*3)}
+.credit{font:700 calc(var(--u)*9.5)/1.5 system-ui,sans-serif;color:var(--ink);margin-top:calc(var(--u)*2)}
+.credit a{color:var(--ink)}
+
+button,.btn{display:inline-block;text-decoration:none;font:inherit;font-size:calc(var(--u)*24);color:#fff;background:var(--red);border:calc(var(--u)*4) solid var(--ink);border-radius:999px;padding:.3em 1.3em;box-shadow:0 calc(var(--u)*5) 0 var(--ink);cursor:pointer;margin:calc(var(--u)*7) calc(var(--u)*4);white-space:nowrap}
+button:active,.btn:active{transform:translateY(calc(var(--u)*4));box-shadow:0 calc(var(--u)*1) 0 var(--ink)}
+.btn.alt{background:#222}
+
+#hud{top:calc(var(--u)*10 + env(safe-area-inset-top))}
+#time{font-size:calc(var(--u)*58);line-height:1;font-variant-numeric:tabular-nums}
+#time small{font-size:.42em;margin-left:.1em}
+#gw{display:flex;align-items:center;gap:calc(var(--u)*8);margin:calc(var(--u)*6) calc(var(--u)*26) 0;font-size:calc(var(--u)*17)}
+#gauge{flex:1;height:calc(var(--u)*18);border:calc(var(--u)*4) solid var(--ink);border-radius:999px;background:#fff;overflow:hidden}
+#gfill{height:100%;width:0;background:linear-gradient(90deg,#ffe14a,#ff8a2b,#e8392b)}
+
+#big{top:calc(var(--u)*150);font-size:calc(var(--u)*150);color:var(--yellow);white-space:nowrap;line-height:1;z-index:3}
+#big.in{animation:bigin .45s cubic-bezier(.2,1.6,.4,1) both}
+#big.drop{animation:bigdrop .7s cubic-bezier(.5,0,.9,.4) both}
+#big.go{font-size:calc(var(--u)*84);color:#fff;top:calc(var(--u)*190);animation:bigin .3s cubic-bezier(.2,1.8,.4,1) both}
+@keyframes bigin{0%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes bigdrop{0%{transform:rotate(0)}25%{transform:rotate(14deg) translateY(0)}100%{transform:rotate(50deg) translate(40%,420%);opacity:0}}
+
+#bubble{position:absolute;left:50%;transform:translateX(-50%);max-width:calc(var(--u)*380);width:max-content;background:#fff;color:var(--ink);border:calc(var(--u)*4) solid var(--ink);border-radius:calc(var(--u)*20);padding:.3em .8em;font-size:calc(var(--u)*19);line-height:1.25;text-align:center;white-space:pre-line;display:none;z-index:2}
+#bubble::before{content:"";position:absolute;left:50%;top:calc(var(--u)*-14);margin-left:calc(var(--u)*-10);border:calc(var(--u)*10) solid transparent;border-top:0;border-bottom:calc(var(--u)*14) solid var(--ink)}
+#bubble::after{content:"";position:absolute;left:50%;top:calc(var(--u)*-8);margin-left:calc(var(--u)*-6);border:calc(var(--u)*6) solid transparent;border-top:0;border-bottom:calc(var(--u)*9) solid #fff}
+#bubble.in{animation:bub .28s cubic-bezier(.2,1.7,.4,1) both}
+#bubble.scream{color:var(--red);font-size:calc(var(--u)*27);animation:scr .09s linear infinite}
+@keyframes bub{0%{transform:translateX(-50%) scale(.4)}100%{transform:translateX(-50%) scale(1)}}
+@keyframes scr{0%{transform:translateX(-50%) translate(-2px,1px) rotate(-1.5deg)}50%{transform:translateX(-50%) translate(2px,-1px) rotate(1.5deg)}100%{transform:translateX(-50%) translate(-1px,-2px) rotate(-1deg)}}
+
+#telop{font-size:calc(var(--u)*27);color:var(--yellow);padding:0 calc(var(--u)*10)}
+#telop.in{animation:tin .25s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes tin{0%{transform:translateY(40%) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+#hint{font-size:calc(var(--u)*30);color:var(--yellow)}
+#hint b{display:inline-block;font-weight:400;color:#fff;animation:arrow .5s ease-in-out infinite}
+#hint small{display:block;font-size:.7em;color:#fff;margin-top:.15em}
+@keyframes arrow{0%,100%{transform:translateX(0)}50%{transform:translateX(35%)}}
+
+#pops span{position:absolute;transform:translate(-50%,-50%);animation:pop .8s ease-out forwards;white-space:nowrap;z-index:4}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.3) rotate(var(--r0,-8deg));opacity:1}22%{transform:translate(-50%,-50%) scale(1.2) rotate(var(--r1,4deg));opacity:1}70%{opacity:1}100%{transform:translate(-50%,-95%) scale(1) rotate(var(--r1,4deg));opacity:0}}
+#pops span.slam{animation:slam 1.25s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes slam{0%{transform:translate(-50%,-50%) scale(3.2) rotate(-14deg);opacity:0}16%{transform:translate(-50%,-50%) scale(.9) rotate(-7deg);opacity:1}26%{transform:translate(-50%,-50%) scale(1.08) rotate(-7deg)}80%{transform:translate(-50%,-50%) scale(1) rotate(-7deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1.15) rotate(-7deg);opacity:0}}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9}
+
+#result{position:absolute;left:50%;bottom:calc(var(--u)*8 + env(safe-area-inset-bottom));width:calc(var(--u)*376);margin-left:calc(var(--u)*-188);text-align:center;pointer-events:auto;display:none;background:#fff;color:var(--ink);border:calc(var(--u)*5) solid var(--ink);border-radius:calc(var(--u)*22);padding:calc(var(--u)*12) calc(var(--u)*10) calc(var(--u)*9);box-shadow:0 calc(var(--u)*8) 0 var(--ink);z-index:5}
+#result.in{animation:card .45s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes card{0%{transform:translateY(110%)}100%{transform:none}}
+#result .label{font:800 calc(var(--u)*13)/1.3 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#666}
+#rtime{font-size:calc(var(--u)*54);line-height:1.05;font-variant-numeric:tabular-nums}
+#rtime small{font-size:.4em}
+#rrank{display:inline-block;-webkit-text-stroke:.07em var(--ink);font-size:calc(var(--u)*46);line-height:1.15;color:var(--red);white-space:nowrap;opacity:0}
+#rrank.in{animation:stamp .4s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stamp{0%{transform:scale(3) rotate(-12deg);opacity:0}100%{transform:scale(1) rotate(-4deg);opacity:1}}
+#rcom{font:800 calc(var(--u)*15)/1.4 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;margin-top:calc(var(--u)*4)}
+#rpain{display:flex;align-items:center;gap:calc(var(--u)*6);margin:calc(var(--u)*6) calc(var(--u)*14) 0;font:800 calc(var(--u)*13)/1 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+#rpain i{flex:1;height:calc(var(--u)*12);border:calc(var(--u)*3) solid var(--ink);border-radius:999px;overflow:hidden;background:#eee}
+#rpain i u{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffe14a,#ff8a2b,#e8392b);transition:width .8s .3s cubic-bezier(.2,.8,.2,1)}
+#rbest{font:800 calc(var(--u)*13)/1.3 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#666;margin-top:calc(var(--u)*6)}
+#rbest b{color:var(--red)}
+#result .btn,#result button{font-size:calc(var(--u)*21);padding:.3em .9em;margin:calc(var(--u)*8) calc(var(--u)*3) calc(var(--u)*6)}
+#result .credit{font-size:calc(var(--u)*9.5)}
+#result button.alt{background:#222}
+#save{display:none}
+#share small{display:block;font:800 calc(var(--u)*10)/1.2 system-ui,sans-serif}
+#tip{display:none;font:800 calc(var(--u)*12)/1.4 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#fff;background:var(--ink);border-radius:calc(var(--u)*8);padding:.4em .6em;margin:0 calc(var(--u)*6) calc(var(--u)*6)}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="ui">
+  <div id="title" class="abs t"><span class="s">一気に</span><span class="b">はがせ！</span></div>
+  <div id="hud" class="abs">
+    <div id="time" class="t">0.00<small>秒</small></div>
+    <div id="gw"><span class="t">苦しみ</span><div id="gauge"><div id="gfill"></div></div></div>
+  </div>
+  <div id="big" class="abs t"></div>
+  <div id="bubble"></div>
+  <div id="telop" class="abs t"></div>
+  <div id="hint" class="abs t">一気に ベリッ！<b>▶▶</b><small>速いほど 痛くない</small></div>
+  <div id="pops"></div>
+  <div id="start" class="abs">
+    <div class="tag t">毛深井さんの絆創膏を<br>一瞬ではがせ！</div>
+    <div class="sub t">速いほど、痛くない。ゆっくりだと、地獄。</div>
+    <button id="go">はじめる</button>
+    <div class="credit">by <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=bandage" target="_blank" rel="noopener">Gopher It on Steam</a><br>音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div>
+  </div>
+  <div id="result">
+    <div class="label">はがすのにかかった時間</div>
+    <div id="rtime"></div>
+    <div id="rrank" class="t"></div>
+    <div id="rcom"></div>
+    <div id="rpain"><span>苦しみ</span><i><u id="rpfill"></u></i><span id="rpct"></span></div>
+    <div id="rbest"></div>
+    <div><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div>
+    <div id="tip"></div>
+    <div class="credit">by <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=bandage" target="_blank" rel="noopener">Gopher It on Steam</a><br>音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div>
+  </div>
+</div>
+<div id="flash"></div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d'), ui = $('ui');
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- tuning ---------- */
+const RANKS = [ // [under this many seconds, rank, verdict, his line]
+  [0.02, '神の手', '痛みを感じるヒマもなかった', 'え？もう、終わった？'],
+  [0.05, 'プロの手つき', 'ほぼ無痛。お見事！', 'ちょっと、チクっとしただけ'],
+  [0.15, 'ふつう', 'ほとんど痛くなかった', '…あれ？意外と平気'],
+  [0.4, 'ためらい派', '迷った分だけ、彼は苦しんだ', 'いってぇ…迷わないでよ…'],
+  [1, 'じわじわ派', 'じわじわが、いちばんつらい', '毛根ごと、持っていかれた…'],
+  [3, '拷問官', '長く、深く、苦しませた', 'わざとだよね？'],
+  [Infinity, '悪魔', '人の心はないのか', 'もう…お婿に行けない…'],
+];
+const SCREAMS = [[0.4, 'v_ow1', 'いてっ！'], [1.2, 'v_ow2', 'いたたたたたっ！'], [2.6, 'v_ow3', '痛い痛い痛い痛いっ！'],
+  [4.6, 'v_ow4', 'ぎゃあああああっ！'], [7, 'v_ow5', 'おかあさあああんっ！'], [9.4, 'v_ow4', 'ぎゃあああああっ！'],
+  [11.4, 'v_ow3', '痛い痛い痛い痛いっ！'], [13.2, 'v_ow5', 'おかあさあああんっ！']];
+const FAINT_AT = 15;          // seconds of peeling before he passes out
+const GAIN = 1.25;            // bandage peeled per unit of finger travel
+const TAU = 200;              // ms, how long a released flick keeps ripping
+const painOf = s => 1 - Math.exp(-s / 1.3);
+// times show rounded down to the hundredth, so the shown time, the rank and the link card always agree
+const fmt = s => (Math.floor(s * 100 + 1e-6) / 100).toFixed(2);
+// link cards: every 0.01 s under 0.2 s, every 0.1 s up to 1 s, every second up to 10 s, then one card.
+// No card spans a rank boundary (RANKS), so the card's rank is the player's.
+const cardOf = s => s >= 10 ? 'max' : s >= 1 ? 's' + Math.floor(s + 1e-6) : s >= .2 ? 'd' + Math.floor(s * 10 + 1e-6) : 'c' + Math.floor(s * 100 + 1e-6);
+const rankOf = s => RANKS.findIndex(q => s < q[0]);
+const URL_PUBLIC = 'https://lys-games.github.io/mini-games/bandage/';
+const QUOTE_POST = '';   // the game's launch post on X: result posts quote it once set
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+const FONT = '"Dela Gothic One","Hiragino Sans",system-ui,sans-serif';
+
+/* ---------- stage ---------- */
+const U = 400, X0 = 62, BL = 280, BH = 60;
+let W, H, dpr, sc, SH, ox, headY, armY;
+function resize() {
+  W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  sc = Math.min(W / U, H / 780); SH = H / sc; ox = (W - U * sc) / 2;
+  const ex = SH - 780;
+  headY = 240 + ex * 0.3; armY = 502 + ex * 0.5;
+  ui.style.left = ox + 'px'; ui.style.width = U * sc + 'px';
+  document.documentElement.style.setProperty('--u', sc + 'px');
+  $('bubble').style.top = (headY + 100) * sc + 'px';
+  $('telop').style.top = $('hint').style.top = (armY + 122) * sc + 'px';
+}
+addEventListener('resize', resize); resize();
+
+/* ---------- audio ---------- */
+const FILES = ['k_select_003', 'k_bong_001', 'k_confirmation_001', 'k_impactSoft_heavy_000', 'k_impactPunch_heavy_000', 'k_maximize_003',
+  'v_title', 'v_c3', 'v_c2', 'v_go', 'v_matte', 'v_gentle', 'v_ow1', 'v_ow2', 'v_ow3', 'v_ow4', 'v_ow5',
+  ...[0, 1, 2, 3, 4, 5, 6].flatMap(i => ['v_r' + i, 'v_say' + i])];
+const raw = {}, sfx = {};
+for (const n of FILES) raw[n] = fetch('sfx/' + n + '.mp3').then(r => r.ok ? r.arrayBuffer() : null).catch(() => null);
+let ac, master, noise, decoded;
+function initAudio() {
+  if (ac) { ac.resume(); return decoded; }
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+  noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+  const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  decoded = Promise.all(FILES.map(async n => {
+    try { const b = await raw[n]; if (b) sfx[n] = await ac.decodeAudioData(b.slice(0)); } catch (e) { console.warn('audio', n, e); }
+  }));
+  return decoded;
+}
+function play(name, vol = 1, rate = 1) {
+  if (!ac || !sfx[name]) return null;
+  const s = ac.createBufferSource(), g = ac.createGain();
+  s.buffer = sfx[name]; s.playbackRate.value = rate; g.gain.value = vol;
+  s.connect(g); g.connect(master); s.start();
+  return s;
+}
+const voices = {};
+function voice(ch, name, vol = 1) { // one line at a time per speaker
+  try { voices[ch] && voices[ch].stop(); } catch (e) {}
+  voices[ch] = play(name, vol);
+}
+function noiseHit(dur, f0, f1, vol, q = 0.8, type = 'bandpass') {
+  if (!ac) return;
+  const t = ac.currentTime, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = noise; s.loop = true; f.type = type; f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random()); s.stop(t + dur + 0.02);
+}
+function tone(type, f0, f1, dur, vol, delay = 0) {
+  if (!ac) return;
+  const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+}
+const sndPluck = () => noiseHit(0.035, rand(2600, 5200), 1800, 0.35, 3, 'highpass');
+const sndRip = big => { noiseHit(big ? 0.34 : 0.22, 5200, 500, big ? 1.1 : 0.6, 0.7); noiseHit(0.09, 7000, 2500, 0.7, 0.5, 'highpass'); };
+const sndScratch = () => { tone('sawtooth', 900, 60, 0.32, 0.3); noiseHit(0.3, 3000, 300, 0.4, 2); };
+const sndSparkle = () => [1047, 1319, 1568, 2093, 2637].forEach((f, i) => tone('triangle', f, f, 0.3, 0.16, i * 0.06));
+const sndSad = () => [392, 370, 349, 262].forEach((f, i) => tone('triangle', f, f * 0.97, 0.34, 0.16, i * 0.2));
+
+/* ---------- small UI helpers ---------- */
+const show = (id, on, disp = 'block') => { $(id).style.display = on ? disp : 'none'; };
+function restart(el, cls) { el.className = el.className.replace(/\b(in|drop|go)\b/g, '').trim(); void el.offsetWidth; if (cls) el.classList.add(...cls.split(' ')); }
+function bubble(text, scream) {
+  const b = $('bubble');
+  if (!text) { b.style.display = 'none'; return; }
+  b.textContent = text; b.style.display = 'block';
+  b.className = ''; void b.offsetWidth; b.className = scream ? 'scream' : 'in';
+}
+function telop(text) {
+  const el = $('telop');
+  if (!text) { el.style.display = 'none'; return; }
+  el.textContent = text; el.style.display = 'block'; restart(el, 'in');
+}
+function big(text, cls = 'in') {
+  const el = $('big');
+  if (!text) { el.style.display = 'none'; return; }
+  el.textContent = text; el.style.display = 'block'; el.className = 'abs t'; void el.offsetWidth; el.classList.add(...cls.split(' '));
+}
+function pop(text, x, y, size, color = '#fff', slam) {
+  const s = document.createElement('span');
+  s.className = 't' + (slam ? ' slam' : ''); s.textContent = text;
+  s.style.cssText = `left:${x * sc}px;top:${y * sc}px;font-size:${size * sc}px;color:${color};--r0:${rand(-14, 0)}deg;--r1:${rand(-6, 8)}deg`;
+  $('pops').appendChild(s); setTimeout(() => s.remove(), slam ? 1300 : 850);
+}
+function flash(a) {
+  const f = $('flash'); f.style.transition = 'none'; f.style.opacity = a;
+  requestAnimationFrame(() => { f.style.transition = 'opacity .35s'; f.style.opacity = 0; });
+}
+
+/* ---------- game state ---------- */
+let state = 'title';   // title | intro | play | done
+let mood = 'idle';     // idle | panic | plead | pain | relief | wreck | dead
+let gen = 0;           // bumps on every restart so stale intro timers stop
+let p = 0, pDrawn = 0; // peel progress 0..1
+let t0 = 0;            // ms timestamp of the first tug, 0 = not started
+let goAt = 0, nagged = false, screamI = 0;
+let grab = null;       // {x, y, p, pull, samples}
+let coast = null;      // released flick: {t, p0, reach, tEnd}
+let ptr = { x: 0, y: 0 }, tip = { x: X0 - 10, y: 440 };
+let pain = 0, painShown = 0, shake = 0, freeze = 0, hue = 0; // hue: 0 calm, 1 gold
+let pluckAcc = 0, popAcc = 0, lastTime = 0;
+let flyer = null;
+const parts = [];
+let best = null;
+try { best = parseFloat(localStorage.getItem('bandage.best')) || null; } catch (e) {}
+
+/* fixed arm hair */
+const hairs = [];
+for (let i = 0; i < 380; i++) {
+  const x = rand(-6, 406), y = rand(-66, 66);
+  hairs.push({ x, y, a: rand(-2.2, -0.9), l: rand(10, 22), c: rand(-7, 7), under: x > X0 - 2 && x < X0 + BL + 2 && Math.abs(y) < BH / 2 + 1 });
+}
+const pores = [];
+for (let i = 0; i < 46; i++) pores.push([rand(6, BL - 6), rand(-BH / 2 + 6, BH / 2 - 6)]);
+
+function reset() {
+  p = pDrawn = 0; t0 = 0; grab = coast = flyer = null; pain = 0; screamI = 0; nagged = false;
+  pluckAcc = popAcc = 0; hue = 0; parts.length = 0; mood = 'idle';
+  $('time').firstChild.nodeValue = '0.00'; $('gfill').style.width = '0';
+  bubble(); telop(); big(); show('hint', false); show('result', false);
+}
+
+async function start(first) {
+  const g = ++gen;
+  reset(); state = 'intro';
+  show('title', false); show('start', false); show('hud', true);
+  await Promise.race([initAudio(), wait(1500)]);
+  const ok = () => g === gen;
+  play('k_select_003', 0.7);
+  if (first) {
+    voice('f', 'v_title'); await wait(1350); if (!ok()) return;
+    telop('絆創膏、はがしますよ〜'); await wait(900); if (!ok()) return;
+    telop(); big('3'); voice('f', 'v_c3'); play('k_bong_001', 0.6); await wait(750); if (!ok()) return;
+    big('2'); voice('f', 'v_c2'); play('k_bong_001', 0.6, 1.12); await wait(620); if (!ok()) return;
+    // he bails before "1"
+    mood = 'panic'; shake = 16; sndScratch(); big('2', 'drop'); voice('m', 'v_matte');
+    bubble('ちょ、ちょっと待って！\n怖いよ！', true); pop('待って!!', 200, headY - 120, 50, '#ffe14a');
+    await wait(2150); if (!ok()) return;
+    mood = 'plead'; big(); voice('m', 'v_gentle'); bubble('や、優しくお願いしますね…');
+    await wait(2450); if (!ok()) return;
+    bubble(); telop('優しく ＝ 一瞬で！'); play('k_maximize_003', 0.7); await wait(1000); if (!ok()) return;
+  } else {
+    mood = 'plead'; bubble(['こ、今度こそ一瞬で…', 'ひとおもいに、お願いします…', 'ま、またやるの…？'][Math.floor(rand(0, 3))]);
+    telop('もう一回、いきますよ〜'); await wait(rand(700, 1300)); if (!ok()) return;
+  }
+  telop(); bubble(); mood = 'idle';
+  big('はがせ！', 'go'); voice('f', 'v_go'); play('k_bong_001', 0.8, 1.5); shake = 8;
+  state = 'play'; goAt = performance.now();
+  show('hint', true);
+  setTimeout(() => { if (ok() && $('big').textContent === 'はがせ！') big(); }, 700);
+}
+
+function finish(tEnd, fainted) {
+  if (state !== 'play') return;
+  state = 'done'; p = 1; grab = coast = null;
+  const secs = fainted ? FAINT_AT : clamp((tEnd - t0) / 1000, 0.001, FAINT_AT);
+  const r = rankOf(secs);
+  const R = RANKS[r], g = gen;
+  pain = painOf(secs);
+  try { voices.m && voices.m.stop(); } catch (e) {}
+  bubble(); show('hint', false); big();
+  $('time').firstChild.nodeValue = fmt(secs);
+
+  // the rip
+  const fast = r <= 2;
+  flyer = { x: tip.x, y: tip.y, vx: rand(260, 420), vy: -rand(620, 820), rot: 0, vr: rand(7, 12) };
+  burst(fast ? 150 : r <= 3 ? 70 : 30, fast ? 1 : 0.5);
+  if (fainted) {
+    mood = 'dead'; shake = 6; sndSad(); pop('ぽろっ…', 200, armY - 90, 40, '#fff');
+  } else if (fast) {
+    mood = 'relief'; hue = r === 0 ? 1 : 0; shake = 30; freeze = 0.09; flash(0.85);
+    sndRip(true); play('k_impactPunch_heavy_000', 1); pop('ベリッ!!', 200, armY - 110, 96, '#ffe14a', true);
+    if (r === 0) { sndSparkle(); stars(40); }
+  } else if (r <= 4) {
+    mood = 'pain'; shake = 16; flash(0.4); sndRip(false); play('k_impactSoft_heavy_000', 0.9);
+    pop('ベリベリッ', 200, armY - 100, 58, '#fff', true);
+    setTimeout(() => { if (g === gen) mood = 'wreck'; }, 500);
+  } else {
+    mood = r >= 5 ? 'dead' : 'wreck'; shake = 8; noiseHit(0.5, 1800, 300, 0.4, 1.5); sndSad();
+    pop('ぺり…', 200, armY - 90, 44, '#fff');
+  }
+
+  let newBest = false;
+  if (!fainted && (best === null || secs < best)) { newBest = best !== null; best = secs; try { localStorage.setItem('bandage.best', String(secs)); } catch (e) {} }
+
+  const pct = Math.round(pain * 100);
+  $('rtime').innerHTML = fmt(secs) + '<small>秒</small>';
+  $('rrank').textContent = R[1]; $('rrank').className = 't';
+  $('rrank').style.color = ['#f5a800', '#1f9d55', '#1f78e0', '#8a5cf6', '#e8662b', '#e8392b', '#8a1fa8'][r];
+  $('rcom').textContent = R[2];
+  $('rpct').textContent = pct + '%'; $('rpfill').style.width = '0';
+  $('rbest').innerHTML = best === null ? '' : (newBest ? '<b>新記録！</b> ' : '') + '自己ベスト ' + fmt(best) + '秒';
+  const quote = fainted ? '（気絶）' : R[3];
+  const text = `毛深井さん「${quote}」\n絆創膏を${fmt(secs)}秒ではがした【${R[1]}】苦しみ${pct}%\nあなたは何秒？ #一気にはがせ`;
+  // X's post link can't carry a picture: the URL is a card page whose preview image shows this time step and rank
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(QUOTE_POST ? text + '\n' + URL_PUBLIC : text)
+    + '&url=' + encodeURIComponent(QUOTE_POST || `${URL_PUBLIC}card/${cardOf(secs)}.html`);
+  shareFile = null; shareText = text; $('save').style.display = 'none'; $('tip').style.display = 'none';
+  const shot = { secs, r, pct, quote };
+
+  (async () => {
+    await wait(fast ? 750 : 950); if (g !== gen) return;
+    show('hud', false);
+    if (CARD) { await wait(1500); showPicture(await drawShareImage({ ...shot, card: CARD })); return; }
+    const card = $('result'); card.style.display = 'block'; restart(card, 'in'); play('k_confirmation_001', 0.8);
+    requestAnimationFrame(() => { $('rpfill').style.width = Math.max(pct, 2) + '%'; });
+    await wait(380); if (g !== gen) return;
+    $('rrank').classList.add('in'); voice('f', 'v_r' + r); shake = Math.max(shake, 6);
+    await wait(950); if (g !== gen) return;
+    bubble(fainted ? '…（気絶）' : R[3]); if (!fainted) voice('m', 'v_say' + r);
+    prepareShare(shot, g);
+  })();
+}
+
+/* ---------- share picture ---------- */
+// 1200x675: the live scene (his face and the arm panel) on the left, the result on the right.
+// card: the link preview for a time step (`label` replaces the exact time; null = the default og image).
+async function drawShareImage({ secs, r, pct, quote, card }) {
+  await document.fonts?.load(`60px ${FONT}`, '一気にはがせ！秒台以上苦しみ%「」…？あなたは何でる速いほど、痛くない。0123456789.' + RANKS.map(q => q[1] + q[3]).join(''));
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 675;
+  const x = c.getContext('2d');
+  x.fillStyle = '#ffe14a'; x.fillRect(0, 0, 1200, 675);
+  // the frame sits inside the 1200x630 band the cards keep (cards.sh crops 22px off the top); the picture covers it
+  const FX = 20, FY = 42, FW = 560, FH = 591, y0 = headY - 118, y1 = armY + 116;
+  const k = Math.max(FW / 400, FH / (y1 - y0)), sw = FW / k, sh = FH / k, sx = (400 - sw) / 2, sy = y0;   // trim the bottom, keep his hair
+  x.drawImage(cv, (ox + sx * sc) * dpr, sy * sc * dpr, sw * sc * dpr, sh * sc * dpr, FX, FY, FW, FH);
+  x.lineWidth = 8; x.strokeStyle = INK; x.strokeRect(FX, FY, FW, FH);
+  const text = (str, tx, ty, size, fill, maxW = 560) => {
+    x.font = `${size}px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    const tw = x.measureText(str).width; if (tw > maxW) { size *= maxW / tw; x.font = `${size}px ${FONT}`; }
+    x.lineWidth = fill === '#fff' ? Math.min(size * .13, 10) : 5; x.strokeStyle = INK;   // red text: thin outline so it doesn't fill the gaps inside dense kanji
+    x.strokeText(str, tx, ty + size * .06); x.strokeText(str, tx, ty); x.fillStyle = fill; x.fillText(str, tx, ty);
+  };
+  const stamp = (str, tx, ty, size) => {
+    x.save(); x.translate(tx, ty); x.rotate(-.06); x.font = `${size}px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const tw = x.measureText(str).width + size * .9, th = size * 1.35;
+    x.beginPath(); x.roundRect(-tw / 2, -th / 2, tw, th, size * .25); x.fillStyle = '#fff'; x.fill(); x.lineWidth = 9; x.strokeStyle = '#e8392b'; x.stroke();
+    x.fillStyle = '#e8392b'; x.fillText(str, 0, size * .04); x.restore();
+  };
+  text('一気にはがせ！', 890, 105, 72, '#fff');
+  if (card === null) {   // the default preview
+    text('何秒で', 890, 245, 100, '#e8392b'); text('はがせる？', 890, 360, 100, '#e8392b');
+    text('速いほど、痛くない。', 890, 510, 46, '#fff');
+  } else {
+    text(card || `${fmt(secs)}秒`, 890, card ? 235 : 220, 118, '#e8392b');
+    stamp(RANKS[r][1], 890, card ? 360 : 340, 58);
+    text(`「${quote}」`, 890, card ? 455 : 430, 38, '#fff');
+    if (!card) text(`苦しみ ${pct}%`, 890, 495, 42, '#fff');
+    text('あなたは何秒ではがせる？', 890, card ? 540 : 565, 40, '#fff');
+  }
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+let shareFile = null, shareText = '';
+async function prepareShare(shot, g) {
+  try {
+    const blob = await drawShareImage(shot);
+    if (g !== gen || !blob) return;
+    shareFile = new File([blob], 'ikki-ni-hagase.png', { type: 'image/png' });
+    // phones that can share files: the picture is the main way to post, so its button leads
+    const sheet = canShareFile();
+    $('save').textContent = sheet ? '画像でシェア' : '画像を保存';
+    $('save').className = sheet ? '' : 'alt';
+    $('save').style.display = TOUCH ? 'inline-block' : 'none';   // PC: the X button copies it
+  } catch (e) { console.warn('share image', e); }
+}
+const canShareFile = () => !!(TOUCH && shareFile && navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] }));
+function download() {
+  const a = document.createElement('a'), url = URL.createObjectURL(shareFile);
+  a.href = url; a.download = shareFile.name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+function note(text) { const el = $('tip'); el.textContent = text; el.style.display = 'block'; }
+// On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
+// X opens after the copy, while the page still has focus.
+if (!TOUCH) $('share').innerHTML = 'Xでポスト<small>画像もコピー</small>';
+$('share').addEventListener('click', async e => {
+  if (TOUCH || !shareFile) return;
+  e.preventDefault();
+  const href = $('share').href, paste = /Mac/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareFile })]);
+    note(`リンクに結果カードが付きます。スコア画像も付けるなら ${paste}`);
+  } catch (err) { console.warn('clipboard', err); download(); note('画像を保存しました。投稿に添付してください'); }
+  window.open(href, '_blank', 'noopener');
+});
+$('save').addEventListener('click', e => {
+  e.currentTarget.blur();
+  if (!shareFile) return;
+  if (!canShareFile()) return download();
+  navigator.share({ files: [shareFile], text: shareText, url: URL_PUBLIC }).catch(err => {
+    if (err.name !== 'AbortError') { console.warn('share', err); download(); }   // AbortError: the sheet was closed
+  });
+});
+function showPicture(blob) {
+  const i = new Image(); i.src = URL.createObjectURL(blob);
+  i.style.cssText = 'position:fixed;left:0;top:0;width:1200px;height:675px;z-index:99'; document.body.append(i);
+}
+
+/* ---------- particles ---------- */
+function hairPart(x, y, power) {
+  const a = rand(-Math.PI * 0.95, -Math.PI * 0.05), v = rand(60, 260) * (0.6 + power * 1.6);
+  parts.push({ k: 0, x, y, vx: Math.cos(a) * v + power * 120, vy: Math.sin(a) * v - 60, rot: rand(0, 6.3), vr: rand(-12, 12), l: rand(8, 18), c: rand(-6, 6), life: rand(0.7, 1.5), t: 0 });
+}
+function burst(n, power) { for (let i = 0; i < n; i++) hairPart(X0 + rand(0, BL), armY + rand(-BH / 2, BH / 2), power); }
+function stars(n) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, 6.3), v = rand(120, 520);
+    parts.push({ k: 1, x: 200, y: armY - 20, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 150, rot: rand(0, 6.3), vr: rand(-6, 6), l: rand(6, 14), life: rand(0.6, 1.2), t: 0 });
+  }
+}
+function tear(side) {
+  parts.push({ k: 2, x: 200 + side * rand(40, 60), y: headY + rand(0, 14), vx: side * rand(60, 220), vy: -rand(60, 240), rot: 0, vr: 0, l: rand(4, 7), life: 0.9, t: 0 });
+}
+
+/* ---------- input ---------- */
+const stamp = e => (Math.abs(e.timeStamp - performance.now()) < 2000 ? e.timeStamp : performance.now());
+const toStage = e => ({ x: (e.clientX - ox) / sc, y: e.clientY / sc });
+const pullOf = (g, q) => Math.hypot(Math.max(q.x - g.x, 0), Math.max(g.y - q.y, 0)); // rightward and upward both peel
+cv.addEventListener('pointerdown', e => {
+  if (state !== 'play' || grab || (coast && coast.tEnd !== null)) return;
+  coast = null;
+  const q = toStage(e);
+  if (q.y < armY - 150) return;
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  grab = { id: e.pointerId, x: q.x, y: q.y, p, samples: [[stamp(e), 0]] };
+  ptr = q;
+});
+cv.addEventListener('pointermove', e => {
+  if (!grab || e.pointerId !== grab.id || state !== 'play') return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+  for (const ev of evs.length ? evs : [e]) {
+    const q = toStage(ev), t = stamp(ev), pull = pullOf(grab, q);
+    const prev = grab.samples[grab.samples.length - 1];
+    ptr = q;
+    if (!t0 && pull > 3) { t0 = Math.max(prev[0], t - 32); show('hint', false); }
+    grab.samples.push([t, pull]); if (grab.samples.length > 12) grab.samples.shift();
+    if (t0) {
+      p = Math.max(p, Math.min(1, grab.p + pull * GAIN / BL));
+      if (p >= 1) { finish(t); return; }
+    }
+  }
+});
+function release(e) {
+  if (!grab || e.pointerId !== grab.id) return;
+  const g = grab, t = stamp(e); grab = null;
+  if (state !== 'play' || !t0) return;
+  // flick: keep ripping on the speed of the last 60 ms
+  const s = g.samples, last = s[s.length - 1];
+  let first = last; for (const q of s) if (last[0] - q[0] <= 60) { first = q; break; }
+  const dt = last[0] - first[0], v = dt > 0 && t - last[0] < 80 ? (last[1] - first[1]) / dt : 0; // stage units per ms
+  if (v > 0.35) {
+    // a twitch can't carry the whole strip: the rip goes at most 8x as far as the finger took it
+    const reach = Math.min(Math.min(v, 8) * GAIN * TAU / BL, (p - g.p) * 8), left = 1 - p;
+    coast = { t, p0: p, reach, tEnd: reach > left * 1.02 ? t - TAU * Math.log(1 - left / reach) : null };
+    if (coast.tEnd !== null && coast.tEnd - t < 4) { finish(coast.tEnd); }
+  }
+}
+cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', release);
+cv.addEventListener('contextmenu', e => e.preventDefault());
+$('go').addEventListener('click', () => start(true));
+$('again').addEventListener('click', () => start(false));
+
+/* ---------- drawing ---------- */
+const INK = '#111', SKIN = '#eab890', HAIR = '#2b1c14';
+const mix = (a, b, k) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`;
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function line(...pts) { ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.stroke(); }
+function ell(x, y, rx, ry) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, 6.2832); }
+
+function drawBg(t) {
+  const k = state === 'play' || (state === 'done' && mood !== 'relief') ? painShown : 0;
+  // calm mint, through yellow, to red
+  const ramp = (a, b, c) => hue ? mix(a, b, hue) : k < 0.35 ? mix(a, b, k / 0.35) : mix(b, c, (k - 0.35) / 0.65);
+  const c1 = ramp([165, 230, 211], [255, 225, 74], [255, 96, 80]);
+  const c2 = ramp([188, 240, 224], [255, 240, 150], [255, 140, 120]);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = c1; ctx.fillRect(0, 0, W, H);
+  const cx = W / 2, cy = headY * sc, R = Math.hypot(W, H), rot = t * (0.06 + k * 0.9), n = 14;
+  ctx.fillStyle = c2; ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const a = rot + i * 6.2832 / n;
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a + 3.1416 / n) * R, cy + Math.sin(a + 3.1416 / n) * R);
+  }
+  ctx.fill();
+}
+
+function drawGuy(t) {
+  const hurt = mood === 'pain' ? painShown : 0;
+  const jit = mood === 'pain' ? 2 + hurt * 7 : mood === 'panic' ? 5 : mood === 'idle' || mood === 'plead' ? 0.8 : 0;
+  const cx = 200 + rand(-jit, jit), cy = headY + rand(-jit, jit) + (mood === 'dead' ? 10 : 0) + Math.sin(t * 2.2) * 2;
+  const bottom = armY - 96;
+  ctx.lineJoin = ctx.lineCap = 'round'; ctx.strokeStyle = INK; ctx.lineWidth = 5;
+  // torso + tank top
+  ctx.fillStyle = SKIN;
+  ctx.beginPath(); ctx.moveTo(cx - 158, bottom); ctx.quadraticCurveTo(cx - 156, cy + 104, cx - 60, cy + 98); ctx.lineTo(cx + 60, cy + 98);
+  ctx.quadraticCurveTo(cx + 156, cy + 104, cx + 158, bottom); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.moveTo(cx - 92, bottom); ctx.lineTo(cx - 78, cy + 100); ctx.lineTo(cx - 56, cy + 99); ctx.quadraticCurveTo(cx, cy + 190, cx + 56, cy + 99);
+  ctx.lineTo(cx + 78, cy + 100); ctx.lineTo(cx + 92, bottom); ctx.closePath(); ctx.fill(); ctx.stroke();
+  rr(cx - 26, cy + 66, 52, 40, 8); ctx.fillStyle = SKIN; ctx.fill();
+  // chest and shoulder hair
+  ctx.strokeStyle = HAIR; ctx.lineWidth = 2.2; ctx.beginPath();
+  for (let i = 0; i < 26; i++) {
+    const hx = cx + Math.sin(i * 7.3) * 30, hy = cy + 108 + (i * 13 % 28) * (1 - Math.abs(Math.sin(i * 7.3)) * 0.5);
+    ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx + 5, hy - 5, hx + Math.cos(i) * 6, hy - 10);
+  }
+  for (let i = 0; i < 22; i++) {
+    const s = i % 2 ? 1 : -1, hx = cx + s * (104 + (i * 17 % 44)), hy = cy + 118 + (i * 11 % 30);
+    ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx + s * 5, hy - 6, hx + s * 2, hy - 12);
+  }
+  ctx.stroke();
+  // ears, head
+  ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.fillStyle = SKIN;
+  for (const s of [-1, 1]) { ell(cx + s * 83, cy + 6, 15, 19); ctx.fill(); ctx.stroke(); }
+  ell(cx, cy, 84, 90); ctx.fill();
+  const red = mood === 'pain' ? 0.15 + hurt * 0.6 : mood === 'wreck' ? 0.3 : mood === 'panic' ? 0 : 0;
+  if (red) { ctx.globalAlpha = red; ctx.fillStyle = '#ff3b2f'; ell(cx, cy, 84, 90); ctx.fill(); ctx.globalAlpha = 1; }
+  if (mood === 'panic' || mood === 'dead') { ctx.globalAlpha = 0.35; ctx.fillStyle = '#7fa8e8'; ell(cx, cy - 40, 84, 50); ctx.save(); ell(cx, cy, 84, 90); ctx.clip(); ell(cx, cy - 62, 90, 50); ctx.fill(); ctx.restore(); ctx.globalAlpha = 1; }
+  // stubble
+  ctx.save(); ell(cx, cy, 84, 90); ctx.clip();
+  ctx.fillStyle = 'rgba(50,60,80,.2)'; ell(cx, cy + 74, 80, 56); ctx.fill();
+  ctx.fillStyle = 'rgba(30,30,40,.55)';
+  for (let i = 0; i < 70; i++) { const a = i * 2.399, r = 8 + (i * 37 % 60); ctx.fillRect(cx + Math.cos(a) * r * 1.15, cy + 62 + Math.abs(Math.sin(a)) * r * 0.42, 2, 2); }
+  ctx.restore();
+  ell(cx, cy, 84, 90); ctx.stroke();
+  // hair
+  ctx.fillStyle = HAIR;
+  for (let i = -3; i <= 3; i++) { ell(cx + i * 25, cy - 76 + Math.abs(i) * 9, 25, 23); ctx.fill(); }
+  rr(cx - 88, cy - 52, 14, 46, 6); ctx.fill(); rr(cx + 74, cy - 52, 14, 46, 6); ctx.fill();
+  // brows
+  const B = { idle: [0, -7], panic: [-14, -16], plead: [2, -12], pain: [-8, 6], relief: [-6, -6], wreck: [3, -9], dead: [0, -4] }[mood];
+  ctx.strokeStyle = HAIR; ctx.lineWidth = 11;
+  line(cx - 60, cy - 30 + B[0], cx - 18, cy - 30 + B[1]); line(cx + 60, cy - 30 + B[0], cx + 18, cy - 30 + B[1]);
+  // eyes
+  ctx.strokeStyle = INK; ctx.lineWidth = 5;
+  for (const s of [-1, 1]) {
+    const ex = cx + s * 36, ey = cy - 4;
+    if (mood === 'idle') { ctx.fillStyle = '#fff'; ell(ex, ey, 15, 15); ctx.fill(); ctx.stroke(); ctx.fillStyle = INK; ell(ex + Math.sin(t * 9) * 1.5, ey + 6, 6, 6); ctx.fill(); }
+    else if (mood === 'panic') { ctx.fillStyle = '#fff'; ell(ex, ey, 21, 21); ctx.fill(); ctx.stroke(); ctx.fillStyle = INK; ell(ex, ey, 3.5, 3.5); ctx.fill(); }
+    else if (mood === 'plead') { ctx.fillStyle = INK; ell(ex, ey, 17, 18); ctx.fill(); ctx.fillStyle = '#fff'; ell(ex - 5, ey - 6, 6, 6); ctx.fill(); ell(ex + 6, ey + 5 + Math.sin(t * 12) * 1.5, 3.5, 3.5); ctx.fill(); }
+    else if (mood === 'pain') { ctx.lineWidth = 6; line(ex - s * 13, ey - 11, ex + s * 11, ey, ex - s * 13, ey + 11); ctx.lineWidth = 5; }
+    else if (mood === 'relief') { ctx.fillStyle = INK; ell(ex, ey, 5.5, 5.5); ctx.fill(); }
+    else if (mood === 'wreck') { ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(ex, ey + 4, 12, 3.4, 6.03); ctx.stroke(); ctx.lineWidth = 5; }
+    else { ctx.lineWidth = 6; line(ex - 10, ey - 10, ex + 10, ey + 10); line(ex + 10, ey - 10, ex - 10, ey + 10); ctx.lineWidth = 5; }
+    // tears
+    if ((mood === 'pain' && hurt > 0.2) || mood === 'wreck') {
+      const w = mood === 'wreck' ? 9 : 5 + hurt * 9;
+      ctx.fillStyle = '#6cc4ff'; ctx.beginPath();
+      ctx.moveTo(ex - w / 2, ey + 12);
+      for (let y = 0; y <= 70; y += 10) ctx.lineTo(ex - w / 2 + Math.sin(t * 20 + y * 0.3) * 2 + s * y * 0.12, ey + 12 + y);
+      for (let y = 70; y >= 0; y -= 10) ctx.lineTo(ex + w / 2 + Math.sin(t * 20 + y * 0.3) * 2 + s * y * 0.12, ey + 12 + y);
+      ctx.closePath(); ctx.fill(); ctx.lineWidth = 3; ctx.stroke(); ctx.lineWidth = 5;
+    }
+  }
+  // nose
+  ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(cx - 4, cy + 4); ctx.quadraticCurveTo(cx - 14, cy + 24, cx + 4, cy + 24); ctx.stroke();
+  // mouth
+  const mx = cx, my = cy + 50;
+  if (mood === 'idle') { ctx.beginPath(); ctx.moveTo(mx - 22, my); for (let i = 1; i <= 8; i++) ctx.lineTo(mx - 22 + i * 5.5, my + (i % 2 ? -4 : 4) * (0.7 + 0.3 * Math.sin(t * 14))); ctx.stroke(); }
+  else if (mood === 'panic') { ctx.fillStyle = '#4a1418'; ell(mx, my + 4, 24, 28); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#ff7a7a'; ell(mx, my + 20, 13, 9); ctx.fill(); }
+  else if (mood === 'plead') { line(mx - 12, my + 6, mx, my - 3 + Math.sin(t * 16) * 1.5, mx + 12, my + 6); }
+  else if (mood === 'pain') {
+    const w = 46 + hurt * 34, h = 18 + hurt * 46;
+    rr(mx - w / 2, my - 12, w, h, Math.min(16, h / 2)); ctx.fillStyle = '#4a1418'; ctx.fill();
+    ctx.save(); ctx.clip(); ctx.fillStyle = '#fff'; ctx.fillRect(mx - w / 2, my - 12, w, 9); ctx.fillStyle = '#ff7a7a'; ell(mx, my - 12 + h, w * 0.32, h * 0.3); ctx.fill(); ctx.restore();
+    rr(mx - w / 2, my - 12, w, h, Math.min(16, h / 2)); ctx.stroke();
+  }
+  else if (mood === 'relief') { ctx.fillStyle = '#4a1418'; ell(mx, my, 7, 9); ctx.fill(); ctx.stroke(); }
+  else if (mood === 'wreck') { ctx.beginPath(); ctx.moveTo(mx - 24, my + 8); ctx.quadraticCurveTo(mx - 12, my - 10 + Math.sin(t * 22) * 3, mx, my + 2); ctx.quadraticCurveTo(mx + 12, my - 10 - Math.sin(t * 22) * 3, mx + 24, my + 8); ctx.stroke(); }
+  else {
+    ctx.fillStyle = '#4a1418'; ell(mx, my + 2, 13, 10); ctx.fill(); ctx.stroke();
+    // soul
+    const sy = cy - 30 - ((t * 26) % 60), sx = mx + 78 + Math.sin(t * 2.5) * 8;
+    ctx.globalAlpha = 0.9; ctx.fillStyle = '#fff'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(mx + 10, my); ctx.quadraticCurveTo(mx + 60, my + 6, sx - 10, sy + 26); ctx.quadraticCurveTo(sx - 30, sy - 4, sx, sy - 22);
+    ctx.quadraticCurveTo(sx + 30, sy - 4, sx + 12, sy + 24); ctx.quadraticCurveTo(mx + 66, my + 26, mx + 10, my); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK; ell(sx - 8, sy - 2, 3, 4); ctx.fill(); ell(sx + 8, sy - 2, 3, 4); ctx.fill(); ell(sx, sy + 9, 4, 5); ctx.fill();
+    ctx.globalAlpha = 1; ctx.lineWidth = 5;
+  }
+  // sweat
+  if (mood === 'idle' || mood === 'plead' || mood === 'panic') {
+    ctx.fillStyle = '#8fd4ff'; ctx.lineWidth = 3;
+    const n = mood === 'panic' ? 4 : 2;
+    for (let i = 0; i < n; i++) {
+      const s = i % 2 ? 1 : -1, yy = ((t * 40 + i * 23) % 46), x = cx + s * (66 + i * 5), y = cy - 46 + yy;
+      ctx.beginPath(); ctx.moveTo(x, y - 9); ctx.quadraticCurveTo(x + 8, y + 5, x, y + 7); ctx.quadraticCurveTo(x - 8, y + 5, x, y - 9); ctx.fill(); ctx.stroke();
+    }
+  }
+  // anger vein when it hurts a lot
+  if (mood === 'pain' && hurt > 0.45) {
+    ctx.strokeStyle = '#e8392b'; ctx.lineWidth = 5; const vx = cx + 52, vy = cy - 66, q = 9 + Math.sin(t * 30) * 2;
+    line(vx - q, vy - 3, vx - 3, vy - 3, vx - 3, vy - q); line(vx + q, vy - 3, vx + 3, vy - 3, vx + 3, vy - q);
+    line(vx - q, vy + 3, vx - 3, vy + 3, vx - 3, vy + q); line(vx + q, vy + 3, vx + 3, vy + 3, vx + 3, vy + q);
+  }
+}
+
+function bandageBody(x, y, w, h) { // generic strip centred on y, used for the flying one
+  rr(x, y - h / 2, w, h, 14); ctx.fillStyle = '#f0c49a'; ctx.fill(); ctx.stroke();
+  rr(x + w * 0.32, y - h / 2 + 5, w * 0.36, h - 10, 6); ctx.fillStyle = '#fff3e2'; ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
+}
+
+function drawArm(t) {
+  const xf = X0 + pDrawn * BL, top = armY - 108;
+  ctx.lineJoin = ctx.lineCap = 'round';
+  // panel
+  ctx.fillStyle = INK; rr(12, top + 7, 376, 216, 20); ctx.fill();
+  rr(12, top, 376, 216, 20); ctx.fillStyle = '#fff8e6'; ctx.fill();
+  ctx.save(); rr(12, top, 376, 216, 20); ctx.clip();
+  // arm
+  ctx.fillStyle = SKIN; ctx.strokeStyle = INK; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(0, armY - 72); ctx.quadraticCurveTo(200, armY - 66, 400, armY - 58); ctx.lineTo(400, armY + 58); ctx.quadraticCurveTo(200, armY + 68, 0, armY + 72); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // hair
+  ctx.strokeStyle = HAIR; ctx.lineWidth = 2.4; ctx.beginPath();
+  for (const h of hairs) {
+    if (h.under) continue;
+    const x = h.x, y = armY + h.y, ex = x + Math.cos(h.a) * h.l, ey = y + Math.sin(h.a) * h.l;
+    ctx.moveTo(x, y); ctx.quadraticCurveTo((x + ex) / 2 + h.c, (y + ey) / 2, ex, ey);
+  }
+  ctx.stroke();
+  // bare patch where the bandage was
+  if (pDrawn > 0) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, armY - 60, xf, 120); ctx.clip();
+    rr(X0, armY - BH / 2, BL, BH, 14); ctx.fillStyle = mix([255, 214, 196], [255, 150, 130], state === 'done' ? pain : painShown); ctx.fill();
+    ctx.setLineDash([5, 6]); ctx.strokeStyle = 'rgba(160,60,40,.6)'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(200,50,40,.7)'; for (const q of pores) { ell(X0 + q[0], armY + q[1], 1.6, 1.6); ctx.fill(); }
+    ctx.restore();
+  }
+  // bandage still stuck
+  if (pDrawn < 1) {
+    ctx.save(); ctx.beginPath(); ctx.rect(xf, armY - 60, 400, 120); ctx.clip();
+    ctx.strokeStyle = INK; ctx.lineWidth = 4; bandageBody(X0, armY, BL, BH);
+    ctx.fillStyle = 'rgba(120,70,30,.45)';
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) { ell(X0 + 22 + i * 17, armY - 15 + j * 15, 2, 2); ctx.fill(); ell(X0 + BL - 22 - i * 17, armY - 15 + j * 15, 2, 2); ctx.fill(); }
+    ctx.restore();
+    if (pDrawn > 0) { ctx.strokeStyle = INK; ctx.lineWidth = 4; line(xf, armY - BH / 2, xf, armY + BH / 2); }
+  }
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 5; rr(12, top, 376, 216, 20); ctx.stroke();
+
+  // the peeled end, pulled toward the finger
+  if (pDrawn < 1 && state !== 'title') {
+    const len = pDrawn * BL + 34;
+    let tx, ty;
+    if (grab) { const dx = ptr.x - 8 - xf, dy = Math.min(ptr.y, armY) - 62 - armY, d = Math.hypot(dx, dy) || 1, k = Math.min(1, len / d); tx = xf + dx * k; ty = armY + dy * k; }
+    else { const k = Math.min(1, len / 70), w = state === 'play' && !t0 ? Math.sin(t * 9) * 5 : Math.sin(t * 3) * 2; tx = xf - (16 + w) * k; ty = armY - 64 * k; }
+    tip.x += (tx - tip.x) * 0.5; tip.y += (ty - tip.y) * 0.5;
+    const d = Math.hypot(tip.x - xf, tip.y - armY), cxp = xf + (tip.x - xf) * 0.15, cyp = armY - Math.max(20, d * 0.55);
+    if (state === 'play' && !t0) { ctx.globalAlpha = 0.5 + 0.4 * Math.sin(t * 9); ctx.fillStyle = '#ffe14a'; ell(tip.x, tip.y, 34, 34); ctx.fill(); ctx.globalAlpha = 1; }
+    for (const [w, c] of [[44, INK], [36, '#fbe3c8']]) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(xf, armY); ctx.quadraticCurveTo(cxp, cyp, tip.x, tip.y); ctx.stroke(); }
+    // hairs stuck to the sticky side
+    ctx.strokeStyle = HAIR; ctx.lineWidth = 2; ctx.beginPath();
+    const n = Math.floor(pDrawn * 26);
+    for (let i = 0; i < n; i++) {
+      const k = (i + 0.5) / n, a = 1 - k, bx = a * a * xf + 2 * a * k * cxp + k * k * tip.x, by = a * a * armY + 2 * a * k * cyp + k * k * tip.y, o = ((i * 37) % 24) - 12;
+      ctx.moveTo(bx + o, by + o * 0.3); ctx.lineTo(bx + o + 5, by + o * 0.3 - 7);
+    }
+    ctx.stroke();
+  }
+}
+
+function drawParts() {
+  ctx.lineCap = 'round';
+  for (const q of parts) {
+    const a = clamp(1 - q.t / q.life, 0, 1);
+    ctx.globalAlpha = Math.min(1, a * 2.5);
+    ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot);
+    if (q.k === 0) { ctx.strokeStyle = HAIR; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(-q.l / 2, 0); ctx.quadraticCurveTo(0, q.c, q.l / 2, 0); ctx.stroke(); }
+    else if (q.k === 1) {
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath();
+      for (let i = 0; i < 8; i++) { const r = i % 2 ? q.l * 0.4 : q.l, an = i * 0.7854; ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else { ctx.fillStyle = '#6cc4ff'; ctx.strokeStyle = INK; ctx.lineWidth = 2; ell(0, 0, q.l * 0.7, q.l); ctx.fill(); ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  if (flyer) {
+    ctx.save(); ctx.translate(flyer.x, flyer.y); ctx.rotate(flyer.rot); ctx.scale(0.8, 0.8);
+    ctx.strokeStyle = INK; ctx.lineWidth = 4; bandageBody(-BL / 2, 0, BL, BH);
+    ctx.strokeStyle = HAIR; ctx.lineWidth = 2.4; ctx.beginPath();
+    for (let i = 0; i < 40; i++) { const x = -BL / 2 + 10 + (i * 53 % (BL - 20)), y = ((i * 29) % (BH - 12)) - BH / 2 + 6; ctx.moveTo(x, y); ctx.lineTo(x + 5, y - 9); }
+    ctx.stroke(); ctx.restore();
+  }
+}
+
+/* ---------- loop ---------- */
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastTime) / 1000 || 0.016); lastTime = now;
+  const t = now / 1000;
+
+  if (state === 'play') {
+    if (coast) {
+      const e = now - coast.t;
+      if (coast.tEnd !== null && now >= coast.tEnd) finish(coast.tEnd);
+      else { p = Math.max(p, Math.min(coast.tEnd !== null ? 0.999 : 1, coast.p0 + coast.reach * (1 - Math.exp(-e / TAU)))); if (coast.tEnd === null && e > TAU * 4) coast = null; }
+    }
+    if (t0 && state === 'play') {
+      const el = (now - t0) / 1000;
+      pain = painOf(el); mood = 'pain';
+      $('time').firstChild.nodeValue = fmt(el);
+      if (screamI < SCREAMS.length && el >= SCREAMS[screamI][0]) {
+        const s = SCREAMS[screamI++]; voice('m', s[1]); bubble(s[2], true); shake = Math.max(shake, 10 + screamI * 3);
+      }
+      if (el >= FAINT_AT) finish(now, true);
+    } else if (!nagged && now - goAt > 5000) { nagged = true; mood = 'plead'; bubble('は、早く…ひとおもいに…！'); }
+  }
+
+  // peel feedback: every bit of travel plucks hair
+  if (p > pDrawn) {
+    const dpx = (p - pDrawn) * BL, xf = X0 + p * BL, quick = dpx / dt > 900;
+    pDrawn = p;
+    for (let i = Math.min(40, Math.ceil(dpx * 0.45)); i > 0; i--) hairPart(xf - rand(0, dpx), armY + rand(-BH / 2, BH / 2), quick ? 0.8 : 0.15);
+    pluckAcc += dpx; let n = 0;
+    while (pluckAcc > 8) { pluckAcc -= 8; if (n++ < 3) sndPluck(); }
+    if (state === 'play') {
+      popAcc += dpx;
+      if (popAcc > 26 && !quick) { popAcc = 0; pop(['プチ', 'ブチッ', 'ミチ…', 'ブチブチ', 'プチッ'][Math.floor(rand(0, 5))], xf + rand(-20, 20), armY - rand(60, 100), rand(22, 32), '#fff'); shake = Math.max(shake, 5); }
+      if (pain > 0.2 && Math.random() < 0.5) tear(Math.random() < 0.5 ? -1 : 1);
+    }
+  }
+  if (state === 'play' && t0 && pain > 0.35 && Math.random() < pain * 0.5) tear(Math.random() < 0.5 ? -1 : 1);
+  if (state === 'done' && mood === 'wreck' && Math.random() < 0.15) tear(Math.random() < 0.5 ? -1 : 1);
+
+  painShown += (pain - painShown) * Math.min(1, dt * 10);
+  if (state === 'play') $('gfill').style.width = painShown * 100 + '%';
+
+  // particles
+  if (freeze > 0) freeze -= dt;
+  else {
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const q = parts[i]; q.t += dt;
+      if (q.t > q.life || q.y > SH + 40) { parts.splice(i, 1); continue; }
+      q.vy += (q.k === 0 ? 520 : 900) * dt; if (q.k === 0) { q.vx *= 1 - 1.6 * dt; q.vy *= 1 - 1.2 * dt; }
+      q.x += q.vx * dt; q.y += q.vy * dt; q.rot += q.vr * dt;
+    }
+    if (flyer) { flyer.vy += 1500 * dt; flyer.x += flyer.vx * dt; flyer.y += flyer.vy * dt; flyer.rot += flyer.vr * dt; if (flyer.y > SH + 300) flyer = null; }
+  }
+
+  // shake
+  const amp = shake + (state === 'play' && t0 ? painShown * 5 : 0);
+  shake *= Math.exp(-dt * 8); if (shake < 0.3) shake = 0;
+  const sx = rand(-amp, amp) * sc, sy = rand(-amp, amp) * sc;
+  ui.style.transform = amp ? `translate(${sx}px,${sy}px)` : '';
+
+  drawBg(t);
+  ctx.setTransform(dpr * sc, 0, 0, dpr * sc, (ox + sx) * dpr, sy * dpr);
+  drawGuy(t); drawArm(t); drawParts();
+  requestAnimationFrame(frame);
+}
+
+const Q = new URLSearchParams(location.search), CQ = Q.get('card');
+const CARD = !Q.has('card') ? undefined : !CQ ? null : CQ === 'max' ? '10秒以上' : CQ[0] === 's' ? `${CQ.slice(1)}秒台` : CQ[0] === 'd' ? `${(CQ.slice(1) / 10).toFixed(1)}秒台` : `${(CQ.slice(1) / 100).toFixed(2)}秒`;
+requestAnimationFrame(frame);
+if (CARD === undefined) { show('title', true); show('start', true); bubble('毛深井です…お手やわらかに…'); }
+else if (CARD === null) { mood = 'dead'; state = 'done'; p = pDrawn = 1; pain = painShown = 1; setTimeout(async () => showPicture(await drawShareImage({ card: null })), 1200); }
+else {   // play the ending for this card's time, then draw the preview
+  const secs = CQ === 'max' ? 10 : { s: 1, d: .1, c: .01 }[CQ[0]] * CQ.slice(1);
+  state = 'play'; t0 = 1000; finish(1000 + secs * 1000);
+}
+</script>
+</body>
+</html>
