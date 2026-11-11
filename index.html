@@ -22,6 +22,14 @@ h2#mini-games{margin-top:2.5rem}
 .game{display:grid;gap:1.25rem;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:2rem 0}
 .game img{width:100%;height:auto;display:block}
 .game div{padding:0 1.25rem 1.25rem}
+.mini{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:center;gap:1rem;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1rem 0}
+.mini>a{display:block}
+.mini img{width:100%;height:auto;display:block}
+.mini div{padding:.75rem 1rem .75rem 0}
+.mini h3{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.15rem;line-height:1.25;margin:0 0 .3rem}
+.mini h3 a{color:inherit;text-decoration:none}
+.mini p{margin:0;font-size:.95rem;line-height:1.5;color:var(--ink-soft)}
+@media (max-width:520px){.mini{gap:.75rem}.mini div{padding:.5rem .75rem .5rem 0}.mini h3{font-size:1rem}.mini p{font-size:.85rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}}
 .links{display:flex;flex-wrap:wrap;gap:.4rem 1.25rem;font-weight:700}
 footer{color:var(--ink-soft);font-size:.9rem;border-top:1px solid var(--line);padding-top:1rem;margin-top:2rem}
 </style>
@@ -45,20 +53,18 @@ footer{color:var(--ink-soft);font-size:.9rem;border-top:1px solid var(--line);pa
 
   <h2 id="mini-games">Mini games</h2>
   <p>Free browser games, made for phones. No ads.</p>
-  <article class="game">
+  <article class="mini">
     <a href="mini-games/bandage/"><img src="mini-games/bandage/thumb.jpg" alt="一気にはがせ！: a hairy man's soul leaving his body after a slow bandage peel" width="1200" height="630" loading="lazy"></a>
     <div>
-      <h2>一気にはがせ！ / Rip It Off</h2>
+      <h3><a href="mini-games/bandage/">一気にはがせ！ / Rip It Off</a></h3>
       <p>Rip the bandage off a very hairy arm in one flick. The faster you are, the less he suffers; peel slowly and he screams until his soul leaves his body.</p>
-      <p class="links"><a href="mini-games/bandage/">Play</a></p>
     </div>
   </article>
-  <article class="game">
+  <article class="mini">
     <a href="mini-games/this-is-a-pen/"><img src="mini-games/this-is-a-pen/thumb.jpg" alt="This is a PEN: a gust of breath blasting a street apart" width="1200" height="630" loading="lazy"></a>
     <div>
-      <h2>これはペンです / This is a PEN</h2>
+      <h3><a href="mini-games/this-is-a-pen/">これはペンです / This is a PEN</a></h3>
       <p>Mash to charge your breath, then say "this is a PEN" and blow away the studio, the city, and more. Inspired by a 2020 Japanese TV segment about tissues and pronunciation.</p>
-      <p class="links"><a href="mini-games/this-is-a-pen/">Play</a></p>
     </div>
   </article>
 
