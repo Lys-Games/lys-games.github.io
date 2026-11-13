@@ -98,6 +98,7 @@ button.alt,.btn.alt{background:#222}
 #save small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:11px}
 #result .row button,#result .row .btn{font-size:clamp(18px,5.2vw,24px);padding:.3em .9em;margin:.2em 0;white-space:nowrap}
 #net{font-family:system-ui,sans-serif;font-size:11px;color:#a33;margin-top:.3em;display:none}
+.en{display:none!important}
 </style>
 </head>
 <body>
@@ -116,12 +117,12 @@ button.alt,.btn.alt{background:#222}
   <div id="title" class="panel">
     <h1 class="t">区境つなひき<span class="en">Border Tug</span></h1>
     <div class="go">
-      <div class="card">台東区と墨田区は毎年、桜橋の綱引きで本当に区境を動かしています。これはそのネット版。1回で動くのは最大1m。<span class="e">Taito and Sumida really move their border with a tug of war on Sakurabashi every year. Online, each pull moves it up to 1 m.</span>
+      <div class="card">台東区と墨田区は毎年、桜橋の綱引きで本当に区境を動かしています。これはそのネット版。1回で動くのは最大1m。
         <div id="status"></div>
         <div class="areas"><div class="ta" id="aT"></div><div class="su" id="aS"></div></div>
       </div>
       <div class="ask t">どっちの味方？<span class="en">Pick a side</span></div>
-      <div class="sides"><button id="pickT">台東区<small>Taito</small></button><button id="pickS">墨田区<small>Sumida</small></button></div>
+      <div class="sides"><button id="pickT">台東区</button><button id="pickS">墨田区</button></div>
     </div>
   </div>
   <div id="result" class="panel">
@@ -133,9 +134,9 @@ button.alt,.btn.alt{background:#222}
     <div class="areas"><div class="ta" id="rT"></div><div class="su" id="rS"></div></div>
     <div id="rtotal"></div>
     <div id="net"></div>
-    <div class="row"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存<small>Save image</small></button></div>
-    <div class="small"><a href="#" id="switch">陣営を変える / Switch sides</a></div>
-    <div class="small">by <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=bordertug" target="_blank" rel="noopener">Gopher It on Steam</a></div>
+    <div class="row"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div>
+    <div class="small"><a href="#" id="switch">陣営を変える</a></div>
+    <div class="small">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=bordertug" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div>
   </div>
 </div>
 <script src="leaflet.js"></script>
@@ -380,8 +381,8 @@ function areaBox(el, k, a, delta){
 function showStatus(){
   const [ja, en] = borderLine(shared), a = geo.areas(sClamp(shared));
   const p = store.pulled();
-  const tot = p && (p.taito || p.sumida) ? `<span class="e">みんなが引いた合計 / Pulled so far: 台東区 ${fmtM(p.taito)} m · 墨田区 ${fmtM(p.sumida)} m</span>` : '';
-  $('status').innerHTML = `${ja}<span class="e">${en}${netOk ? '' : ' (offline)'}</span>${tot}`;
+  const tot = p && (p.taito || p.sumida) ? `<span class="e">みんなが引いた合計：台東区 ${fmtM(p.taito)} m · 墨田区 ${fmtM(p.sumida)} m</span>` : '';
+  $('status').innerHTML = `${ja}${netOk ? '' : '<span class="e">オフライン</span>'}${tot}`;
   areaBox($('aT'), 'taito', a.taito); areaBox($('aS'), 'sumida', a.sumida);
 }
 
@@ -565,25 +566,25 @@ async function play(){
 
 function showResult({moved, r, gain, a, goneKey}){
   const me = SIDE[side], other = SIDE[side === 'taito' ? 'sumida' : 'taito'];
-  $('rlabel').textContent = `${me.ja}のために引いた / YOUR PULL FOR ${me.en.toUpperCase()}`;
+  $('rlabel').textContent = `${me.ja}のために引いた`;
   $('rm').textContent = moved.toFixed(2) + ' m';
   const next = RANKS[r + 1], cm = next ? Math.max(1, Math.round((next.at - moved) * 100)) : 0;
-  $('rrank').innerHTML = `${RANKS[r].ja}<small>${RANKS[r].en} · 自己ベスト / Best ${best.toFixed(2)} m</small>`
-    + (next && !goneKey ? `<small>「${next.ja}」まで あと${cm}cm / ${cm} cm short of ${next.en}</small>` : '');
+  $('rrank').innerHTML = `${RANKS[r].ja}<small>自己ベスト ${best.toFixed(2)} m</small>`
+    + (next && !goneKey ? `<small>「${next.ja}」まで あと${cm}cm</small>` : '');
   const g = $('rgone');
-  if (goneKey) { g.style.display = 'block'; g.innerHTML = goneKey === side ? `${me.ja}が消えた！取り返せ！<small style="display:block;font-family:system-ui;font-size:12px;color:#666">${me.en} is gone. Pull it back!</small>` : `${other.ja}は地図から消えた<small style="display:block;font-family:system-ui;font-size:12px;color:#666">${other.en} is off the map</small>`; }
+  if (goneKey) { g.style.display = 'block'; g.innerHTML = goneKey === side ? `${me.ja}が消えた！取り返せ！` : `${other.ja}は地図から消えた`; }
   else g.style.display = 'none';
   $('rgain').innerHTML = moved > 0
-    ? `${other.ja}から <b>${fmtArea(gain)} m²</b> うばった（畳 ${fmtArea(gain / TATAMI)} 枚分）<small>You took ${fmtArea(gain)} m² from ${other.en}, about ${fmtArea(gain / TATAMI)} tatami mats</small>`
-    : (goneKey && goneKey !== side ? `もう引く土地がない<small>There is no land left to take</small>` : `区境は動かなかった<small>The border didn't move</small>`);
+    ? `${other.ja}から <b>${fmtArea(gain)} m²</b> うばった（畳 ${fmtArea(gain / TATAMI)} 枚分）`
+    : (goneKey && goneKey !== side ? `もう引く土地がない` : `区境は動かなかった`);
   areaBox($('rT'), 'taito', a.taito, side === 'taito' ? gain : -gain);
   areaBox($('rS'), 'sumida', a.sumida, side === 'sumida' ? gain : -gain);
   if (gain >= 1) for (let i = 0; i < 8; i++) setTimeout(() => sample('k_select_003', 1.2 + i*.08, .2), 120 + i*120);
   const [ja, en] = borderLine(shared);
-  $('rtotal').innerHTML = `みんなの結果：${ja.replace(/<\/?b>/g, '')}<small>Everyone so far: ${en.replace('The border is now', 'the border is')}</small>`;
+  $('rtotal').innerHTML = `みんなの結果：${ja.replace(/<\/?b>/g, '')}`;
   $('net').style.display = netOk && store.online ? 'none' : 'block';
-  $('net').textContent = !store.online ? 'オフライン：この端末にだけ記録しています。 / Offline: saved on this device only.'
-    : 'みんなの区境に届きませんでした。 / Could not reach the shared border; this pull was not saved.';
+  $('net').textContent = !store.online ? 'オフライン：この端末にだけ記録しています。'
+    : 'みんなの区境に届きませんでした。';
   const into = shared > 0 ? `墨田区側へ${fmtM(shared)}m` : shared < 0 ? `台東区側へ${fmtM(shared)}m` : '元の位置';
   const what = moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
   const gone = goneKey ? `\n${SIDE[goneKey].ja}は地図から消えました` : '';
@@ -608,7 +609,7 @@ async function prepareShare(text, opts){
     const blob = await drawShareImage(opts);
     if (job !== shareJob || !blob) return;
     shareFile = new File([blob], 'border-tug.png', {type: 'image/png'});
-    $('save').innerHTML = canShareFile() ? '画像でシェア<small>Share image</small>' : '画像を保存<small>Save image</small>';
+    $('save').innerHTML = canShareFile() ? '画像でシェア' : '画像を保存';
     $('save').style.display = 'inline-block';
   } catch (e) { console.warn('share image', e); }
 }
