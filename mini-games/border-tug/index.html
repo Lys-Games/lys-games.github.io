@@ -81,7 +81,7 @@ button.alt,.btn.alt{background:#222}
 .sides button{flex:1;margin:.2em 0;padding:.35em .4em;-webkit-text-stroke:.1em var(--ink);paint-order:stroke fill;line-height:1.1}
 .sides button small{display:block;font-family:system-ui,sans-serif;font-weight:800;font-size:13px;-webkit-text-stroke:0}
 #pickT{background:var(--taito)}#pickS{background:var(--sumida)}
-#result{bottom:calc(20px + env(safe-area-inset-bottom));font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-weight:800;background:#fff;color:var(--ink);border:5px solid var(--ink);border-radius:20px;padding:14px 14px 12px;box-shadow:0 8px 0 var(--ink);max-height:calc(100% - 20px);overflow:auto;padding-bottom:10px}
+#result{bottom:calc(20px + 16vh + env(safe-area-inset-bottom));font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-weight:800;background:#fff;color:var(--ink);border:5px solid var(--ink);border-radius:20px;padding:14px 14px 12px;box-shadow:0 8px 0 var(--ink);max-height:calc(100% - 20px - 16vh);overflow:auto;padding-bottom:10px}
 #result .label{font-family:system-ui,sans-serif;font-weight:800;font-size:13px;color:#666}
 #rm,#rrank,#result .btn,#result button{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400}
 #rm{white-space:nowrap;font-size:clamp(40px,12vw,60px);color:var(--red);line-height:1.1}
@@ -204,7 +204,7 @@ const allLL = [...data.taito.ring, ...data.sumida.ring].map(LL);
 const wardsBounds = L.latLngBounds(allLL);
 // fit both wards in the gap the title screen leaves between its heading and its card
 function overview(){
-  if ($('title').style.display !== 'flex') return {paddingTopLeft:[10, 10 + innerHeight*.03], paddingBottomRight:[10, innerHeight*.62]};
+  if ($('title').style.display !== 'flex') return {paddingTopLeft:[10, 10 + innerHeight*.03], paddingBottomRight:[10, innerHeight*.78]};
   // the title panel sits at the top: frame the wards in the space below it
   const top = $('title').querySelector('.go').getBoundingClientRect().bottom;
   return {paddingTopLeft:[10, top + 8], paddingBottomRight:[10, 24]};
