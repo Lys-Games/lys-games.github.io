@@ -143,10 +143,10 @@ button.alt,.btn.alt{background:#222}
 </div>
 <script src="leaflet.js"></script>
 <script type="module">
-import {makeGeo} from './geo.js?v=10';
-import {makePull, target, ROUND} from './tug.js?v=10';
-import {makeStore} from './store.js?v=10';
-import {drawShareImage} from './share.js?v=10';
+import {makeGeo} from './geo.js?v=11';
+import {makePull, target, ROUND} from './tug.js?v=11';
+import {makeStore} from './store.js?v=11';
+import {drawShareImage} from './share.js?v=11';
 
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -160,7 +160,7 @@ const URL_PUBLIC = 'https://lys-games.github.io/mini-games/border-tug/';
 const QUOTE_POST = 'https://x.com/lysgamedev/status/2121760193780605210';   // the game's launch post on X (https://x.com/lysgamedev/status/…): result posts quote it once set
 
 // ---------- data ----------
-const data = await (await fetch('wards.json?v=10')).json();
+const data = await (await fetch('wards.json?v=11')).json();
 const geo = makeGeo(data);
 const SIDE = {
   taito:  {ja:'台東区', en:'Taito',  color:'#e8392b', sign:+1},
@@ -172,7 +172,7 @@ const RANKS = [ // `at` = metres
   {at:0.25, ja:'区の代表級', en:'Ward team'},
   {at:0.45, ja:'オールスター級', en:'All-star'},
   {at:0.65, ja:'横綱級',         en:'Yokozuna'},
-  {at:0.85, ja:'人間ウインチ',   en:'Human winch'},
+  {at:0.85, ja:'人間重機',       en:'Human bulldozer'},
   {at:0.95, ja:'伝説の引き手',   en:'Legendary puller'},
 ];
 const rankOf = m => RANKS.reduce((r, R, i) => m >= R.at ? i : r, 0);
@@ -394,7 +394,7 @@ function showStatus(){
 let ac, master, noise; const sfx = {};
 const SOUNDS = ['k_select_003','k_confirmation_001','k_open_002','k_maximize_003','k_bong_001','k_impactPunch_heavy_000','k_impactWood_heavy_000','k_impactSoft_heavy_000',
   ...['title','taito','sumida','bridge','ready','pull','oes','stop','moved','gone_taito','gone_sumida', ...RANKS.map((_, i) => 'r' + i)].map(n => 'v_' + n)];
-const BUILD = 10;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
+const BUILD = 11;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
 const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3?v=${BUILD}`).then(r => r.arrayBuffer()).catch(() => null)]));
 async function initAudio(){
   if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
