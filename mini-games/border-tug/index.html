@@ -593,8 +593,9 @@ function showResult({moved, r, gain, a, goneKey}){
   const what = moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
   const gone = goneKey ? `\n${SIDE[goneKey].ja}は地図から消えました` : '';
   const text = `区境つなひき！ ${what}\nいまの区境：${into}${gone}\n#区境つなひき`;
-  // X turns a post link at the end of the text into a quote; the game link then rides in the text.
-  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(QUOTE_POST ? text + '\n' + URL_PUBLIC : text)
+  // The post link must be the only link: X builds its card from the first link, and a post link becomes a quote
+  // only when nothing else claims the card. The quoted post carries the game link.
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text)
     + '&url=' + encodeURIComponent(QUOTE_POST || URL_PUBLIC);
   prepareShare(text, {geo, data, shift: sClamp(shared), moved, sign: me.sign, sideJa: me.ja, rankJa: RANKS[r].ja,
     lineJa: ja.replace(/<\/?b>/g, ''), areas: a, gain});
