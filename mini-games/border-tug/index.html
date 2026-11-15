@@ -143,10 +143,10 @@ button.alt,.btn.alt{background:#222}
 </div>
 <script src="leaflet.js"></script>
 <script type="module">
-import {makeGeo} from './geo.js?v=11';
-import {makePull, target, ROUND} from './tug.js?v=11';
-import {makeStore} from './store.js?v=11';
-import {drawShareImage} from './share.js?v=11';
+import {makeGeo} from './geo.js?v=12';
+import {makePull, target, ROUND} from './tug.js?v=12';
+import {makeStore} from './store.js?v=12';
+import {drawShareImage} from './share.js?v=12';
 
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -160,7 +160,7 @@ const URL_PUBLIC = 'https://lys-games.github.io/mini-games/border-tug/';
 const QUOTE_POST = 'https://x.com/lysgamedev/status/2121760193780605210';   // the game's launch post on X (https://x.com/lysgamedev/status/…): result posts quote it once set
 
 // ---------- data ----------
-const data = await (await fetch('wards.json?v=11')).json();
+const data = await (await fetch('wards.json?v=12')).json();
 const geo = makeGeo(data);
 const SIDE = {
   taito:  {ja:'台東区', en:'Taito',  color:'#e8392b', sign:+1},
@@ -182,15 +182,13 @@ const TATAMI = 1.62;   // m² per mat, the size Japanese property listings use
 const ns = Q.get('ns') || (location.hostname === 'lys-games.github.io' ? 'lysgames-border-tug-v2' : 'lysgames-border-tug-dev');
 let store = makeStore({ns, offline: Q.has('offline') || Q.has('s')});
 if (Q.has('s')) try { localStorage.setItem('border-tug.' + ns, +Q.get('s')); } catch {}
-let shared = 0;          // the border everyone sees, metres toward Sumida
+let shared = store.cached() ?? 0;   // the border everyone sees, metres toward Sumida (the last one this device saw until the server answers)
 let netOk = true;
+let known = store.cached() !== null;   // false until we have a border to show, from the server or this device
 const sClamp = s => clamp(s, geo.taitoGoneAt, geo.sumidaGoneAt);
 async function refresh(){
-  try { shared = await store.get(); netOk = true; }
-  catch (e) {
-    console.warn('store', e); netOk = false;
-    if (store.online && e instanceof TypeError) { store = makeStore({ns, offline:true}); shared = await store.get(); }   // unreachable: play on this device
-  }
+  try { shared = await store.get(); netOk = true; known = true; }
+  catch (e) { console.warn('store', e); netOk = false; }   // keep showing the last border this device saw; pulls wait in store.js
   return shared;
 }
 
@@ -383,10 +381,10 @@ function areaBox(el, k, a, delta){
   })(t0);
 }
 function showStatus(){
-  const [ja, en] = borderLine(shared), a = geo.areas(sClamp(shared));
+  const [ja, en] = known ? borderLine(shared) : netOk ? ['区境を読み込み中…', 'Loading the border…'] : ['いまは区境を読み込めません', 'The border can\'t be loaded right now'], a = geo.areas(sClamp(shared));
   const p = store.pulled();
   const tot = p && (p.taito || p.sumida) ? `<span class="e">みんなが引いた合計：台東区 ${fmtM(p.taito)} m · 墨田区 ${fmtM(p.sumida)} m</span>` : '';
-  $('status').innerHTML = `${ja}${netOk ? '' : '<span class="e">オフライン</span>'}${tot}`;
+  $('status').innerHTML = `${ja}${netOk ? '' : (known ? '<span class="e">つながりません。前に見た区境です</span>' : '')}${tot}`;
   areaBox($('aT'), 'taito', a.taito); areaBox($('aS'), 'sumida', a.sumida);
 }
 
@@ -394,7 +392,7 @@ function showStatus(){
 let ac, master, noise; const sfx = {};
 const SOUNDS = ['k_select_003','k_confirmation_001','k_open_002','k_maximize_003','k_bong_001','k_impactPunch_heavy_000','k_impactWood_heavy_000','k_impactSoft_heavy_000',
   ...['title','taito','sumida','bridge','ready','pull','oes','stop','moved','gone_taito','gone_sumida', ...RANKS.map((_, i) => 'r' + i)].map(n => 'v_' + n)];
-const BUILD = 11;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
+const BUILD = 12;   // bump on every release so phones fetch the new sounds (and the ?v= on the imports above)
 const raw = Object.fromEntries(SOUNDS.map(n => [n, fetch(`sfx/${n}.mp3?v=${BUILD}`).then(r => r.arrayBuffer()).catch(() => null)]));
 async function initAudio(){
   if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
@@ -588,7 +586,7 @@ function showResult({moved, r, gain, a, goneKey}){
   $('rtotal').innerHTML = `みんなの結果：${ja.replace(/<\/?b>/g, '')}`;
   $('net').style.display = netOk && store.online ? 'none' : 'block';
   $('net').textContent = !store.online ? 'オフライン：この端末にだけ記録しています。'
-    : 'みんなの区境に届きませんでした。';
+    : 'いまはつながりません。この1回は、つながったら自動で送ります。';
   const into = shared > 0 ? `墨田区側へ${fmtM(shared)}m` : shared < 0 ? `台東区側へ${fmtM(shared)}m` : '元の位置';
   const what = moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
   const gone = goneKey ? `\n${SIDE[goneKey].ja}は地図から消えました` : '';
