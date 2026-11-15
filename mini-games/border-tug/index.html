@@ -205,8 +205,9 @@ const wardsBounds = L.latLngBounds(allLL);
 // fit both wards in the gap the title screen leaves between its heading and its card
 function overview(){
   if ($('title').style.display !== 'flex') return {paddingTopLeft:[10, 10 + innerHeight*.03], paddingBottomRight:[10, innerHeight*.62]};
-  const top = $('title').querySelector('h1').getBoundingClientRect().bottom, bottom = $('title').querySelector('.go').getBoundingClientRect().top;
-  return {paddingTopLeft:[10, top + 4], paddingBottomRight:[10, Math.max(10, innerHeight - bottom + 4)]};
+  // the title panel sits at the top: frame the wards in the space below it
+  const top = $('title').querySelector('.go').getBoundingClientRect().bottom;
+  return {paddingTopLeft:[10, top + 8], paddingBottomRight:[10, 24]};
 }
 // zoom where one metre covers `px` screen pixels, at this latitude
 const zoomFor = px => Math.log2(156543.03392 * Math.cos(data.bridge.lonlat[1] * Math.PI/180) * px);
