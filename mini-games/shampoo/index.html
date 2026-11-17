@@ -274,7 +274,7 @@ function stopVoices() { for(const source of Object.values(speakers))try{source?.
 
 async function start() {
   initAudio(); const first=!hasStarted, g=++generation; hasStarted=true; state='intro'; pointer=null; resetStats(); lather=[]; foam=[]; sparks=[]; result=null; shareFile=null;
-  rubAt=-1000; manUntil=0; reactionAt=0; reactionIndex=0; idleStage=-1; stopVoices();
+  rubAt=-1000; manUntil=0; reactionAt=0; reactionIndex=Math.floor(Math.random()*4); idleStage=-1; stopVoices();
   for(const id of ['title','home','result'])show(id,false);
   show('hud',true); $('save').style.display='none'; $('tip').style.display='none'; $('seconds').textContent='5.0'; updateGauge();
   // The first tap creates the AudioContext; give the opening sounds a moment to decode.
@@ -409,7 +409,7 @@ cv.addEventListener('pointermove',e=>{
   updateGauge();
   if(now-sfxAt>120){play('k_impactSoft_heavy_000',.11,rand(1.8,2.8));sfxAt=now;}
   const resumed=idleStage>=0;idleStage=-1;
-  if(resumed||(stats.total>120&&now-reactionAt>1900)){const lines=['あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','いい感じ！そこそこ！','来てる！未来が来てる！'];const i=resumed?0:reactionIndex%lines.length;if(sayMan(lines[i],'rub'+i,now)){if(!resumed)reactionIndex++;reactionAt=now;}}
+  if(resumed||(stats.total>120&&now-reactionAt>1900)){const lines=['あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','いい感じ！そこそこ！','来てる！未来が来てる！'];const i=reactionIndex;if(sayMan(lines[i],'rub'+i,now)){reactionIndex=(i+1+Math.floor(Math.random()*(lines.length-1)))%lines.length;reactionAt=now;}}
 });
 function release(e) { if(pointer&&(!e||e.pointerId===pointer.id))pointer=null; }
 for(const type of ['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(type,release);
