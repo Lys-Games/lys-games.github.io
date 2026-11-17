@@ -126,7 +126,7 @@ const STYLES = [
   {"id":"fusafusa","name":"ふさふさ","verdict":"おかえり、あの日のボリューム。","line":"明日、美容室を予約します。","hint":"まだまだ、ボリュームの向こう側へ。"},
   {"id":"long","name":"さらさらロン毛","verdict":"毛先が肩に、おじゃまします。","line":"振り向くたびに、主役です。","hint":"横だけ、縦だけ。こすり方も試そう。"},
   {"id":"afro","name":"もこもこアフロ","verdict":"毛量、定員オーバー。","line":"ドア、横向きで通ります。","hint":"隅々まで洗うと、たまに奇跡が？"},
-  {"id":"rainbow","name":"虹色アフロ","verdict":"大当たり！毛根に虹がかかった。","line":"天気予報に、載れますか？","hint":"隅々までたっぷり洗うと、32回に1回の奇跡。"}
+  {"id":"rainbow","name":"虹色アフロ","verdict":"大当たり！毛根に虹がかかった。","line":"天気予報に、載れますか？","hint":"隅々までたっぷり洗うと、16回に1回の奇跡。"}
 ];
 const styleById = id => STYLES.find(s => s.id === id);
 const IDLE_LINES = [
@@ -292,7 +292,7 @@ function chooseStyle() {
   if(s.total<30)return styleById('neglect');
   // Deliberate chin washing overrides every scalp special.
   if(hasBeard())return styleById('beard');
-  if(d>=6000&&s.zones===15&&Math.random()<1/32)return styleById('rainbow');
+  if(d>=6000&&s.zones===15&&Math.random()<1/16)return styleById('rainbow');
   if(d>=2000&&s.center/d>=.65&&s.dy/direction>=.70)return styleById('mohawk');
   if(d>=1600&&Math.max(s.left,s.right)/d>=.75)return styleById('shichisan');
   if(d>=3200&&s.dx/direction>=.80)return styleById('regent');
