@@ -285,8 +285,8 @@ async function start() {
     await wait(1250); if(g!==generation)return;
     sayMan('5秒で、ふさふさにしてください！','intro');
     await wait(2350); if(g!==generation)return;
-    $('intro').style.fontSize='';for(const n of [3,2,1]) { $('intro').textContent=String(n);show('intro',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return; }
   }
+  $('intro').style.fontSize='';for(const n of [3,2,1]) { $('intro').textContent=String(n);show('intro',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return; }
   state='play'; rubAt=performance.now(); deadline=rubAt+ROUND_MS; hiddenAt=document.hidden?rubAt:0;
   $('intro').textContent='ゴシゴシ！';$('intro').style.fontSize='clamp(44px,15vw,76px)';show('intro',true);bubble('毛根のみなさん、起きてー！');voice('host','go');
   setTimeout(()=>{if(g===generation)show('intro',false);},650);
@@ -372,12 +372,15 @@ function clipped(a,b) {
   return [{x:a.x+(b.x-a.x)*lo,y:a.y+(b.y-a.y)*lo},{x:a.x+(b.x-a.x)*hi,y:a.y+(b.y-a.y)*hi}];
 }
 cv.addEventListener('pointerdown',e=>{
-  if(state!=='play'||document.hidden||pointer||e.button!==0)return;
-  if(performance.now()>=deadline){finish();return;}
+  // A finger can land during the countdown; it starts counting when play begins.
+  if((state!=='play'&&state!=='intro')||document.hidden||pointer||e.button!==0)return;
+  if(state==='play'&&performance.now()>=deadline){finish();return;}
   const p=point(e);if(!inside(p))return;e.preventDefault();pointer={id:e.pointerId,...p};cv.setPointerCapture(e.pointerId);initAudio();
 });
 cv.addEventListener('pointermove',e=>{
-  if(state!=='play'||!pointer||e.pointerId!==pointer.id||document.hidden)return;
+  if(!pointer||e.pointerId!==pointer.id||document.hidden)return;
+  if(state==='intro'){e.preventDefault();pointer={id:e.pointerId,...point(e)};return;}
+  if(state!=='play')return;
   const now=performance.now();if(now>=deadline){finish();return;}e.preventDefault();
   const samples=e.getCoalescedEvents?.()||[];
   let rubbed=false;
