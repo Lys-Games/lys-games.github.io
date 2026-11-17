@@ -61,6 +61,8 @@ button:disabled{background:#354c4c;color:#fff;cursor:wait;box-shadow:none}
 #result .label{font-size:14px;font-weight:800;line-height:1.4;color:#54616b}
 #style-name{font-size:26px;color:var(--ink);margin:2px 0;-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
 #verdict{font-size:14px;font-weight:800;line-height:1.4;margin:0 0 4px}
+#count{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-size:30px;line-height:1.1;margin:0 0 2px;color:var(--pink)}
+#count small{display:block;font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:13px;color:#54616b;margin-top:2px}
 #collection{font-size:14px;font-weight:800;line-height:1.4;margin:0 0 4px}
 #style-hint{font-size:13px;font-weight:700;line-height:1.4;margin:4px 0 0;color:#54616b}
 .actions{display:flex;justify-content:center;gap:6px;margin-top:6px}
@@ -98,7 +100,7 @@ button:disabled{background:#354c4c;color:#fff;cursor:wait;box-shadow:none}
   <div id="dialogue">
   <div id="bubble" role="status" aria-live="polite"><svg id="bubble-outline" viewBox="0 0 360 56" preserveAspectRatio="none" aria-hidden="true"><path d="M20 0 H166 L180 -18 L194 0 H340 Q360 0 360 20 V36 Q360 56 340 56 H20 Q0 56 0 36 V20 Q0 0 20 0 Z" fill="#fff" stroke="#19222a" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg><span id="bubble-text">薄井です。まだ、あきらめてません。</span></div>
   <section id="home"><div id="home-instructions"><p class="lead">10秒こすって、毛よ来い！</p><p class="sub">頭を押したままゴシゴシ。<br>こすり方で、まさかの髪型に！？</p></div><button id="go">シャンプーする</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shampoo" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div></section>
-  <section id="result" aria-label="シャンプーの結果" hidden><div class="label">本日の薄井さん</div><h2 id="style-name" class="t"></h2><p id="verdict"></p><p id="collection"></p><div class="actions"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="style-hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shampoo" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div></section>
+  <section id="result" aria-label="シャンプーの結果" hidden><div class="label">本日の薄井さん</div><h2 id="style-name" class="t"></h2><p id="count"><span id="count-n">0</span>本<small id="best"></small></p><p id="verdict"></p><p id="collection"></p><div class="actions"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="style-hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shampoo" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div></section>
   </div>
 </div>
 <div id="paused" hidden>ひと休み中</div>
@@ -229,6 +231,11 @@ let state='home', generation=0, deadline=0, hasStarted=false, pointer=null, hidd
 let stats, lather=[], foam=[], sparks=[], result=null, rinseAt=0, revealAt=0, lastFrame=0, rubAt=-1000, sfxAt=0, reactionAt=0, reactionIndex=0, idleStage=-1;
 let collection=new Set();
 try { collection=new Set(JSON.parse(localStorage.getItem('shampoo.collection')||'[]').filter(id=>styleById(id))); } catch (_) {}
+// A full head is about 100,000 hairs: the afro threshold (7,500 power) lands there.
+const HAIRS_PER_POWER=100000/7500;
+const hairCount=()=>Math.round((stats.distance+stats.chin)*HAIRS_PER_POWER);
+const fmtHairs=n=>n.toLocaleString('ja-JP');
+let best=null; try { const b=Number(localStorage.getItem('shampoo.best')); if(b>0)best=b; } catch (_) {}
 function resetStats() { stats={distance:0,chin:0,total:0,left:0,right:0,center:0,dx:0,dy:0,zones:0}; }
 resetStats(); resize(); addEventListener('resize',resize);
 const layoutObserver=new ResizeObserver(resize);
@@ -297,6 +304,11 @@ function updateMood(now) {
   if(stage!==idleStage) {idleStage=stage;if(stage>=0){const line=IDLE_LINES[stage];bubble(line.text);voice('man',line.id);}}
 }
 function liveMood(now) { return now-rubAt<800?(stats.total?'rub':'hope'):IDLE_LINES[Math.max(0,idleStage)].mood; }
+function countUp(n,g) {
+  const el=$('count-n'), t0=performance.now(), ms=REDUCED?0:900;
+  const tick=now=>{if(g!==generation)return;const k=ms?Math.min(1,(now-t0)/ms):1;el.textContent=fmtHairs(Math.round(n*(1-(1-k)**3)));if(k<1)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);
+}
 async function finish(forced) {
   if(state!=='play')return;
   const g=generation; state='stop'; pointer=null; result=forced||chooseStyle(); stopVoices();
@@ -317,11 +329,15 @@ async function finish(forced) {
   const isNew=!collection.has(result.id); if(!CARD_MODE){collection.add(result.id);try{localStorage.setItem('shampoo.collection',JSON.stringify([...collection]));}catch(_){}}
   $('collection').textContent=(isNew&&!CARD_MODE?'初めての結末！ ':'')+`発見 ${collection.size} / ${STYLES.length} 種`;
   $('style-hint').textContent=result.hint;
+  const hairs=CARD_MODE?0:hairCount(), newBest=!CARD_MODE&&hairs>0&&(best===null||hairs>best);
+  if(newBest){best=hairs;try{localStorage.setItem('shampoo.best',String(hairs));}catch(_){}}
+  $('best').textContent=newBest?'新記録！':best?`自己ベスト ${fmtHairs(best)}本`:'';
+  countUp(hairs,g);
   if(!CARD_MODE)show('result',true);
-  shareText=`薄井さん「${result.line}」\n10秒シャンプーしたら【${result.name}】\nあなたは何ヘア？ #こすって生やせ`;
+  shareText=`薄井さん「${result.line}」\n10秒シャンプーで${fmtHairs(hairs)}本生やした【${result.name}】\nあなたは何本？ #こすって生やせ`;
   $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+result.id+'.html');
   if(CARD_MODE){resize();draw(performance.now(),0);showPicture(await drawShareImage({style:result}));return;}
-  prepareShare({style:result},g);
+  prepareShare({style:result,hairs},g);
 }
 
 /* Each accepted segment is clipped to the head ellipse. Lifts and travel outside
@@ -557,12 +573,12 @@ function frame(now) {
 
 /* ---------- share picture ---------- */
 // The framed picture is a crop of the live scene, including his actual ending.
-async function drawShareImage({ style, card }) {
-  await document.fonts?.load(`60px ${DISPLAY_FONT}`, 'こすって生やせ！何ヘアになる？10秒で毛よ、来い！こするほど、生える。結末/「」0123456789' + STYLES.map(s=>s.name+s.line).join(''));
+async function drawShareImage({ style, card, hairs }) {
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`, 'こすって生やせ！何ヘアになる？10秒で毛よ、来い！こするほど、生える。結末/「」0123456789,本あなたは何本生やせる？' + STYLES.map(s=>s.name+s.line).join(''));
   resize();draw(performance.now(),0);
   const c = document.createElement('canvas'); c.width = 1200; c.height = 675;
   const x = c.getContext('2d');
-  x.fillStyle = '#ffe14a'; x.fillRect(0, 0, 1200, 675);
+  x.fillStyle = '#bfe6ff'; x.fillRect(0, 0, 1200, 675);
   const FX = 20, FY = 42, FW = 560, FH = 591, y0 = 118, y1 = 540;
   const k = Math.max(FW / 400, FH / (y1 - y0)), sw = FW / k, sh = FH / k, sx = (400 - sw) / 2, sy = y0;
   x.drawImage(cv, (ox + sx * scale) * dpr, (oy + sy * scale) * dpr, sw * scale * dpr, sh * scale * dpr, FX, FY, FW, FH);
@@ -588,13 +604,13 @@ async function drawShareImage({ style, card }) {
     const names = {'beard':['もじゃもじゃ','ヒゲ'],'short':['さわやか','ショート'],'shichisan':['きっちり','七三'],'mohawk':['一直線','モヒカン'],'regent':['ど迫力','リーゼント'],'long':['さらさら','ロン毛'],'afro':['もこもこ','アフロ']};
     const lines=names[style.id]||[style.name];
     lines.forEach((line,i)=>text(line,890,lines.length===1?235:205+i*76,lines.length===1?90:72,'#e8392b'));
-    stamp(`結末 ${STYLES.indexOf(style)+1}/${STYLES.length}`, 890, 360, 58);
+    stamp(hairs===undefined?`結末 ${STYLES.indexOf(style)+1}/${STYLES.length}`:`${fmtHairs(hairs)}本`, 890, lines.length===1?360:374, 58);
     // Split long dialogue into two legible lines without reducing the font.
     const quote='「'+style.line+'」', chars=Array.from(quote);
     x.font=`38px ${DISPLAY_FONT}`;
     if(x.measureText(quote).width>560){const mid=Math.ceil(chars.length/2);text(chars.slice(0,mid).join(''),890,444,38,'#fff');text(chars.slice(mid).join(''),890,492,38,'#fff');}
     else text(quote,890,455,38,'#fff');
-    text('あなたは何ヘアになる？', 890, 565, 40, '#fff');
+    text(hairs===undefined?'あなたは何ヘアになる？':'あなたは何本生やせる？', 890, 565, 40, '#fff');
   }
   return new Promise(res => c.toBlob(res, 'image/png'));
 }
