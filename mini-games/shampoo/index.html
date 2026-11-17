@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>こすって生やせ！</title>
+<meta name="description" content="薄井さんの頭を10秒シャンプー！こするほど生える、こすり方で髪型が変わる。あなたは何ヘア？無料ミニゲーム。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="こすって生やせ！">
+<meta property="og:description" content="10秒こすって、まさかの髪型。薄井さんの頭に奇跡を起こそう！">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/shampoo/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/shampoo/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://lys-games.github.io/mini-games/shampoo/thumb.jpg">
+<meta name="theme-color" content="#76e0cf">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#19222a;--mint:#76e0cf;--yellow:#ffe65c;--pink:#f74976;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--toolbar:calc(16vh + var(--safe-bottom))}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--mint);color:var(--ink)}
+body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:var(--body-size,16px);font-weight:700;user-select:none;-webkit-user-select:none}
+canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+#ui{position:fixed;top:var(--safe-top);bottom:var(--toolbar);left:50%;width:min(400px,100%);transform:translateX(-50%);pointer-events:none}
+[hidden]{display:none!important}
+.t{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-weight:400;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em;color:#fff}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;min-height:44px;text-decoration:none;font:inherit;font-size:20px;font-weight:800;color:var(--ink);background:var(--pink);border:3px solid var(--ink);border-radius:16px;padding:10px 14px;box-shadow:0 4px 0 var(--ink);cursor:pointer;pointer-events:auto;touch-action:manipulation}
+button:active,.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:4px}
+button:disabled{background:#354c4c;color:#fff;cursor:wait;box-shadow:none}
+.alt{background:var(--ink);color:#fff}
+#title{position:absolute;left:0;right:0;top:6px;text-align:center;transform:rotate(-3deg)}
+#title .eyebrow{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:800;display:block;-webkit-text-stroke:0;text-shadow:none;color:var(--ink)}
+#title h1{font-size:clamp(28px,5dvh,40px);margin:3px 0;color:var(--yellow)}
+#title h1 span{font-size:1.2em;line-height:1.05}
+#intro{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;position:absolute;top:30%;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:clamp(72px,24vw,120px);line-height:1;color:var(--yellow);-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .06em 0 var(--ink);z-index:5;animation:count .3s ease-out}
+#hud{position:absolute;top:10px;left:20px;right:20px;text-align:center}
+#clock{font-size:52px;font-variant-numeric:tabular-nums;line-height:1}
+#clock small{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:max(21px,var(--body-size,16px));font-weight:800;-webkit-text-stroke:0;text-shadow:none;color:var(--ink)}
+#meter-label{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-weight:800;-webkit-text-stroke:0;color:var(--ink);text-shadow:none;display:flex;justify-content:space-between;font-size:var(--body-size,16px);margin:10px 2px 5px}
+#meter{height:21px;border:3px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+#fill{height:100%;width:0;background:var(--pink)}
+#instruction{font-size:max(17px,var(--body-size,16px));font-weight:800;margin:9px 0;color:var(--ink);text-shadow:none}
+#dialogue{position:absolute;top:0;left:12px;right:12px}
+#bubble{position:relative;margin:0 6px 10px;min-height:44px;text-align:center;padding:10px 8px;font-size:16px;line-height:1.4}
+#bubble-outline{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 4px 0 var(--ink))}
+#bubble-text{position:relative}
+#home{text-align:center}
+#home-instructions{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:6px 8px;margin:0 6px 8px}
+#home .lead{font-size:20px;font-weight:800;line-height:1.3;margin:0}
+#home .sub{font-size:14px;font-weight:800;line-height:1.4;margin:2px 0 0}
+#go{font-size:23px;min-width:240px;min-height:48px;padding:6px 14px;background:var(--pink)}
+.credit{color:#19222a;font-size:12px;font-weight:700;line-height:1.5;text-align:center;margin:8px 0 0;pointer-events:auto}
+.credit a{color:inherit}
+.steam{color:var(--ink);font-size:13px;line-height:1.5;pointer-events:auto}
+.voice-credit{position:absolute;top:100%;left:0;right:0;margin-top:12px;font-size:10px;color:var(--ink);line-height:1.5;text-align:center}
+#result{max-height:var(--result-room);overflow-y:auto;background:#fff;border:4px solid var(--ink);border-radius:20px;padding:8px 10px;text-align:center;pointer-events:auto;box-shadow:0 6px 0 var(--ink)}
+#result .label{font-size:14px;font-weight:800;line-height:1.4;color:#54616b}
+#style-name{font-size:26px;color:var(--ink);margin:2px 0;-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
+#verdict{font-size:14px;font-weight:800;line-height:1.4;margin:0 0 4px}
+#collection{font-size:14px;font-weight:800;line-height:1.4;margin:0 0 4px}
+#style-hint{font-size:13px;font-weight:700;line-height:1.4;margin:4px 0 0;color:#54616b}
+.actions{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.actions .btn,.actions button{font-size:15px;white-space:nowrap;flex:1;padding:5px 3px;min-height:44px;border-radius:12px}
+.actions small{font-size:11px;font-weight:700;line-height:1.3}
+#save{display:none}
+#tip{display:none;margin:6px 0 0;padding:6px;font-size:13px;font-weight:800;line-height:1.4;background:var(--ink);color:#fff;border-radius:10px;z-index:8}
+#paused{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:20;color:#fff;font-size:24px;pointer-events:none}
+@keyframes pop{from{transform:scale(.8)}to{transform:scale(1)}}
+@keyframes count{from{transform:translateY(-50%) scale(.7)}to{transform:translateY(-50%) scale(1)}}
+@media(max-height:700px){
+#hud{top:6px}
+#clock{font-size:40px}
+#meter-label{font-size:13px;line-height:1.4;margin:6px 2px 4px}
+#meter{height:16px}
+#instruction{font-size:14px;line-height:1.3;margin:6px 0 0}
+#result{padding:6px 8px}
+#result .label{font-size:12px;line-height:1.2}
+#style-name{font-size:22px;margin:1px 0}
+#verdict,#collection{font-size:12px;line-height:1.25;margin-bottom:2px}
+#style-hint{font-size:11px;line-height:1.25;margin-top:2px}
+#result .actions{margin-top:4px}
+#result .credit{font-size:10px;margin-top:4px}
+#result .steam{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="薄井さんの頭。押したまま、指やマウスでこすってね。"></canvas>
+<div id="ui">
+  <header id="title" class="t"><span class="eyebrow">薄井さんの頭をシャンプー</span><h1>こすって<span>生やせ！</span></h1></header>
+  <div id="hud" hidden><div id="clock" class="t"><span id="seconds">10.0</span><small> 秒</small></div><div id="meter-label"><span>生えるパワー</span><span>髪型は、お楽しみ！</span></div><div id="meter" role="progressbar" aria-label="生えるパワー" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="fill"></div></div><p id="instruction">頭を押したまま、ゴシゴシ！</p></div>
+  <div id="intro" class="t" hidden></div>
+  <div id="dialogue">
+  <div id="bubble" role="status" aria-live="polite"><svg id="bubble-outline" viewBox="0 0 360 56" preserveAspectRatio="none" aria-hidden="true"><path d="M20 0 H166 L180 -18 L194 0 H340 Q360 0 360 20 V36 Q360 56 340 56 H20 Q0 56 0 36 V20 Q0 0 20 0 Z" fill="#fff" stroke="#19222a" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg><span id="bubble-text">薄井です。まだ、あきらめてません。</span></div>
+  <section id="home"><div id="home-instructions"><p class="lead">10秒こすって、毛よ来い！</p><p class="sub">頭を押したままゴシゴシ。<br>こすり方で、まさかの髪型に！？</p></div><button id="go">シャンプーする</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shampoo" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div></section>
+  <section id="result" aria-label="シャンプーの結果" hidden><div class="label">本日の薄井さん</div><h2 id="style-name" class="t"></h2><p id="verdict"></p><p id="collection"></p><div class="actions"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="style-hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shampoo" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:雀松朱司 / VOICEVOX:ナースロボ＿タイプＴ</div></section>
+  </div>
+</div>
+<div id="paused" hidden>ひと休み中</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const UI_FONT = '"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const URL_PUBLIC = 'https://lys-games.github.io/mini-games/shampoo/';
+const ROUND_MS = 10000, GAUGE_MAX = 7500;
+const RINSE_MS = 1500, SUSPENSE_MS = 650;
+// Kept as JSON so the card tool can use the same names, verdicts and ids.
+const STYLES = [
+  {"id":"neglect","name":"ノータッチ","verdict":"毛より先に、心が抜けた。","line":"予約、今日でしたよね…？","hint":"10秒、ほとんど触れずに見守った結果。","mood":"crushed"},
+  {"id":"tsurutsuru","name":"つるつる","verdict":"頭はそのまま。期待はゼロに。","line":"鏡、伏せておいてください…。","voice":"say_tsurutsuru_sad","hint":"頭の上を、もう少しこすってあげよう。","mood":"crushed"},
+  {"id":"ubuge","name":"うぶ毛","verdict":"期待はふさふさ。現実は三本。","line":"これで完成って…言います？","voice":"say_ubuge_sad","hint":"頭の上を、大きく何度も往復しよう。","mood":"sad"},
+  {"id":"beard","name":"もじゃもじゃヒゲ","verdict":"毛根、配属先をまちがえる。","line":"欲しかったのは、上なんですが。","hint":"あごやフェイスラインを、たっぷりゴシゴシ。","mood":"worried"},
+  {"id":"short","name":"さわやかショート","verdict":"毛根、無事に出勤。","line":"風って、こんな感じだったんだ。","hint":"隅々までこすると、もっと生える。"},
+  {"id":"shichisan","name":"きっちり七三","verdict":"片寄った愛で、きっちり決まる。","line":"仕事ができそうに見えますね。","hint":"左右どちらかを、集中的にゴシゴシ。"},
+  {"id":"mohawk","name":"一直線モヒカン","verdict":"真ん中だけ、反抗期。","line":"頭の上だけ、強気です。","hint":"頭の真ん中を、縦にゴシゴシ。"},
+  {"id":"regent","name":"ど迫力リーゼント","verdict":"前髪だけが、先に到着。","line":"前髪用の席も、お願いします。","hint":"横に大きく、何度も往復しよう。"},
+  {"id":"fusafusa","name":"ふさふさ","verdict":"おかえり、あの日のボリューム。","line":"明日、美容室を予約します。","hint":"まだまだ、ボリュームの向こう側へ。"},
+  {"id":"long","name":"さらさらロン毛","verdict":"毛先が肩に、おじゃまします。","line":"振り向くたびに、主役です。","hint":"横だけ、縦だけ。こすり方も試そう。"},
+  {"id":"afro","name":"もこもこアフロ","verdict":"毛量、定員オーバー。","line":"ドア、横向きで通ります。","hint":"隅々まで洗うと、たまに奇跡が？"},
+  {"id":"rainbow","name":"虹色アフロ","verdict":"大当たり！毛根に虹がかかった。","line":"天気予報に、載れますか？","hint":"隅々までたっぷり洗うと、32回に1回の奇跡。"}
+];
+const styleById = id => STYLES.find(s => s.id === id);
+const IDLE_LINES = [
+  {"id":"idle_worried","after":800,"mood":"worried","text":"あれ…？"},
+  {"id":"idle_plead","after":2300,"mood":"sad","text":"続けて…くれないんですか？"},
+  {"id":"idle_hurt","after":4800,"mood":"crushed","text":"まだ、ここにいますよ…。"},
+  {"id":"idle_crushed","after":7500,"mood":"crushed","text":"期待して、すみません…。"}
+];
+const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
+const rand = (a,b) => a + Math.random()*(b-a);
+const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
+const show = (id,on) => { $(id).hidden = !on; };
+const bubble = text => { $('bubble-text').textContent = text; };
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+let scale=1, ox=0, oy=0, dpr=1;
+let layoutState;
+const JAW_Y=468, BEARD_Y=528, TAIL=18, CHIN_GAP=4;
+function measureLayout() {
+  // Measure every screen, including hidden panels, with deterministic content.
+  // Current dialogue, collected endings and sharing notices cannot move him.
+  const copy=$('ui').cloneNode(true), width=$('ui').getBoundingClientRect().width;
+  copy.removeAttribute('id');copy.inert=true;copy.setAttribute('aria-hidden','true');
+  copy.style.cssText=`position:fixed;top:0;left:0;width:${width}px;visibility:hidden;pointer-events:none`;
+  const el=id=>copy.querySelector('#'+id);
+  for(const id of ['title','hud','home','result'])el(id).hidden=false;
+  el('result').style.maxHeight='none';el('tip').style.display='none';
+  el('save').style.display=TOUCH?'inline-flex':'none';
+  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  document.body.append(copy);
+  const title=el('title').getBoundingClientRect().bottom+12;
+  const hud=el('hud').getBoundingClientRect().bottom+12;
+  const voice=el('home').querySelector('.voice-credit').getBoundingClientRect().height+12;
+  let bubbleHeight=0, resultHeight=0;
+  for(const text of [...STYLES.map(s=>s.line),...IDLE_LINES.map(s=>s.text),'薄井です。まだ、あきらめてません。','10秒で、ふさふさにしてください！','あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','毛根のみなさん、起きてー！']) {
+    el('bubble-text').textContent=text;
+    bubbleHeight=Math.max(bubbleHeight,el('bubble').getBoundingClientRect().height);
+  }
+  for(const style of STYLES) {
+    el('style-name').textContent=style.name;el('verdict').textContent=style.verdict;
+    el('collection').textContent='初めての結末！ 発見 12 / 12 種';el('style-hint').textContent=style.hint;
+    resultHeight=Math.max(resultHeight,el('result').getBoundingClientRect().height);
+  }
+  const home=el('home').getBoundingClientRect().height+voice;
+  copy.remove();
+  return {title,hud,bubble:bubbleHeight,home,result:resultHeight+voice,voice};
+}
+// One layout per screen group; he glides between them (LAYOUT_EASE) instead of jumping.
+// home: below the title, bald, the speech + home panel under him.
+// play: below the HUD, bald (foam may rise above the head), only the speech under him.
+// result: the tallest hair at the top, the beard + speech + result panel under him.
+function characterLayout(ui, sizes, width, group) {
+  const speech=CHIN_GAP+sizes.bubble+10;
+  const g={
+    home:{y:200,edge:ui.top+sizes.title,bottom:JAW_Y+TAIL,space:speech+sizes.home},
+    play:{y:170,edge:ui.top+sizes.hud,bottom:JAW_Y+TAIL,space:speech},
+    result:{y:110,edge:ui.top+8,bottom:BEARD_Y+TAIL,space:speech+sizes.result},
+  }[group];
+  let k=Math.min((ui.width-24)/350,(ui.bottom-8-g.space-g.edge)/(g.bottom-g.y));
+  k=Math.max(.01,k);
+  return {scale:k,ox:(width-400*k)/2,oy:g.edge-g.y*k};
+}
+const layoutGroup=()=>state==='home'?'home':state==='reveal'||state==='done'?'result':'play';
+let targets={}, LAYOUT_EASE=10;
+function easeLayout(dt) {
+  const t=targets[layoutGroup()]; if(!t)return;
+  const a=REDUCED?1:1-Math.exp(-LAYOUT_EASE*dt);
+  scale+=(t.scale-scale)*a; ox+=(t.ox-ox)*a; oy+=(t.oy-oy)*a;
+}
+function anchorDialogue(motion=0, hairScale=1) {
+  const beard=(state==='reveal'||state==='done')&&result?.id==='beard';
+  // The beard scales about local y=42; include its 2px canvas outline.
+  const chin=beard?351+42+127*hairScale+2: JAW_Y;
+  const tip=oy+chin*scale+CHIN_GAP;
+  const tail=TAIL*scale;
+  const dialogue=$('dialogue'), box=$('ui').getBoundingClientRect();
+  dialogue.style.top=(tip+tail-box.top)+'px';
+  // The countdown sits on his forehead, big, clear of his eyes.
+  $('intro').style.top=(oy+262*scale-box.top)+'px';
+  const bubbleBox=$('bubble').getBoundingClientRect(), w=bubbleBox.width, h=bubbleBox.height;
+  const x=ox+(200+motion)*scale-bubbleBox.left;
+  $('bubble-outline').setAttribute('viewBox',`0 0 ${w} ${h}`);
+  $('bubble-outline').firstElementChild.setAttribute('d',`M20 0 H${x-14} L${x} ${-tail} L${x+14} 0 H${w-20} Q${w} 0 ${w} 20 V${h-20} Q${w} ${h} ${w-20} ${h} H20 Q0 ${h} 0 ${h-20} V20 Q0 0 20 0 Z`);
+  // Extra sharing feedback scrolls inside the panel instead of moving the pose.
+  $('result').style.setProperty('--result-room',Math.max(0,box.bottom-8-sizes.voice-(tip+tail+h+10))+'px');
+}
+let sizes;
+function resize() {
+  layoutState=state;
+  const previous={scale,ox,oy};
+  sizes=measureLayout();
+  const box=$('ui').getBoundingClientRect();
+  for(const k of ['home','play','result'])targets[k]=characterLayout(box,sizes,innerWidth,k);
+  if(!previous.scale||previous.scale===1&&!previous.ox)({scale,ox,oy}=targets[layoutGroup()]);
+  anchorDialogue();
+  dpr=Math.min(devicePixelRatio||1,2.5);
+  const width=Math.round(innerWidth*dpr), height=Math.round(innerHeight*dpr);
+  if(cv.width!==width||cv.height!==height){cv.width=width;cv.height=height;}
+  if(previous.scale!==scale||previous.ox!==ox||previous.oy!==oy)pointer=null;
+}
+let state='home', generation=0, deadline=0, hasStarted=false, pointer=null, hiddenAt=0;
+let stats, lather=[], foam=[], sparks=[], result=null, rinseAt=0, revealAt=0, lastFrame=0, rubAt=-1000, sfxAt=0, reactionAt=0, reactionIndex=0, idleStage=-1;
+let collection=new Set();
+try { collection=new Set(JSON.parse(localStorage.getItem('shampoo.collection')||'[]').filter(id=>styleById(id))); } catch (_) {}
+function resetStats() { stats={distance:0,chin:0,total:0,left:0,right:0,center:0,dx:0,dy:0,zones:0}; }
+resetStats(); resize(); addEventListener('resize',resize);
+const layoutObserver=new ResizeObserver(resize);
+for(const id of ['ui','title','hud','bubble','home','result'])layoutObserver.observe($(id));
+document.fonts?.ready.then(resize);
+
+/* Optional voice files: a missing or undecodable recording is simply skipped. */
+const AUDIO_NAMES=['k_select_003','k_bong_001','k_confirmation_001','k_maximize_003','k_impactSoft_heavy_000',
+  'v_title','v_intro','v_c3','v_c2','v_c1','v_go','v_stop','v_rinse',...IDLE_LINES.map(line=>'v_'+line.id),...Array.from({length:4},(_,i)=>'v_rub'+i),...STYLES.flatMap(s=>['v_rank_'+s.id,'v_'+(s.voice||'say_'+s.id)])];
+const rawAudio={}, buffers={}, speakers={};
+for(const name of AUDIO_NAMES) rawAudio[name]=fetch('sfx/'+name+'.mp3').then(r=>r.ok?r.arrayBuffer():null).catch(()=>null);
+let ac=null, master=null;
+function initAudio() {
+  try {
+    if(ac) { ac.resume().catch(()=>{}); return; }
+    const Audio=window.AudioContext||window.webkitAudioContext; if(!Audio)return;
+    ac=new Audio(); master=ac.createGain(); master.gain.value=.8; master.connect(ac.destination);
+    for(const name of AUDIO_NAMES) rawAudio[name].then(async b=>{if(b)try{buffers[name]=await ac.decodeAudioData(b);}catch(_){}});
+    ac.resume().catch(()=>{});
+  } catch(_) {}
+}
+function play(name,volume=1,rate=1) {
+  if(!ac||!buffers[name])return null;
+  const source=ac.createBufferSource(), gain=ac.createGain(); source.buffer=buffers[name]; source.playbackRate.value=rate; gain.gain.value=volume;
+  source.connect(gain); gain.connect(master); source.start(); return source;
+}
+function voice(speaker,name) { try{speakers[speaker]?.stop();}catch(_){} speakers[speaker]=play('v_'+name); }
+function stopVoices() { for(const source of Object.values(speakers))try{source?.stop();}catch(_){} }
+
+async function start() {
+  initAudio(); const first=!hasStarted, g=++generation; hasStarted=true; state='intro'; pointer=null; resetStats(); lather=[]; foam=[]; sparks=[]; result=null; shareFile=null;
+  rubAt=-1000; reactionAt=0; reactionIndex=0; idleStage=-1; stopVoices();
+  for(const id of ['title','home','result'])show(id,false);
+  show('hud',true); $('save').style.display='none'; $('tip').style.display='none'; $('seconds').textContent='10.0'; updateGauge();
+  play('k_select_003',.7);
+  if(first) {
+    bubble('今日は、どんな髪型に？'); voice('host','title');
+    await wait(1000); if(g!==generation)return;
+    bubble('10秒で、ふさふさにしてください！'); voice('man','intro');
+    await wait(1800); if(g!==generation)return;
+    $('intro').style.fontSize='';for(const n of [3,2,1]) { $('intro').textContent=String(n);show('intro',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return; }
+  }
+  state='play'; rubAt=performance.now(); deadline=rubAt+ROUND_MS; hiddenAt=document.hidden?rubAt:0;
+  $('intro').textContent='ゴシゴシ！';$('intro').style.fontSize='clamp(44px,15vw,76px)';show('intro',true);bubble('毛根のみなさん、起きてー！');voice('host','go');
+  setTimeout(()=>{if(g===generation)show('intro',false);},650);
+}
+$('go').onclick=start; $('again').onclick=start;
+function updateGauge() {
+  $('fill').style.width=Math.min(100,stats.distance/GAUGE_MAX*100)+'%';
+  $('meter').setAttribute('aria-valuenow',String(Math.min(100,Math.floor(stats.distance/GAUGE_MAX*100))));
+}
+function chooseStyle() {
+  const s=stats, d=s.distance, direction=s.dx+s.dy||1;
+  if(s.total<30)return styleById('neglect');
+  // Deliberate chin washing overrides every scalp special.
+  if(hasBeard())return styleById('beard');
+  if(d>=6000&&s.zones===15&&Math.random()<1/32)return styleById('rainbow');
+  if(d>=2000&&s.center/d>=.65&&s.dy/direction>=.70)return styleById('mohawk');
+  if(d>=1600&&Math.max(s.left,s.right)/d>=.75)return styleById('shichisan');
+  if(d>=3200&&s.dx/direction>=.80)return styleById('regent');
+  return styleById(d<300?'tsurutsuru':d<1200?'ubuge':d<3000?'short':d<5000?'fusafusa':d<7500?'long':'afro');
+}
+function hasBeard() { return stats.chin>=1800&&stats.chin/(stats.distance+stats.chin)>=.60; }
+function updateMood(now) {
+  let stage=-1;for(let i=0;i<IDLE_LINES.length;i++)if(now-rubAt>=IDLE_LINES[i].after)stage=i;
+  if(stage!==idleStage) {idleStage=stage;if(stage>=0){const line=IDLE_LINES[stage];bubble(line.text);voice('man',line.id);}}
+}
+function liveMood(now) { return now-rubAt<800?(stats.total?'rub':'hope'):IDLE_LINES[Math.max(0,idleStage)].mood; }
+async function finish(forced) {
+  if(state!=='play')return;
+  const g=generation; state='stop'; pointer=null; result=forced||chooseStyle(); stopVoices();
+  show('intro',false);show('hud',false);
+  bubble('そこまで！');voice('host','stop');
+  await wait(800);if(g!==generation)return;
+  state='rinse';rinseAt=performance.now();
+  if(stats.distance+stats.chin>0){bubble('流しますよー！');voice('host','rinse');play('k_maximize_003',.6,.7);}
+  await wait(RINSE_MS);if(g!==generation)return;
+  state='suspense';lather=[];foam=[];bubble('……どきどき。');
+  await wait(SUSPENSE_MS);if(g!==generation)return;
+  state='reveal';revealAt=performance.now();bubble(result.line);
+  play(result.mood?'k_bong_001':'k_confirmation_001',result.mood ? .35 : .8,result.mood ? .7 : 1);voice('host','rank_'+result.id);
+  if(!result.mood)for(let i=0;i<32;i++)sparks.push({x:rand(60,340),y:rand(170,400),vx:rand(-60,60),vy:rand(-90,-20),life:rand(.6,1.5),color:['#ffe65c','#f74976','#fff'][i%3]});
+  setTimeout(()=>{if(g===generation)voice('man',result.voice||'say_'+result.id);},1150);
+  await wait(600);if(g!==generation)return;
+  state='done';$('style-name').textContent=result.name;$('verdict').textContent=result.verdict;
+  const isNew=!collection.has(result.id); if(!CARD_MODE){collection.add(result.id);try{localStorage.setItem('shampoo.collection',JSON.stringify([...collection]));}catch(_){}}
+  $('collection').textContent=(isNew&&!CARD_MODE?'初めての結末！ ':'')+`発見 ${collection.size} / ${STYLES.length} 種`;
+  $('style-hint').textContent=result.hint;
+  if(!CARD_MODE)show('result',true);
+  shareText=`薄井さん「${result.line}」\n10秒シャンプーしたら【${result.name}】\nあなたは何ヘア？ #こすって生やせ`;
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+result.id+'.html');
+  if(CARD_MODE){resize();draw(performance.now(),0);showPicture(await drawShareImage({style:result}));return;}
+  prepareShare({style:result},g);
+}
+
+/* Each accepted segment is clipped to the head ellipse. Lifts and travel outside
+   the head never add distance. Coordinates are independent of screen pixels. */
+function point(e) { return {x:(e.clientX-ox)/scale,y:(e.clientY-oy)/scale}; }
+function inside(p) { return ((p.x-200)/112)**2+((p.y-351)/124)**2<=1; }
+// Keep the eyes, nose and mouth out of both growth regions.
+function rubRegion(x,y) { return y<=315?'scalp':y>=437||(y>=399&&Math.abs(x-200)>=58)?'chin':null; }
+function soapBubble(x,y,r,region) {
+  const seed=rand(0,Math.PI*2), slide=rand(5,11), wobble=2, edge=2;
+  // Reserve room for the outline, wobble and rinse slide as well as the full radius.
+  if(region==='scalp')y=Math.min(y,315-r-wobble-edge-slide);
+  else if(y<437){x=200+(x<200?-1:1)*Math.max(Math.abs(x-200),58+r+edge);y=Math.max(y,399+r+wobble+edge);}
+  else y=Math.max(y,437+r+wobble+edge);
+  return {x,y,r,region,seed,slide,rinseStart:rand(0,.72),rinseDuration:rand(.12,.24)};
+}
+function clipped(a,b) {
+  const vx=(b.x-a.x)/112,vy=(b.y-a.y)/124,ax=(a.x-200)/112,ay=(a.y-351)/124;
+  const A=vx*vx+vy*vy;if(A<1e-10)return null;
+  const B=2*(ax*vx+ay*vy),C=ax*ax+ay*ay-1,disc=B*B-4*A*C;if(disc<=0)return null;
+  const lo=Math.max(0,(-B-Math.sqrt(disc))/(2*A)),hi=Math.min(1,(-B+Math.sqrt(disc))/(2*A));
+  if(hi<=lo)return null;
+  return [{x:a.x+(b.x-a.x)*lo,y:a.y+(b.y-a.y)*lo},{x:a.x+(b.x-a.x)*hi,y:a.y+(b.y-a.y)*hi}];
+}
+cv.addEventListener('pointerdown',e=>{
+  if(state!=='play'||document.hidden||pointer||e.button!==0)return;
+  if(performance.now()>=deadline){finish();return;}
+  const p=point(e);if(!inside(p))return;e.preventDefault();pointer={id:e.pointerId,...p};cv.setPointerCapture(e.pointerId);initAudio();
+});
+cv.addEventListener('pointermove',e=>{
+  if(state!=='play'||!pointer||e.pointerId!==pointer.id||document.hidden)return;
+  const now=performance.now();if(now>=deadline){finish();return;}e.preventDefault();
+  const samples=e.getCoalescedEvents?.()||[];
+  let rubbed=false;
+  for(const sample of samples.length?samples:[e]) {
+    const p=point(sample), segment=clipped(pointer,p);pointer={id:e.pointerId,...p};if(!segment)continue;
+    const [a,b]=segment,dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<.1)continue;
+    // Split long samples so region statistics do not depend on event frequency.
+    const steps=Math.ceil(d/8);
+    for(let i=0;i<steps;i++) {
+      const k=(i+.5)/steps,x=a.x+dx*k,y=a.y+dy*k,part=d/steps;
+      stats.total+=part;
+      const region=rubRegion(x,y);
+      if(region==='scalp') {
+        stats.distance+=part;stats[x<200?'left':'right']+=part;if(Math.abs(x-200)<38)stats.center+=part;
+        stats.zones|=1<<((x<200?0:1)+(y<275?0:2));
+        stats.dx+=Math.abs(dx)/steps;stats.dy+=Math.abs(dy)/steps;
+      } else if(region==='chin')stats.chin+=part;
+      if(region&&lather.length<240&&Math.random()<part/32) {
+        const nearby=lather.filter(p=>p.region===region&&Math.abs(p.x-x)<38).length;
+        const r=rand(8,19),px=x+rand(-9,9);
+        const py=region==='scalp'?Math.max(195+r,Math.min(y,300)-Math.min(65,nearby*1.6)):y<437?y:Math.min(492-r,Math.max(y,449)+Math.min(25,nearby));
+        lather.push(soapBubble(px,py,r,region));
+      }
+      if(region&&foam.length<150&&Math.random()<part/12)foam.push({...soapBubble(x,y,rand(9,20),region),life:rand(.9,1.7)});
+    }
+    rubbed=true;rubAt=now;
+  }
+  if(!rubbed)return;
+  updateGauge();
+  if(now-sfxAt>120){play('k_impactSoft_heavy_000',.11,rand(1.8,2.8));sfxAt=now;}
+  const resumed=idleStage>=0;idleStage=-1;
+  if(resumed||(stats.total>120&&now-reactionAt>1900)){const lines=['あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','いい感じ！そこそこ！','来てる！未来が来てる！'];const i=resumed?0:reactionIndex++%lines.length;bubble(lines[i]);voice('man','rub'+i);reactionAt=now;}
+});
+function release(e) { if(pointer&&(!e||e.pointerId===pointer.id))pointer=null; }
+for(const type of ['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(type,release);
+addEventListener('blur',()=>release());
+document.addEventListener('visibilitychange',()=>{
+  release();
+  if(document.hidden){if(state==='play')hiddenAt=performance.now();ac?.suspend().catch(()=>{});}
+  else {if(hiddenAt&&state==='play'){const paused=performance.now()-hiddenAt;deadline+=paused;rubAt+=paused;reactionAt+=paused;}hiddenAt=0;if(ac)ac.resume().catch(()=>{});}
+  show('paused',document.hidden&&state==='play');
+});
+
+/* Procedural character. Every ending is drawn here and reused in cards. */
+const INK='#19222a', SKIN='#f4b994', HAIR='#302331';
+function ellipse(c,x,y,rx,ry,fill,stroke=true) { c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill();}if(stroke)c.stroke(); }
+function path(c,points,fill) { c.beginPath();c.moveTo(...points[0]);for(const p of points.slice(1))c.lineTo(...p);c.closePath();c.fillStyle=fill;c.fill();c.stroke(); }
+function curve(c,points) { c.beginPath();c.moveTo(points[0],points[1]);c.quadraticCurveTo(...points.slice(2));c.stroke(); }
+function hairShape(c,d,fill=HAIR) { const outline=new Path2D(d);c.fillStyle=fill;c.fill(outline);c.stroke(outline); }
+function hair(c,id,back=false) {
+  c.fillStyle=HAIR;c.strokeStyle=INK;c.lineWidth=4;c.lineJoin='round';
+  if(back) {
+    if(id==='long') {
+      hairShape(c,'M-91 -81 C-116 -55 -114 -14 -119 28 C-122 72 -129 112 -131 145 Q-108 146 -89 134 Q-81 149 -69 153 Q-54 127 -49 92 Q0 75 53 92 Q61 127 76 151 Q88 146 96 134 Q115 146 134 144 C127 104 121 66 118 26 C114 -24 115 -62 84 -85 Q0 -121 -91 -81 Z');
+      c.strokeStyle='#715264';for(const x of [-105,-85,85,105])curve(c,[x,-35,x*1.13,50,x*1.15,132]);
+    }
+    return;
+  }
+  if(['neglect','beard','tsurutsuru'].includes(id)) { c.strokeStyle='#fff';c.lineWidth=7;curve(c,[-53,-63,-34,-89,-7,-88]);return; }
+  if(id==='ubuge') { c.strokeStyle=HAIR;c.lineWidth=3;for(let i=0;i<3;i++){const x=-18+i*18;curve(c,[x,-102+Math.abs(x)*.1,x-7,-124,x+1,-127]);}return; }
+  if(id==='afro'||id==='rainbow') {
+    const colors=['#ff5e7d','#ffac48','#ffe65c','#6cda9d','#50bdf3','#a784ee'];
+    ellipse(c,0,-116,137,105,id==='rainbow'?'#a784ee':HAIR);
+    for(let i=0;i<17;i++){const a=Math.PI+(i/16)*Math.PI*2,x=Math.cos(a)*119,y=-112+Math.sin(a)*86;ellipse(c,x,y,29,29,id==='rainbow'?colors[i%6]:HAIR);}
+    c.save();c.beginPath();c.ellipse(0,-118,125,93,0,0,7);c.clip();
+    for(let i=0;i<48;i++){const x=Math.sin(i*13.8)*120,y=-195+(i*37%165);c.strokeStyle=id==='rainbow'?'#ffffff88':'#6b4c67';c.lineWidth=2;c.beginPath();c.arc(x,y,8,0,4.6);c.stroke();}c.restore();
+    return;
+  }
+  if(id==='mohawk') {
+    // Pointed tips remain punk; the roots form a rounded patch on the scalp.
+    hairShape(c,'M-22 -67 Q-32 -96 -28 -122 Q-26 -151 -17 -173 Q-13 -157 -4 -147 Q6 -174 11 -207 Q23 -188 24 -161 Q30 -164 35 -177 Q37 -140 32 -111 Q31 -82 23 -64 Q0 -54 -22 -67 Z','#e43a68');
+    c.strokeStyle='#ff9aa6';c.lineWidth=4;curve(c,[3,-80,1,-124,12,-167]);return;
+  }
+  if(id==='regent') {
+    hairShape(c,'M-95 -18 C-104 -35 -106 -66 -97 -86 C-89 -112 -65 -134 -37 -137 C-7 -139 20 -174 49 -182 C76 -191 112 -184 129 -168 C146 -151 138 -131 119 -120 C96 -106 62 -101 42 -91 Q34 -83 29 -66 C7 -63 -23 -76 -48 -76 C-65 -69 -75 -48 -80 -31 Q-85 -19 -95 -18 Z');
+    c.strokeStyle='#7b5a75';c.lineWidth=6;curve(c,[-72,-95,-7,-119,100,-151]);curve(c,[-70,-79,-14,-93,57,-119]);return;
+  }
+  if(id==='shichisan') {
+    hairShape(c,'M-95 -17 C-102 -36 -104 -61 -97 -79 C-85 -111 -56 -129 -28 -131 C10 -137 49 -130 73 -111 C96 -94 103 -63 99 -39 Q98 -23 94 -17 Q83 -24 78 -47 Q75 -68 68 -80 Q50 -94 30 -91 Q21 -80 6 -72 C-16 -63 -42 -60 -61 -55 Q-71 -45 -77 -29 Q-85 -17 -95 -17 Z');
+    // The part opens into the forehead instead of ending as a skin-colored hole.
+    c.strokeStyle=SKIN;c.lineWidth=5;curve(c,[31,-129,20,-109,30,-91]);c.strokeStyle='#7b5a75';c.lineWidth=3;
+    for(let i=0;i<4;i++)curve(c,[19,-115+i*8,-24,-105+i*9,-78,-67+i*6]);return;
+  }
+  if(id==='long') {
+    hairShape(c,'M-97 -12 C-103 -32 -110 -65 -101 -85 C-88 -116 -57 -132 -22 -133 C18 -138 62 -129 87 -108 C106 -91 111 -54 104 -31 Q100 -20 97 -12 Q80 -26 70 -50 C56 -69 42 -88 26 -95 Q11 -104 0 -102 Q-15 -99 -29 -83 C-45 -68 -63 -52 -76 -42 Q-88 -27 -97 -12 Z');
+    c.strokeStyle='#7b5a75';c.lineWidth=3;curve(c,[-5,-114,-28,-84,-87,-54]);curve(c,[10,-113,43,-95,91,-45]);return;
+  }
+  // All hairlines curve into the temples; texture stays inside each solid cap.
+  if(id==='short') {
+    hairShape(c,'M-96 -17 C-104 -36 -105 -66 -97 -87 Q-93 -104 -82 -107 Q-77 -120 -64 -116 Q-55 -131 -42 -125 Q-28 -140 -14 -131 Q1 -144 15 -131 Q31 -139 44 -126 Q60 -132 68 -117 Q84 -119 87 -104 Q103 -96 103 -77 C107 -56 101 -30 95 -17 Q84 -24 81 -43 Q79 -59 71 -67 Q53 -74 35 -70 Q18 -72 3 -80 Q-15 -75 -34 -68 Q-56 -65 -75 -65 Q-82 -55 -83 -40 Q-86 -23 -96 -17 Z');
+    c.strokeStyle='#7b5a75';c.lineWidth=2;curve(c,[-63,-93,-47,-107,-34,-105]);curve(c,[-12,-111,3,-121,17,-110]);curve(c,[39,-103,58,-108,70,-94]);
+  } else {
+    // One scalloped silhouette joins the crown curls, fringe and side hair.
+    hairShape(c,'M-96 -16 C-102 -29 -104 -45 -102 -62 C-119 -74 -118 -102 -101 -112 C-98 -130 -80 -143 -62 -141 C-49 -158 -27 -164 -10 -155 C8 -166 32 -160 43 -149 C62 -154 84 -141 88 -126 C111 -124 122 -103 115 -86 C117 -70 107 -59 101 -56 C102 -40 99 -26 94 -15 C86 -21 85 -40 78 -48 C65 -58 54 -57 44 -63 C30 -56 17 -60 5 -66 C-8 -59 -22 -55 -35 -61 C-48 -55 -64 -56 -76 -48 C-85 -40 -85 -23 -96 -16 Z');
+    c.strokeStyle='#7b5a75';c.lineWidth=3;
+    curve(c,[-99,-108,-110,-82,-85,-73]);curve(c,[-63,-138,-84,-111,-62,-91]);
+    curve(c,[-12,-151,-36,-128,-16,-105]);curve(c,[42,-144,18,-119,40,-94]);
+    curve(c,[87,-122,60,-110,78,-84]);curve(c,[-68,-94,-40,-120,-12,-96]);curve(c,[22,-90,46,-113,73,-92]);
+  }
+}
+function drawMan(c,x,y,k,id,mood,hairScale=1) {
+  c.save();c.translate(x,y);c.scale(k,k);c.lineJoin=c.lineCap='round';c.strokeStyle=INK;c.lineWidth=4;
+  c.save();c.scale(hairScale,hairScale);hair(c,id,true);c.restore();
+  // Neck, cape, ears and the shiny bald base.
+  path(c,[[-30,84],[-33,119],[-114,142],[-139,185],[139,185],[114,142],[33,119],[30,84]],SKIN);
+  path(c,[[-107,138],[-47,119],[0,135],[47,119],[107,138],[139,185],[-139,185]],'#fff8da');
+  c.strokeStyle='#65baae';c.lineWidth=3;curve(c,[-112,158,0,181,112,158]);c.strokeStyle=INK;c.lineWidth=4;
+  for(const s of [-1,1]){ellipse(c,s*99,12,15,23,SKIN);curve(c,[s*101,1,s*113,10,s*101,22]);}
+  ellipse(c,0,0,99,115,SKIN);
+  ellipse(c,-59,31,20,11,'#f48b8d',false);ellipse(c,59,31,20,11,'#f48b8d',false);
+  c.save();c.scale(hairScale,hairScale);hair(c,id);c.restore();
+  const sad=mood==='sad'||mood==='crushed',worried=sad||mood==='worried'||mood==='nervous';
+  c.strokeStyle=HAIR;c.lineWidth=7;
+  if(worried){curve(c,[-61,-17,-42,-21,-22,-35]);curve(c,[22,-35,42,-21,61,-17]);}
+  else {curve(c,[-61,-24,-42,mood==='hope'?-40:-30,-22,-25]);curve(c,[22,-25,42,mood==='hope'?-40:-30,61,-24]);}
+  c.strokeStyle=INK;c.lineWidth=4;
+  const happy=mood==='happy'||mood==='rub';
+  for(const s of [-1,1]) {
+    if(happy||mood==='nervous')curve(c,[s*37-13,7,s*37,mood==='nervous'?13:-12,s*37+13,7]);
+    else {ellipse(c,s*37,4,13,mood==='crushed'?10:16,'#fff');ellipse(c,s*37,sad?9:6,5,mood==='crushed'?4:8,INK,false);}
+  }
+  curve(c,[-4,11,-17,34,4,32]);
+  if(happy) {c.beginPath();c.moveTo(-28,50);c.quadraticCurveTo(0,64,28,50);c.quadraticCurveTo(19,88,0,85);c.quadraticCurveTo(-20,84,-28,50);c.fillStyle='#66323e';c.fill();c.stroke();ellipse(c,0,77,12,5,'#ff8ca0',false);}
+  else curve(c,[-24,sad?72:63,0,sad?43:worried?52:70,24,sad?72:63]);
+  if(mood==='crushed'){ellipse(c,-49,35,6,12,'#b9edff',false);if(id==='neglect')ellipse(c,49,40,7,17,'#b9edff',false);}
+  // Chin whiskers are distinct from the scalp's growing hair.
+  if(id==='beard') {
+    c.save();c.translate(0,42);c.scale(hairScale,hairScale);c.translate(0,-42);
+    c.strokeStyle=INK;c.lineWidth=4;
+    // Sideburns descend from the ears into a broad, curly chin and cheeks.
+    const curls=[[-88,24,14],[-91,45,17],[-87,70,21],[-77,94,24],[-62,117,25],[-39,134,25],[-13,141,25],[15,143,26],[42,134,25],[65,116,25],[81,94,24],[89,69,21],[92,44,17],[88,23,14]];
+    c.beginPath();c.ellipse(0,111,75,42,0,0,Math.PI*2);
+    for(const [px,py,r] of curls){c.moveTo(px+r,py);c.arc(px,py,r,0,Math.PI*2);}
+    c.fillStyle=HAIR;c.fill();c.stroke();
+    // Fill the overlapping curls together so only the bushy outside is darkly edged.
+    c.fill();c.strokeStyle='#715264';c.lineWidth=3;
+    for(const [px,py,r] of [[-86,47,7],[-74,83,9],[-57,112,10],[-29,136,9],[3,119,10],[33,138,9],[58,111,10],[78,80,9],[86,46,7]]) {
+      c.beginPath();c.arc(px,py,r,.3,5.2);c.stroke();
+    }
+    // Two curled moustache lobes frame the existing mouth without covering it.
+    c.strokeStyle=INK;c.lineWidth=4;
+    for(const s of [-1,1]) {
+      c.beginPath();c.moveTo(s*2,43);c.bezierCurveTo(s*17,35,s*30,45,s*43,43);c.bezierCurveTo(s*48,66,s*23,64,s*2,51);c.closePath();c.fillStyle=HAIR;c.fill();c.stroke();
+      c.strokeStyle='#715264';c.lineWidth=2;curve(c,[s*13,46,s*27,54,s*36,48]);c.strokeStyle=INK;c.lineWidth=4;
+    }
+    c.restore();
+  } else {c.lineWidth=1.5;c.strokeStyle='#ad756b';for(let i=0;i<16;i++){const px=-33+i*4.5,py=90+Math.sin(i/15*Math.PI)*9;curve(c,[px,py,px+1,py+3,px+2,py+5]);}}
+  if(id==='tsurutsuru'&&mood==='happy') {c.strokeStyle='#fff';c.lineWidth=3;curve(c,[60,-85,69,-75,78,-85]);}
+  c.restore();
+}
+function drawFoam(now,rinse) {
+  // Draw last over the hairline, ears, jaw and cape: nothing slices a soap circle.
+  ctx.save();ctx.globalAlpha=1;ctx.strokeStyle='#81c9d8';ctx.lineWidth=2;
+  for(const p of [...lather,...foam]) {
+    const wash=clamp((rinse-p.rinseStart)/p.rinseDuration,0,1);
+    if(wash>=1)continue;
+    const pop=1-clamp((wash-.65)/.35,0,1), lifePop=p.life===undefined?1:Math.min(1,p.life/.12);
+    const r=p.r*pop*lifePop;if(r<.2)continue;
+    const y=p.y+Math.sin(now*.003+p.seed)*2+(REDUCED?0:p.slide*wash);
+    ellipse(ctx,p.x,y,r,r,'#eafaff');
+    ellipse(ctx,p.x-r*.26,y-r*.3,r*.24,r*.16,'#fff',false);
+  }
+  ctx.restore();
+}
+function draw(now,dt) {
+  if(layoutState!==state)resize();
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#76e0cf';ctx.fillRect(0,0,innerWidth,innerHeight);
+  ctx.setTransform(dpr*scale,0,0,dpr*scale,ox*dpr,oy*dpr);
+  // Flat, playful bathroom tiles, kept behind the action.
+  ctx.strokeStyle='#53bfaf';ctx.lineWidth=2;ctx.globalAlpha=.45;
+  for(let y=180;y<850;y+=90){ctx.beginPath();ctx.moveTo(-300,y);ctx.lineTo(700,y);ctx.stroke();}
+  for(let x=-250;x<700;x+=90){ctx.beginPath();ctx.moveTo(x,180);ctx.lineTo(x,850);ctx.stroke();}ctx.globalAlpha=1;
+  ellipse(ctx,200,507,145,13,'#48b4a455',false);
+  const motion=!REDUCED&&state==='play'&&now-rubAt<160?Math.sin(now*.04)*1.8:0;
+  const settled=state==='reveal'||state==='done',moodTime=hiddenAt||now;
+  const pop=clamp((now-revealAt)/450,0,1),ease=1+2.70158*(pop-1)**3+1.70158*(pop-1)**2;
+  const hairScale=state==='reveal'&&!REDUCED ? .65+.35*ease : 1;
+  easeLayout(dt);
+  anchorDialogue(motion,hairScale);
+  const mood=settled?(result.mood||'happy'):state==='suspense'?'nervous':['play','stop','rinse'].includes(state)?liveMood(moodTime):'hope';
+  drawMan(ctx,200+motion,351,1,settled?result.id:'tsurutsuru',mood,hairScale);
+  if(state==='home') {
+    ctx.save();ctx.translate(322,451);ctx.rotate(.18);ctx.lineWidth=4;ctx.strokeStyle=INK;
+    path(ctx,[[-20,-46],[20,-46],[22,36],[-22,36]],'#f74976');path(ctx,[[-13,-59],[12,-59],[12,-46],[-13,-46]],'#fff');
+    ctx.fillStyle=INK;ctx.font=`800 16px ${UI_FONT}`;ctx.textAlign='center';ctx.fillText('毛',0,-6);ctx.fillText('来い',0,14);ctx.restore();
+  }
+  const rinse=state==='rinse'?clamp((now-rinseAt)/RINSE_MS,0,1):0;
+  if(state==='play'&&!document.hidden)for(let i=foam.length-1;i>=0;i--){foam[i].life-=dt;if(foam[i].life<=0)foam.splice(i,1);}
+  if(state==='rinse'&&stats.distance+stats.chin>0) {
+    ctx.strokeStyle='#d9faff';ctx.lineWidth=8;ctx.globalAlpha=Math.sin(rinse*Math.PI)*.85;
+    for(let i=0;i<14;i++){const x=80+i*18,y=180+(now*.65+i*53)%290;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-12,y+65);ctx.stroke();}ctx.globalAlpha=1;
+  }
+  if(['play','stop','rinse'].includes(state))drawFoam(now,rinse);
+  for(let i=sparks.length-1;i>=0;i--){const p=sparks[i];p.life-=dt;if(p.life<=0){sparks.splice(i,1);continue;}if(!REDUCED){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=100*dt;}ctx.globalAlpha=Math.min(1,p.life*2);ctx.fillStyle=p.color;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(now*.002);ctx.fillRect(-4,-4,8,8);ctx.restore();ctx.globalAlpha=1;}
+  if(state==='play'&&stats.distance<120&&now-rubAt>1500){ctx.strokeStyle='#fff';ctx.lineWidth=5;const offset=REDUCED?0:Math.sin(now*.005)*26;curve(ctx,[161+offset,281,200+offset,243,238+offset,281]);}
+}
+function frame(now) {
+  const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;
+  if(state==='play'&&!document.hidden) {const remaining=Math.max(0,deadline-now);$('seconds').textContent=(remaining/1000).toFixed(1);if(!remaining)finish();else updateMood(now);}
+  draw(now,dt);requestAnimationFrame(frame);
+}
+
+/* ---------- share picture ---------- */
+// The framed picture is a crop of the live scene, including his actual ending.
+async function drawShareImage({ style, card }) {
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`, 'こすって生やせ！何ヘアになる？10秒で毛よ、来い！こするほど、生える。結末/「」0123456789' + STYLES.map(s=>s.name+s.line).join(''));
+  resize();draw(performance.now(),0);
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 675;
+  const x = c.getContext('2d');
+  x.fillStyle = '#ffe14a'; x.fillRect(0, 0, 1200, 675);
+  const FX = 20, FY = 42, FW = 560, FH = 591, y0 = 118, y1 = 540;
+  const k = Math.max(FW / 400, FH / (y1 - y0)), sw = FW / k, sh = FH / k, sx = (400 - sw) / 2, sy = y0;
+  x.drawImage(cv, (ox + sx * scale) * dpr, (oy + sy * scale) * dpr, sw * scale * dpr, sh * scale * dpr, FX, FY, FW, FH);
+  x.lineWidth = 8; x.strokeStyle = INK; x.strokeRect(FX, FY, FW, FH);
+  const text = (str, tx, ty, size, fill, maxW = 560) => {
+    x.font = `${size}px ${DISPLAY_FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    const tw = x.measureText(str).width; if (tw > maxW) { size *= maxW / tw; x.font = `${size}px ${DISPLAY_FONT}`; }
+    x.lineWidth = fill === '#fff' ? Math.min(size * .13, 10) : 5; x.strokeStyle = INK;
+    x.strokeText(str, tx, ty + size * .06); x.strokeText(str, tx, ty); x.fillStyle = fill; x.fillText(str, tx, ty);
+  };
+  const stamp = (str, tx, ty, size) => {
+    x.save(); x.translate(tx, ty); x.rotate(-.06); x.font = `${size}px ${DISPLAY_FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const tw = x.measureText(str).width + size * .9, th = size * 1.35;
+    x.beginPath(); x.roundRect(-tw / 2, -th / 2, tw, th, size * .25); x.fillStyle = '#fff'; x.fill(); x.lineWidth = 9; x.strokeStyle = '#e8392b'; x.stroke();
+    x.fillStyle = '#e8392b'; x.fillText(str, 0, size * .04); x.restore();
+  };
+  text('こすって生やせ！', 890, 105, 72, '#fff');
+  if (card === null) {
+    text('10秒で', 890, 245, 100, '#e8392b'); text('毛よ、来い！', 890, 360, 100, '#e8392b');
+    text('こするほど、生える。', 890, 510, 46, '#fff');
+  } else {
+    // Long style names use two lines so every outlined glyph remains at least 38px.
+    const names = {'beard':['もじゃもじゃ','ヒゲ'],'short':['さわやか','ショート'],'shichisan':['きっちり','七三'],'mohawk':['一直線','モヒカン'],'regent':['ど迫力','リーゼント'],'long':['さらさら','ロン毛'],'afro':['もこもこ','アフロ']};
+    const lines=names[style.id]||[style.name];
+    lines.forEach((line,i)=>text(line,890,lines.length===1?235:205+i*76,lines.length===1?90:72,'#e8392b'));
+    stamp(`結末 ${STYLES.indexOf(style)+1}/${STYLES.length}`, 890, 360, 58);
+    // Split long dialogue into two legible lines without reducing the font.
+    const quote='「'+style.line+'」', chars=Array.from(quote);
+    x.font=`38px ${DISPLAY_FONT}`;
+    if(x.measureText(quote).width>560){const mid=Math.ceil(chars.length/2);text(chars.slice(0,mid).join(''),890,444,38,'#fff');text(chars.slice(mid).join(''),890,492,38,'#fff');}
+    else text(quote,890,455,38,'#fff');
+    text('あなたは何ヘアになる？', 890, 565, 40, '#fff');
+  }
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+let shareFile = null, shareText = '';
+async function prepareShare(shot, g) {
+  try {
+    const blob = await drawShareImage(shot);
+    if (g !== generation || !blob) return;
+    shareFile = new File([blob], 'kosutte-hayase.png', { type: 'image/png' });
+    // phones that can share files: the picture is the main way to post, so its button leads
+    const sheet = canShareFile();
+    $('save').textContent = sheet ? '画像でシェア' : '画像を保存';
+    $('save').className = sheet ? '' : 'alt';
+    $('save').style.display = TOUCH ? 'inline-block' : 'none';   // PC: the X button copies it
+  } catch (e) { console.warn('share image', e); }
+}
+const canShareFile = () => !!(TOUCH && shareFile && navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] }));
+function download() {
+  const a = document.createElement('a'), url = URL.createObjectURL(shareFile);
+  a.href = url; a.download = shareFile.name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+function note(text) { const el = $('tip'); el.textContent = text; el.style.display = 'block'; }
+// On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
+// X opens after the copy, while the page still has focus.
+if (!TOUCH) $('share').innerHTML = 'Xでポスト<small>画像もコピー</small>';
+$('share').addEventListener('click', async e => {
+  if (TOUCH || !shareFile) return;
+  e.preventDefault();
+  const href = $('share').href, paste = /Mac/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareFile })]);
+    note(`リンクに結果カードが付きます。シャンプー画像も付けるなら ${paste}`);
+  } catch (err) { console.warn('clipboard', err); download(); note('画像を保存しました。投稿に添付してください'); }
+  window.open(href, '_blank', 'noopener');
+});
+$('save').addEventListener('click', e => {
+  e.currentTarget.blur();
+  if (!shareFile) return;
+  if (!canShareFile()) return download();
+  navigator.share({ files: [shareFile], text: shareText, url: URL_PUBLIC }).catch(err => {
+    if (err.name !== 'AbortError') { console.warn('share', err); download(); }   // AbortError: the sheet was closed
+  });
+});
+function showPicture(blob) {
+  const i = new Image(); i.id='preview'; i.src = URL.createObjectURL(blob);
+  i.style.cssText = 'position:fixed;left:0;top:0;width:1200px;height:675px;z-index:99'; document.body.append(i);
+}
+const query=new URLSearchParams(location.search), CARD_MODE=query.has('card');
+requestAnimationFrame(frame);
+if(CARD_MODE) {
+  const forced=styleById(query.get('card'))||styleById('rainbow');
+  show('home',false);show('title',false);
+  if(!query.get('card')){
+    state='done';result=forced;bubble(forced.line);resize();draw(performance.now(),0);
+    drawShareImage({style:forced,card:null}).then(showPicture);
+  } else {state='play';finish(forced);}
+}
+</script>
+</body>
+</html>
