@@ -130,8 +130,8 @@ const STYLES = [
 ];
 const styleById = id => STYLES.find(s => s.id === id);
 const IDLE_LINES = [
-  {"id":"idle_worried","after":700,"mood":"worried","text":"あれ…？"},
-  {"id":"idle_plead","after":1700,"mood":"sad","text":"続けて…くれないんですか？"},
+  {"id":"idle_worried","after":600,"mood":"worried","text":"あれ…？"},
+  {"id":"idle_plead","after":1500,"mood":"sad","text":"続けて…くれないんですか？"},
   {"id":"idle_hurt","after":2900,"mood":"crushed","text":"まだ、ここにいますよ…。"},
   {"id":"idle_crushed","after":4100,"mood":"crushed","text":"期待して、すみません…。"}
 ];
@@ -262,12 +262,19 @@ function play(name,volume=1,rate=1) {
   const source=ac.createBufferSource(), gain=ac.createGain(); source.buffer=buffers[name]; source.playbackRate.value=rate; gain.gain.value=volume;
   source.connect(gain); gain.connect(master); source.start(); return source;
 }
+// He never cuts himself off: a new line waits for the current one, and none starts that would run past the bell.
+let manUntil=0;
+function sayMan(text,id,now=performance.now()) {
+  const ms=(buffers['v_'+id]?.duration??1.6)*1000;
+  if(now<manUntil||(state==='play'&&deadline-now<ms))return false;
+  bubble(text); voice('man',id); manUntil=now+ms+150; return true;
+}
 function voice(speaker,name) { try{speakers[speaker]?.stop();}catch(_){} speakers[speaker]=play('v_'+name); }
 function stopVoices() { for(const source of Object.values(speakers))try{source?.stop();}catch(_){} }
 
 async function start() {
   initAudio(); const first=!hasStarted, g=++generation; hasStarted=true; state='intro'; pointer=null; resetStats(); lather=[]; foam=[]; sparks=[]; result=null; shareFile=null;
-  rubAt=-1000; reactionAt=0; reactionIndex=0; idleStage=-1; stopVoices();
+  rubAt=-1000; manUntil=0; reactionAt=0; reactionIndex=0; idleStage=-1; stopVoices();
   for(const id of ['title','home','result'])show(id,false);
   show('hud',true); $('save').style.display='none'; $('tip').style.display='none'; $('seconds').textContent='5.0'; updateGauge();
   // The first tap creates the AudioContext; give the opening sounds a moment to decode.
@@ -275,9 +282,9 @@ async function start() {
   play('k_select_003',.7);
   if(first) {
     bubble('今日は、どんな髪型に？'); voice('host','title');
-    await wait(1000); if(g!==generation)return;
-    bubble('5秒で、ふさふさにしてください！'); voice('man','intro');
-    await wait(1800); if(g!==generation)return;
+    await wait(1250); if(g!==generation)return;
+    sayMan('5秒で、ふさふさにしてください！','intro');
+    await wait(2350); if(g!==generation)return;
     $('intro').style.fontSize='';for(const n of [3,2,1]) { $('intro').textContent=String(n);show('intro',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return; }
   }
   state='play'; rubAt=performance.now(); deadline=rubAt+ROUND_MS; hiddenAt=document.hidden?rubAt:0;
@@ -303,7 +310,7 @@ function chooseStyle() {
 function hasBeard() { return stats.chin>=900&&stats.chin/(stats.distance+stats.chin)>=.60; }
 function updateMood(now) {
   let stage=-1;for(let i=0;i<IDLE_LINES.length;i++)if(now-rubAt>=IDLE_LINES[i].after)stage=i;
-  if(stage!==idleStage) {idleStage=stage;if(stage>=0){const line=IDLE_LINES[stage];bubble(line.text);voice('man',line.id);}}
+  if(stage!==idleStage&&(stage<0||sayMan(IDLE_LINES[stage].text,IDLE_LINES[stage].id,now)))idleStage=stage;
 }
 function liveMood(now) { return now-rubAt<800?(stats.total?'rub':'hope'):IDLE_LINES[Math.max(0,idleStage)].mood; }
 function countUp(n,g) {
@@ -402,7 +409,7 @@ cv.addEventListener('pointermove',e=>{
   updateGauge();
   if(now-sfxAt>120){play('k_impactSoft_heavy_000',.11,rand(1.8,2.8));sfxAt=now;}
   const resumed=idleStage>=0;idleStage=-1;
-  if(resumed||(stats.total>120&&now-reactionAt>1900)){const lines=['あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','いい感じ！そこそこ！','来てる！未来が来てる！'];const i=resumed?0:reactionIndex++%lines.length;bubble(lines[i]);voice('man','rub'+i);reactionAt=now;}
+  if(resumed||(stats.total>120&&now-reactionAt>1900)){const lines=['あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','いい感じ！そこそこ！','来てる！未来が来てる！'];const i=resumed?0:reactionIndex%lines.length;if(sayMan(lines[i],'rub'+i,now)){if(!resumed)reactionIndex++;reactionAt=now;}}
 });
 function release(e) { if(pointer&&(!e||e.pointerId===pointer.id))pointer=null; }
 for(const type of ['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(type,release);
