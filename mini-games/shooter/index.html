@@ -544,8 +544,18 @@ function placeBubble() {
   b.style.maxWidth=Math.min(right-4,clamp(right-stageToUi(state==='play'||state==='count'?118:16,0).x,150,250))+'px';
   // Anchored by its right edge, so its width never shrinks against the screen edge.
   b.style.left='auto';b.style.right=(p.w-right)+'px';
+  fitPhrases(b);
   const h=b.offsetHeight, top=Math.max(ceil,p.y-h/2);
   b.style.top=top+'px';b.style.setProperty('--tail',clamp(p.y-top,16,h-16)+'px');
+}
+// A phrase too wide for the bubble would wrap mid-word: keep it on one line at a slightly smaller size, and only
+// if that still overflows let it wrap (word-break:auto-phrase picks the break).
+function fitPhrases(b) {
+  for(const s of b.querySelectorAll('.ph')){
+    s.style.fontSize='';s.style.whiteSpace='nowrap';
+    for(let k=.95;s.scrollWidth>s.clientWidth+.5&&k>=.78;k-=.05)s.style.fontSize=k+'em';
+    if(s.scrollWidth>s.clientWidth+.5){s.style.fontSize='';s.style.whiteSpace='';}
+  }
 }
 addEventListener('resize',resize);
 new ResizeObserver(resize).observe($('ui'));
