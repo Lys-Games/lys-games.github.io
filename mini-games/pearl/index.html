@@ -24,7 +24,7 @@
 h1,h2,h3{font-weight:400}
 html{font-synthesis:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
-body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:700;user-select:none;-webkit-user-select:none}
+body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:700;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
 .ui-box{position:fixed;top:var(--safe-top);bottom:var(--toolbar);left:50%;width:min(420px,100%);transform:translateX(-50%);pointer-events:none}
 [hidden]{display:none!important}
@@ -115,16 +115,16 @@ const CUP={rimY:215,floorY:690,rimL:34,rimR:366,floorL:78,floorR:322};
 const TEA_H=100, PEARL_R=15, STRAW_R=17, STRAW_TOP=178, TIP_MIN_Y=470, TIP_SPEED=1800, GRAV=2000;
 // A touch teleports the finger: the tip sweeps there at TIP_SPEED, and whatever it shoves never moves faster than
 // these caps, so nothing is flung. Pearls only leave the cup through the straw.
-const PEARL_VMAX=700, ICE_VMAX=420;
+const PEARL_VMAX=700, ICE_VMAX=420, SNAP_SEAT=1;
 // Suction: a pearl within SUCK_R of the tip is pulled in; touching the mouth for CATCH_HOLD (in tea) catches it.
 // Above the tea it pulls air (AIR_PULL). Once the cup is dry the pull drops to WEAK_PULL, too weak to lift a pearl,
 // and a catch needs WEAK_HOLD of contact.
 const SUCK_R=50, SUCK_ACC=8600, AIR_PULL=.6, WEAK_PULL=.2, CATCH_HOLD=.04, AIR_HOLD=.15, WEAK_HOLD=.45;
 // Tea drunk per second of sucking (more when only tea comes up), plus a gulp per pearl.
-const DRAIN_TEA=.45, DRAIN_PEARL=.22, GULP=.026;
+const DRAIN_TEA=.45, DRAIN_PEARL=.22, GULP=.027;
 // One sip, one pearl: a caught pearl plugs the straw until the finger lifts. A second pearl gets in only if it
 // was touching the mouth too, within PAIR_S of the first.
-const PAIR_S=.02;
+const PAIR_S=.02, PAIR_TOUCH=1, PAIR_GAP=2;
 // A moving straw loses its grip: the pull fades with tip speed and nothing is caught above GRIP_SPEED.
 const GRIP_SPEED=120, SLIP_SPEED=400;
 const ZUGOGO_S=1.5, SNIPER_TEA=.07, MOST=.7, HALF=.35;
@@ -161,19 +161,31 @@ function iceHit(c,x,y,r){
 function iceExtent(c){const cs=Math.abs(Math.cos(c.a)), sn=Math.abs(Math.sin(c.a));return [c.hw*cs+c.hh*sn,c.hw*sn+c.hh*cs];}
 function stepWorld(w,input,dt){
   const events=[], h=Math.min(dt,1/30)/2;
-  for(let s=0;s<2;s++)substep(w,input,h,events);
+  for(let s=0;s<2;s++)substep(w,input,h,events,s===0&&!!input.snap);
   return events;
 }
-function substep(w,input,h,events){
-  const tip=w.tip;w.t+=h;
-  // The tip chases the finger, inside the bottom of the cup.
-  const ty=clampN(input.y,TIP_MIN_Y,CUP.floorY-STRAW_R-1), tx=clampN(input.x,wallX(ty,-1)+STRAW_R+3,wallX(ty,1)-STRAW_R-3);
-  let mx=tx-tip.x, my=ty-tip.y;const md=Math.hypot(mx,my), step=TIP_SPEED*h;
-  if(md>step){mx*=step/md;my*=step/md;}
-  tip.x+=mx;tip.y+=my;
-  w.tipV+=(Math.hypot(mx,my)/h-w.tipV)*Math.min(1,h*25);
+function substep(w,input,h,events,snap){
+  const tip=w.tip, tx0=tip.x, ty0=tip.y;w.t+=h;
+  // The tip goes to the finger or cursor, inside the bottom of the cup, resting on top of any pearl there rather
+  // than digging into the pile. A press (finger or mouse button) snaps it there at rest, so a tap right on a pearl
+  // sucks from the first frame; a hovering mouse sweeps it there at TIP_SPEED. The straw shoves pearls and ice
+  // aside by position only (speeds stay capped).
+  let ty=clampN(input.y,TIP_MIN_Y,CUP.floorY-STRAW_R-1), tx=clampN(input.x,wallX(ty,-1)+STRAW_R+3,wallX(ty,1)-STRAW_R-3);
+  for(let k=0;k<2;k++)for(const p of w.pearls){
+    if(p.state!=='free')continue;
+    const dx=p.x-tx, m=p.r+STRAW_R-SNAP_SEAT;
+    if(Math.abs(dx)<m&&Math.hypot(dx,p.y-ty)<m)ty=Math.max(TIP_MIN_Y,Math.min(ty,p.y-Math.sqrt(m*m-dx*dx)));
+  }
+  tx=clampN(tx,wallX(ty,-1)+STRAW_R+3,wallX(ty,1)-STRAW_R-3);
+  if(snap){tip.x=tx;tip.y=ty;w.tipV=0;}
+  else{
+    let mx=tx-tip.x, my=ty-tip.y;const md=Math.hypot(mx,my), step=TIP_SPEED*h;
+    if(md>step){mx*=step/md;my*=step/md;}
+    tip.x+=mx;tip.y+=my;
+  }
   const grip=clampN(1-w.tipV/SLIP_SPEED,.15,1), still=w.tipV<GRIP_SPEED;
-  const surface=teaSurface(w), dry=w.tea<=0, inTea=!dry&&tip.y+STRAW_R+2>surface, down=!!input.down;
+  // Resting on the bottom pearls, the mouth still reaches the tea between them.
+  const surface=teaSurface(w), dry=w.tea<=0, inTea=!dry&&tip.y+STRAW_R+2*PEARL_R+4>surface, down=!!input.down;
   // Each press is a new sip.
   if(down&&!w.wasDown){w.sipCatches=0;w.plugged=false;}
   w.wasDown=down;
@@ -197,7 +209,15 @@ function substep(w,input,h,events){
           p.state='straw';p.s=0;w.caught++;if(w.caught===w.total)w.clearAt=w.t;
           if(w.sipCatches++===0)w.sipFirstAt=w.t;else w.plugged=true;
           if(inTea)w.tea=Math.max(0,w.tea-GULP);
-          events.push({type:'catch',x:p.x,y:p.y});continue;
+          events.push({type:'catch',x:p.x,y:p.y});
+          // Two at most when they touch: a free pearl touching the first one, near the mouth, follows it up the
+          // straw in the same sip. This is the same for a mouse and a finger.
+          if(w.sipCatches===1&&PAIR_TOUCH){
+            let q=null, best=1e9;
+            for(const o of w.pearls){if(o.state!=='free'||o===p)continue;const dp=Math.hypot(o.x-p.x,o.y-p.y), dt=Math.hypot(o.x-tip.x,o.y-tip.y);if(dp<o.r+p.r+PAIR_GAP&&dt<SUCK_R&&dt<best){best=dt;q=o;}}
+            if(q){q.state='straw';q.s=-.18;w.caught++;w.sipCatches++;w.plugged=true;if(w.caught===w.total)w.clearAt=w.t;if(inTea)w.tea=Math.max(0,w.tea-GULP);events.push({type:'catch',x:q.x,y:q.y});}
+          }
+          continue;
         }
       } else p.hold=Math.max(0,p.hold-h*2);
     } else p.hold=0;
@@ -239,6 +259,8 @@ function substep(w,input,h,events){
   }
   // Ice it can't shove aside stops the tip.
   for(const c of w.ice){const hit=iceHit(c,tip.x,tip.y,STRAW_R*.6);if(hit){tip.x+=hit[0]*hit[2];tip.y+=Math.min(0,hit[1]*hit[2]);}}
+  // Grip goes by how far the tip really moved: a tip jammed against ice is still, a snap is not a move.
+  if(snap)w.tipV=0;else w.tipV+=(Math.hypot(tip.x-tx0,tip.y-ty0)/h-w.tipV)*Math.min(1,h*25);
   const cap=(b,max)=>{const v=Math.hypot(b.vx,b.vy);if(v>max){b.vx*=max/v;b.vy*=max/v;}};
   for(const p of free){p.vx=(p.x-p.px)/h;p.vy=(p.y-p.py)/h;if(p.y>=CUP.floorY-p.r-.5)p.vx/=1+6*h;cap(p,PEARL_VMAX);}
   for(const c of w.ice){c.vx=(c.x-c.px)/h;c.vy=(c.y-c.py)/h;if(c.y+iceExtent(c)[1]>=CUP.floorY-.5)c.vx/=1+10*h;cap(c,ICE_VMAX);}
@@ -266,7 +288,7 @@ const cv = $('cv'), ctx = cv.getContext('2d');
 const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/pearl/';
 const HASHTAG = '#最後のタピオカ';
-const ROUND_MS = ROUND_S*1000, END_TO_REVEAL_MS = 1400, JACKPOT_ODDS = 1/16, TOUCH_LIFT = 40;
+const ROUND_MS = ROUND_S*1000, END_TO_REVEAL_MS = 1400, JACKPOT_ODDS = 1/16;
 // Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: kind to cruel.
 const ENDINGS = [
   {"id":"refill","name":"おかわり無料","verdict":"大当たり！16杯に1杯、もちこがおかわりをサービス。","line":"いい飲みっぷり！おかわり、サービスしちゃう！","hint":"まだ見ていない結末を探そう。","mood":"happy"},
@@ -462,7 +484,7 @@ let lastCatch=null, lastSlurp=null, lastIdle=null;
 /* ---------- round ---------- */
 let state='home', generation=0, hasStarted=false, playStart=0, endAt=0, hiddenAt=0, lastFrame=0;
 let world=createWorld(7), ending=null, mood='watch', moodUntil=0, saidIdle=false, saidSlurp=false, lastClink=0, fx=[], confetti=[], flash=0;
-const finger={x:200,y:600,down:false,id:null};
+const finger={x:200,y:600,down:false,id:null,snap:false};
 let keyDown=false;
 // The best is a score; the key changed when the score replaced the pearl count.
 let best=null;try{const b=Number(localStorage.getItem('pearl.bestScore'));if(b>0)best=b;}catch(_){}
@@ -510,7 +532,7 @@ function onCatch(e) {
 }
 function playTick(now) {
   const el=now-playStart;
-  const input={x:finger.x,y:finger.y,down:finger.down||keyDown};
+  const input={x:finger.x,y:finger.y,down:finger.down||keyDown,snap:finger.snap};finger.snap=false;
   const events=stepWorld(world,input,dtFrame);
   for(const e of events){
     if(e.type==='catch')onCatch(e);
@@ -566,7 +588,8 @@ function countUp(n,g) {
 }
 
 /* ---------- input: one finger, or the mouse (hold the button to suck) ---------- */
-const toStage=e=>({x:(e.clientX-ox)/scale,y:(e.clientY-oy)/scale-(e.pointerType==='mouse'?0:TOUCH_LIFT)});
+// The tip goes exactly where the finger or cursor is. A press snaps it there; a hovering mouse only previews it.
+const toStage=e=>({x:(e.clientX-ox)/scale,y:(e.clientY-oy)/scale});
 const aiming=()=>['intro','count','play'].includes(state);
 cv.addEventListener('pointerdown',e=>{
   if(!aiming())return;
@@ -574,8 +597,11 @@ cv.addEventListener('pointerdown',e=>{
   e.preventDefault();initAudio();
   // A finger that lands during the intro or countdown keeps holding into play and sucks from the first frame.
   try{cv.setPointerCapture(e.pointerId);}catch(_){}
-  Object.assign(finger,toStage(e),{down:true,id:e.pointerId});
+  // Every press (finger or mouse button) lands the tip on the spot, so a finger and a mouse play the same.
+  Object.assign(finger,toStage(e),{down:true,id:e.pointerId,snap:true});
 });
+// Android's long press would open a menu and cancel the touch.
+cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointermove',e=>{
   if(!aiming())return;
   if(finger.down?e.pointerId===finger.id:e.pointerType==='mouse')Object.assign(finger,toStage(e));
@@ -731,7 +757,7 @@ function drawStraw(c,w,t) {
   // Tea and pearls going up, seen through the clear wall, out of the open top end.
   c.beginPath();c.rect(x-r,top,r*2,y-top);c.clip();
   if(w.sucking&&!w.emptyNow){c.fillStyle='rgba(201,141,92,.55)';c.fillRect(x-r,top,r*2,y-top);}
-  for(const p of w.pearls)if(p.state==='straw')drawPearl(c,x,y-10-p.s*(y-top),p.r*.92);
+  for(const p of w.pearls)if(p.state==='straw')drawPearl(c,x,y-10-Math.max(0,p.s)*(y-top),p.r*.92);
   c.restore();
   c.save();c.fillStyle='rgba(255,196,214,.32)';c.fillRect(x-r,top,r*2,y-top);
   c.lineWidth=4;c.strokeStyle=INK;line(c,[x-r,top,x-r,y],4);line(c,[x+r,top,x+r,y],4);
@@ -795,7 +821,7 @@ function frame(now) {
   const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;dtFrame=dt;
   if(!document.hidden&&!CARD_THUMB){
     if(state==='play')playTick(now);
-    else if(state==='count'||state==='end')stepWorld(world,{x:finger.x,y:finger.y,down:false},dt);
+    else if(state==='count'||state==='end'){stepWorld(world,{x:finger.x,y:finger.y,down:false,snap:finger.snap},dt);finger.snap=false;}
     if(state==='end')updateSlurp(null);
     if(bubbleHideAt&&now>=bubbleHideAt){$('bubble').style.visibility='hidden';bubbleHideAt=0;}
     if(state!=='play'&&moodUntil&&now>=moodUntil)setMood('watch');
