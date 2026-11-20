@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>タピオカ射的</title>
+<meta name="description" content="縁日の夜店で、タピオカをストローで飛ばしてカップのピラミッドを落とす射的ゲーム。長押しで吸って、離して発射。吸いすぎると飲みこんでむせる。10粒で何個落とせる？無料ミニゲーム。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="タピオカ射的">
+<meta property="og:description" content="ストローでタピオカを飛ばして、カップを落とせ。10粒で何個いける？">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/shooter/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/shooter/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://lys-games.github.io/mini-games/shooter/thumb.jpg">
+<meta name="theme-color" content="#1b1d4a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d1533;--bg:#1b1d4a;--red:#e8383d;--gold:#ffc83a;--cream:#fff8e8;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--toolbar:calc(16vh + var(--safe-bottom))}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-weight:400}
+html{font-synthesis:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
+body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:700;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.ui-box{position:fixed;top:var(--safe-top);bottom:var(--toolbar);left:50%;width:min(420px,100%);transform:translateX(-50%);pointer-events:none}
+[hidden]{display:none!important}
+.t{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-weight:400;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em;color:#fff}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;min-height:44px;text-decoration:none;font:inherit;font-size:20px;font-weight:800;color:#fff;background:var(--red);border:3px solid var(--ink);border-radius:16px;padding:10px 14px;box-shadow:0 4px 0 var(--ink);cursor:pointer;pointer-events:auto;touch-action:manipulation}
+button:active,.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:4px}
+.alt{background:var(--ink);color:#fff}
+#title{position:absolute;left:0;right:0;top:8px;text-align:center;transform:rotate(-3deg)}
+#title .eyebrow{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:800;display:inline-block;-webkit-text-stroke:0;text-shadow:none;color:var(--ink);background:var(--gold);border:3px solid var(--ink);border-radius:99px;padding:1px 12px}
+#title h1{font-size:clamp(30px,5.2dvh,42px);margin:4px 0 0;color:#fff;line-height:1.05}
+#title h1 span{color:var(--gold);display:block;font-size:1.45em;line-height:1.05}
+#count{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;position:absolute;left:0;right:0;text-align:center;font-size:clamp(84px,26vw,128px);line-height:1;color:#fff;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .06em 0 var(--ink);z-index:5;transform:translateY(-50%);animation:pop .3s ease-out}
+#count.small{font-size:clamp(44px,13vw,64px);color:var(--gold)}
+#hud{position:absolute;top:6px;left:10px;right:10px;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:10px;background:var(--cream);border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:4px 12px 6px}
+#score{font-size:40px;font-variant-numeric:tabular-nums;line-height:1;color:var(--red);-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
+#score small{font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:18px;margin-left:3px;color:var(--ink)}
+#score.bump{animation:bump .14s ease-out}
+#ammo-label{display:flex;justify-content:space-between;font-size:14px;font-weight:800;margin:2px 2px 3px}
+#ammo{display:flex;gap:3px;justify-content:space-between}
+#ammo i{flex:1;max-width:20px;aspect-ratio:1;border-radius:50%;border:3px solid var(--ink);background:#4a2a1e;box-shadow:inset 3px 3px 0 rgba(255,255,255,.35)}
+#ammo i.used{background:transparent;box-shadow:none;border-style:dashed;opacity:.35}
+#instruction{grid-column:1/-1;text-align:center;font-size:15px;font-weight:800;margin:4px 0 0}
+#bubble{position:absolute;min-height:40px;max-width:200px;text-align:center;word-break:auto-phrase;text-wrap:balance;padding:8px 10px;font-size:15px;line-height:1.4;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);z-index:4}
+#bubble::before,#bubble::after{content:"";position:absolute;top:var(--tail,50%);transform:translateY(-50%);border:solid transparent}
+#bubble::before{right:-19px;border-width:11px 0 11px 19px;border-left-color:var(--ink)}
+#bubble::after{right:-13px;border-width:8px 0 8px 15px;border-left-color:#fff}
+#bubble .ph{display:inline-block;max-width:100%}
+#bubble.shout{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400;font-size:22px;line-height:1.2;color:var(--red)}
+#home{position:absolute;left:10px;right:10px;bottom:0;text-align:center}
+#home-instructions{background:var(--cream);border:3px solid var(--ink);border-radius:16px;padding:7px 10px;margin:0 4px 10px}
+#home .lead{font-size:19px;font-weight:800;line-height:1.35;margin:0}
+#home .sub{font-size:14px;font-weight:800;line-height:1.45;margin:3px 0 0}
+#home .sub small{font-size:12px;color:#6b5f80}
+#go{font-size:23px;min-width:250px;min-height:52px;padding:6px 16px}
+.credit{color:#fff;font-size:12px;font-weight:700;line-height:1.5;text-align:center;margin:8px 0 0;pointer-events:auto}
+.credit a{color:inherit}
+.steam{color:inherit;font-size:13px;line-height:1.5;pointer-events:auto}
+.voice-credit{position:absolute;top:100%;left:0;right:0;margin-top:10px;font-size:10px;color:#fff;line-height:1.5;text-align:center}
+#result{position:absolute;left:8px;right:8px;bottom:0;max-height:calc(100% - 150px);overflow-y:auto;background:var(--cream);border:4px solid var(--ink);border-radius:20px;padding:8px 10px;text-align:center;pointer-events:auto;box-shadow:0 6px 0 var(--ink)}
+#result .credit,#result .voice-credit{color:var(--ink)}
+#result .label{font-size:13px;font-weight:800;line-height:1.4;color:#6b5f80}
+#rank-name{font-size:30px;color:var(--ink);margin:0;-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
+#points{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-size:42px;line-height:1.1;margin:2px 0;color:var(--red)}
+#points .unit{font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:.55em;margin-left:3px}
+#result .voice-credit{position:static;margin-top:3px}
+#points small{display:block;font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:13px;color:#6b5f80;margin-top:2px}
+#verdict{font-size:15px;font-weight:800;line-height:1.4;margin:0 0 3px}
+#hint{font-size:13px;font-weight:700;line-height:1.4;margin:5px 0 0;color:#6b5f80}
+.actions{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.actions .btn,.actions button{font-size:15px;white-space:nowrap;flex:1;padding:5px 3px;min-height:46px;border-radius:12px}
+.actions small{font-size:11px;font-weight:700;line-height:1.3}
+#save{display:none}
+#tip{display:none;margin:6px 0 0;padding:6px;font-size:13px;font-weight:800;line-height:1.4;background:var(--ink);color:#fff;border-radius:10px}
+#paused{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:20;color:#fff;font-size:24px;pointer-events:none}
+@keyframes pop{from{transform:translateY(-50%) scale(.7)}to{transform:translateY(-50%) scale(1)}}
+@keyframes bump{from{transform:scale(1.2)}to{transform:scale(1)}}
+@media(max-height:700px){
+#score{font-size:34px}
+#score small{font-size:16px}
+#ammo-label{font-size:13px;margin:3px 2px 2px}
+#instruction{font-size:13px;margin-top:2px}
+#rank-name{font-size:25px}
+#points{font-size:34px}
+#verdict{font-size:12px;line-height:1.3}
+#hint{font-size:11px;line-height:1.3;margin-top:3px}
+#result .credit{font-size:10px;margin-top:4px}
+#result .steam{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="縁日の射的屋。棚に空のカップがピラミッドに積んであり、手前のカップのストローでタピオカを飛ばす。長押しで吸って、離して発射。押したまま上下に動かすとねらいが変わる。"></canvas>
+<div id="ui" class="ui-box">
+  <header id="title" class="t"><span class="eyebrow">縁日の夜、ストローで勝負</span><h1>タピオカ<span>射的</span></h1></header>
+  <div id="hud" hidden><div id="score" class="t"><span id="score-n">0</span><small>点</small></div><div><div id="ammo-label"><span>のこりタピオカ</span><span id="cups-n">カップ 0個</span></div><div id="ammo" aria-label="のこりタピオカ"></div></div><p id="instruction">長押しで吸って、離して発射！</p></div>
+  <div id="count" hidden></div>
+  <div id="bubble" role="status" aria-live="polite"><span id="bubble-text">らっしゃい！射的屋のぽん吉だよ！</span></div>
+  <section id="home"><div id="home-instructions"><p class="lead">10粒で、カップを何個落とせる？</p><p class="sub" id="how"></p></div><button id="go">10粒で挑戦！</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shooter" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:青山龍星</div></section>
+  <section id="result" aria-label="結果" hidden><div class="label">今日の景品</div><h2 id="rank-name" class="t"></h2><p id="points"><span id="points-n">0</span><span class="unit">点</span><small id="best"></small></p><p id="verdict"></p><div class="actions"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shooter" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:青山龍星</div></section>
+</div>
+<div id="paused" hidden>ひと休み中</div>
+<script>
+'use strict';
+/* PHYSICS-BEGIN */
+// Plain functions shared with tools/sim.js: no DOM, no audio. Stage units (400 wide), y points down.
+// Rigid bodies after Box2D-lite: boxes (cups, shelves) and one circle (the pearl in flight), sequential impulses
+// with warm starting, so a pyramid of cups stands still until something hits it.
+const GRAV=900, SUBSTEPS=2, ITER=10, SLOP=.4, BIAS=.2;
+const CUP_W=24, CUP_H=32, CUP_M=1, CUP_FRICTION=.5;
+const PEARL_R=7, PEARL_M=4, PEARL_FRICTION=.3, PEARL_BOUNCE=.3;
+// Shelves are static boxes; y is the top surface. The high one sits behind and above the low one.
+const SHELF_T=12;
+const SHELVES=[{x0:178,x1:340,y:432},{x0:286,x1:398,y:262}];
+const DEG=Math.PI/180, AIM_MIN=8*DEG, AIM_MAX=84*DEG, AIM_START=42*DEG;
+// The shooter, seen from the side: the head turns about NECK with the aim (TILT of the aim's swing) and the pearl
+// leaves the mouth along the aim. MOUTH_OFF is the mouth relative to the neck with the head level.
+const NECK={x:58,y:462}, MOUTH_OFF={x:56,y:-40}, AIM_MID=40*DEG, TILT=.55;
+const headTilt=aim=>(aim-AIM_MID)*TILT, STRAW_W=12;
+// Holding slurps a pearl up the straw: power grows to full over CHARGE_S, then the pearl waits at the lip for
+// GRACE_S (still full power). Hold past that and it is swallowed: COUGH_S of coughing, and that pearl is lost.
+const CHARGE_S=.9, GRACE_S=.22, COUGH_S=1.1;
+// Launch speed from power 0..1.
+const V_MIN=180, V_MAX=700;
+// Every game has the same ammunition so scores compare.
+const PEARLS=10;
+// The shelf sets, in order: when every cup of a set has left its shelf the next one appears after SET_DELAY.
+// Each pyramid: shelf index, rows (bottom row has that many cups) and centre x.
+const SETS=[
+  [{shelf:0,rows:3,x:262}],
+  [{shelf:0,rows:4,x:258}],
+  [{shelf:0,rows:2,x:226},{shelf:1,rows:3,x:345}],
+  [{shelf:0,rows:3,x:250},{shelf:1,rows:4,x:342}],
+];
+const SET_DELAY=.9;
+// Score: 100 per cup off its shelf, a bonus per cleared set, and only when every set is cleared, LEFT_PTS per
+// pearl still in the cup.
+const CUP_PTS=100, CLEAR_PTS=[300,500,700,1000], LEFT_PTS=300;
+// A shot "hits" when at least one cup leaves its shelf before the next shot.
+const clampN=(n,a,b)=>Math.max(a,Math.min(b,n));
+const totalCups=()=>SETS.reduce((n,s)=>n+s.reduce((m,p)=>m+p.rows*(p.rows+1)/2,0),0);
+function muzzle(aim){
+  const t=headTilt(aim), c=Math.cos(t), s=Math.sin(t);
+  return {x:NECK.x+c*MOUTH_OFF.x+s*MOUTH_OFF.y,y:NECK.y-s*MOUTH_OFF.x+c*MOUTH_OFF.y};
+}
+const powerOf=hold=>clampN(hold/CHARGE_S,0,1);
+const speedOf=p=>V_MIN+(V_MAX-V_MIN)*p;
+
+function boxBody(kind,x,y,hw,hh,m,f){
+  const b={id:0,kind,x,y,a:0,vx:0,vy:0,w:0,hw,hh,r:0,m,im:m?1/m:0,I:0,iI:0,f,bound:Math.hypot(hw,hh)};
+  if(m){b.I=m*(4*hw*hw+4*hh*hh)/12;b.iI=1/b.I;}
+  return b;
+}
+function circleBody(kind,x,y,r,m,f){
+  const b={id:0,kind,x,y,a:0,vx:0,vy:0,w:0,hw:0,hh:0,r,m,im:1/m,I:m*r*r/2,iI:0,f,bound:r};
+  b.iI=1/b.I;return b;
+}
+function addBody(w,b){b.id=w.nextId++;w.bodies.push(b);return b;}
+function removeBody(w,b){
+  w.bodies.splice(w.bodies.indexOf(b),1);
+  for(const [k,a] of w.arbs)if(a.b1===b||a.b2===b)w.arbs.delete(k);
+}
+
+// Box-box contacts (separating axis, then the incident edge clipped against the reference face's sides).
+// Normal points from A to B. Feature keys let the solver carry impulses from one step to the next.
+function incidentEdge(b,nx,ny){
+  const c=Math.cos(b.a), s=Math.sin(b.a), lx=-(c*nx+s*ny), ly=-(-s*nx+c*ny), hw=b.hw, hh=b.hh;
+  let v;
+  if(Math.abs(lx)>Math.abs(ly)) v=lx>=0?[hw,-hh,3,4,hw,hh,4,1]:[-hw,hh,1,2,-hw,-hh,2,3];
+  else v=ly>=0?[hw,hh,4,1,-hw,hh,1,2]:[-hw,-hh,2,3,hw,-hh,3,4];
+  return [0,4].map(i=>({x:b.x+c*v[i]-s*v[i+1],y:b.y+s*v[i]+c*v[i+1],i1:0,o1:0,i2:v[i+2],o2:v[i+3]}));
+}
+function clipSeg(p0,p1,nx,ny,off,edge){
+  const d0=nx*p0.x+ny*p0.y-off, d1=nx*p1.x+ny*p1.y-off, out=[];
+  if(d0<=0)out.push(p0);
+  if(d1<=0)out.push(p1);
+  if(d0*d1<0){
+    const k=d0/(d0-d1), src=d0>0?p0:p1, q={x:p0.x+k*(p1.x-p0.x),y:p0.y+k*(p1.y-p0.y),i1:src.i1,o1:src.o1,i2:src.i2,o2:src.o2};
+    if(d0>0){q.i1=edge;q.i2=0;}else{q.o1=edge;q.o2=0;}
+    out.push(q);
+  }
+  return out;
+}
+function collideBoxes(A,B,out){
+  const cA=Math.cos(A.a), sA=Math.sin(A.a), cB=Math.cos(B.a), sB=Math.sin(B.a);
+  const dpx=B.x-A.x, dpy=B.y-A.y;
+  const dAx=cA*dpx+sA*dpy, dAy=-sA*dpx+cA*dpy, dBx=cB*dpx+sB*dpy, dBy=-sB*dpx+cB*dpy;
+  const a11=Math.abs(cA*cB+sA*sB), a12=Math.abs(-cA*sB+sA*cB), a21=Math.abs(-sA*cB+cA*sB), a22=a11;
+  const fAx=Math.abs(dAx)-A.hw-(a11*B.hw+a12*B.hh), fAy=Math.abs(dAy)-A.hh-(a21*B.hw+a22*B.hh);
+  if(fAx>0||fAy>0)return;
+  const fBx=Math.abs(dBx)-(a11*A.hw+a21*A.hh)-B.hw, fBy=Math.abs(dBy)-(a12*A.hw+a22*A.hh)-B.hh;
+  if(fBx>0||fBy>0)return;
+  let axis=0, sep=fAx, nx=dAx>0?cA:-cA, ny=dAx>0?sA:-sA;
+  if(fAy>.95*sep+.01*A.hh){axis=1;sep=fAy;nx=dAy>0?-sA:sA;ny=dAy>0?cA:-cA;}
+  if(fBx>.95*sep+.01*B.hw){axis=2;sep=fBx;nx=dBx>0?cB:-cB;ny=dBx>0?sB:-sB;}
+  if(fBy>.95*sep+.01*B.hh){axis=3;sep=fBy;nx=dBy>0?-sB:sB;ny=dBy>0?cB:-cB;}
+  let fnx=nx, fny=ny, front, snx, sny, sideH, negEdge, posEdge, inc, ref;
+  if(axis<2){ref=A;inc=B;}else{ref=B;inc=A;fnx=-nx;fny=-ny;}
+  const c=Math.cos(ref.a), s=Math.sin(ref.a);
+  if(axis%2===0){front=ref.x*fnx+ref.y*fny+ref.hw;snx=-s;sny=c;sideH=ref.hh;negEdge=3;posEdge=1;}
+  else{front=ref.x*fnx+ref.y*fny+ref.hh;snx=c;sny=s;sideH=ref.hw;negEdge=2;posEdge=4;}
+  const side=ref.x*snx+ref.y*sny, e=incidentEdge(inc,fnx,fny);
+  const c1=clipSeg(e[0],e[1],-snx,-sny,-side+sideH,negEdge);if(c1.length<2)return;
+  const c2=clipSeg(c1[0],c1[1],snx,sny,side+sideH,posEdge);if(c2.length<2)return;
+  for(const p of c2){
+    const d=fnx*p.x+fny*p.y-front;
+    if(d<=0)out.push({x:p.x-d*fnx,y:p.y-d*fny,nx,ny,sep:d,key:axis<2?p.i1|p.o1<<4|p.i2<<8|p.o2<<12:p.i2|p.o2<<4|p.i1<<8|p.o1<<12,Pn:0,Pt:0});
+  }
+}
+// Box A, circle B: one contact, normal from the box to the circle.
+function collideCircle(A,B,out){
+  const c=Math.cos(A.a), s=Math.sin(A.a), dx=B.x-A.x, dy=B.y-A.y, lx=c*dx+s*dy, ly=-s*dx+c*dy;
+  const qx=clampN(lx,-A.hw,A.hw), qy=clampN(ly,-A.hh,A.hh);
+  let nlx, nly, sep, px, py;
+  if(qx===lx&&qy===ly){
+    const ex=A.hw-Math.abs(lx), ey=A.hh-Math.abs(ly);
+    if(ex<ey){nlx=lx<0?-1:1;nly=0;sep=-ex-B.r;px=nlx*A.hw;py=ly;}else{nlx=0;nly=ly<0?-1:1;sep=-ey-B.r;px=lx;py=nly*A.hh;}
+  } else {
+    const ex=lx-qx, ey=ly-qy, d=Math.hypot(ex,ey);
+    if(d>B.r)return;
+    nlx=ex/d;nly=ey/d;sep=d-B.r;px=qx;py=qy;
+  }
+  out.push({x:A.x+c*px-s*py,y:A.y+s*px+c*py,nx:c*nlx-s*nly,ny:s*nlx+c*nly,sep,key:0,Pn:0,Pt:0});
+}
+function preStep(a,invDt){
+  const b1=a.b1, b2=a.b2;
+  for(const c of a.c){
+    const r1x=c.x-b1.x, r1y=c.y-b1.y, r2x=c.x-b2.x, r2y=c.y-b2.y, nx=c.nx, ny=c.ny, tx=ny, ty=-nx;
+    const rn1=r1x*nx+r1y*ny, rn2=r2x*nx+r2y*ny, rt1=r1x*tx+r1y*ty, rt2=r2x*tx+r2y*ty;
+    c.r1x=r1x;c.r1y=r1y;c.r2x=r2x;c.r2y=r2y;
+    c.mn=1/(b1.im+b2.im+b1.iI*(r1x*r1x+r1y*r1y-rn1*rn1)+b2.iI*(r2x*r2x+r2y*r2y-rn2*rn2));
+    c.mt=1/(b1.im+b2.im+b1.iI*(r1x*r1x+r1y*r1y-rt1*rt1)+b2.iI*(r2x*r2x+r2y*r2y-rt2*rt2));
+    c.bias=-BIAS*invDt*Math.min(0,c.sep+SLOP);
+    // A pearl bounces a little off what it hits.
+    const vn=(b2.vx-b2.w*r2y-b1.vx+b1.w*r1y)*nx+(b2.vy+b2.w*r2x-b1.vy-b1.w*r1x)*ny;
+    c.vb=a.e&&vn<-60?-a.e*vn:0;
+    const px=c.Pn*nx+c.Pt*tx, py=c.Pn*ny+c.Pt*ty;
+    b1.vx-=b1.im*px;b1.vy-=b1.im*py;b1.w-=b1.iI*(r1x*py-r1y*px);
+    b2.vx+=b2.im*px;b2.vy+=b2.im*py;b2.w+=b2.iI*(r2x*py-r2y*px);
+  }
+}
+function applyImpulse(a){
+  const b1=a.b1, b2=a.b2;
+  for(const c of a.c){
+    const nx=c.nx, ny=c.ny, tx=ny, ty=-nx;
+    let dvx=b2.vx-b2.w*c.r2y-b1.vx+b1.w*c.r1y, dvy=b2.vy+b2.w*c.r2x-b1.vy-b1.w*c.r1x;
+    let dPn=c.mn*(-(dvx*nx+dvy*ny)+Math.max(c.bias,c.vb));
+    const pn0=c.Pn;c.Pn=Math.max(pn0+dPn,0);dPn=c.Pn-pn0;
+    let px=dPn*nx, py=dPn*ny;
+    b1.vx-=b1.im*px;b1.vy-=b1.im*py;b1.w-=b1.iI*(c.r1x*py-c.r1y*px);
+    b2.vx+=b2.im*px;b2.vy+=b2.im*py;b2.w+=b2.iI*(c.r2x*py-c.r2y*px);
+    dvx=b2.vx-b2.w*c.r2y-b1.vx+b1.w*c.r1y;dvy=b2.vy+b2.w*c.r2x-b1.vy-b1.w*c.r1x;
+    let dPt=c.mt*-(dvx*tx+dvy*ty);
+    const max=a.f*c.Pn, pt0=c.Pt;c.Pt=clampN(pt0+dPt,-max,max);dPt=c.Pt-pt0;
+    px=dPt*tx;py=dPt*ty;
+    b1.vx-=b1.im*px;b1.vy-=b1.im*py;b1.w-=b1.iI*(c.r1x*py-c.r1y*px);
+    b2.vx+=b2.im*px;b2.vy+=b2.im*py;b2.w+=b2.iI*(c.r2x*py-c.r2y*px);
+  }
+}
+function stepBodies(w,h,events){
+  const B=w.bodies, n=B.length;
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+    let b1=B[i], b2=B[j];
+    if(!b1.im&&!b2.im)continue;
+    if(b1.r&&b2.r)continue;
+    if(Math.abs(b1.x-b2.x)>b1.bound+b2.bound||Math.abs(b1.y-b2.y)>b1.bound+b2.bound)continue;
+    if(b1.r){const t=b1;b1=b2;b2=t;}
+    const out=[];
+    if(b2.r)collideCircle(b1,b2,out);else collideBoxes(b1,b2,out);
+    const key=b1.id*4096+b2.id, old=w.arbs.get(key);
+    if(!out.length){if(old)w.arbs.delete(key);continue;}
+    if(old){
+      for(const c of out){const o=old.c.find(q=>q.key===c.key);if(o){c.Pn=o.Pn;c.Pt=o.Pt;}}
+      old.c=out;
+    } else {
+      w.arbs.set(key,{b1,b2,c:out,f:Math.sqrt(b1.f*b2.f),e:b2.r?PEARL_BOUNCE:0});
+      const vn=-((b2.vx-b1.vx)*out[0].nx+(b2.vy-b1.vy)*out[0].ny);
+      if(vn>50)events.push({type:'hit',a:b1.kind,b:b2.kind,v:vn,x:out[0].x,y:out[0].y});
+    }
+  }
+  for(const b of B)if(b.im)b.vy+=h*GRAV;
+  const invDt=1/h;
+  for(const a of w.arbs.values())preStep(a,invDt);
+  for(let k=0;k<ITER;k++)for(const a of w.arbs.values())applyImpulse(a);
+  for(const b of B)if(b.im){b.x+=h*b.vx;b.y+=h*b.vy;b.a+=h*b.w;}
+}
+
+function spawnSet(w,index){
+  // Cups that already left their shelf but still rest somewhere are cleared away with the old set.
+  for(const b of w.bodies.slice())if(b.kind==='cup')removeBody(w,b);
+  w.set=index;w.setCups=[];w.nextSetAt=0;
+  SETS[index].forEach((p,k)=>{
+    const shelf=SHELVES[p.shelf], pyr={id:w.pyrs.length,set:index,size:p.rows*(p.rows+1)/2,shots:new Set(),left:0};
+    w.pyrs.push(pyr);
+    for(let r=0;r<p.rows;r++)for(let i=0;i<p.rows-r;i++){
+      const x=p.x+(i-(p.rows-r-1)/2)*(CUP_W+2), y=shelf.y-CUP_H/2-r*CUP_H;
+      const cup=addBody(w,boxBody('cup',x,y,CUP_W/2,CUP_H/2,CUP_M,CUP_FRICTION));
+      Object.assign(cup,{shelf:p.shelf,pyr,dropped:false,tint:(w.cupTint++)%4,born:w.t});
+      pyr.left++;w.setCups.push(cup);
+    }
+  });
+}
+function createWorld(){
+  const w={t:0,bodies:[],arbs:new Map(),nextId:1,pyrs:[],cupTint:0,set:-1,setCups:[],nextSetAt:0,
+    ammo:PEARLS,phase:'ready',armed:true,hold:0,aim:AIM_START,coughT:0,coughs:0,shots:[],cups:0,clears:[],
+    oneShot:false,allClear:false,over:false,quiet:0,pearl:null};
+  for(const s of SHELVES)addBody(w,boxBody('shelf',(s.x0+s.x1)/2,s.y+SHELF_T/2,(s.x1-s.x0)/2,SHELF_T/2,0,.8));
+  spawnSet(w,0);
+  // Let the first pyramid settle its contacts before the round.
+  for(let i=0;i<30;i++)stepBodies(w,1/120,[]);
+  w.t=0;
+  return w;
+}
+// One frame. input: {down (finger, mouse button or space held), daim (aim change in radians this frame)}.
+// Returns events for sound and reactions: charge, shot, gulp, hit, drop, clear, spawn, over.
+function stepWorld(w,input,dt){
+  const ev=[];w.t+=dt;
+  if(!w.over){
+    w.aim=clampN(w.aim+(input.daim||0),AIM_MIN,AIM_MAX);
+    // Each pearl needs a fresh press: a finger still down after a shot or a cough does nothing until it lifts.
+    if(!input.down&&w.phase!=='charge')w.armed=true;
+    if(w.phase==='cough'){w.coughT-=dt;if(w.coughT<=0)w.phase='ready';}
+    else if(w.phase==='charge'){
+      if(!input.down)shoot(w,ev);
+      else{
+        w.hold+=dt;
+        if(w.hold>=CHARGE_S+GRACE_S){w.phase='cough';w.coughT=COUGH_S;w.coughs++;w.armed=false;ev.push({type:'gulp',last:w.ammo===0});}
+      }
+    } else if(input.down&&w.armed&&w.ammo>0&&!w.allClear){w.phase='charge';w.hold=0;w.ammo--;w.armed=false;ev.push({type:'charge'});}
+  }
+  const h=dt/SUBSTEPS;
+  for(let s=0;s<SUBSTEPS;s++)stepBodies(w,h,ev);
+  // Bookkeeping: cups that left their shelf, bodies that left the stall, cleared sets.
+  let moving=false;
+  for(const b of w.bodies.slice()){
+    if(b.kind==='shelf')continue;
+    if(b.kind==='cup'){
+      if(!b.dropped&&(b.y>SHELVES[b.shelf].y+2||b.x>SHELVES[b.shelf].x1+CUP_H||b.x<SHELVES[b.shelf].x0-CUP_H))dropCup(w,b,ev);
+      if(b.y>720||b.x>470||b.x<-80){removeBody(w,b);continue;}
+      if(Math.abs(b.vx)+Math.abs(b.vy)>40)moving=true;
+    } else if(b.kind==='pearl'){
+      b.age+=dt;
+      const slow=Math.abs(b.vx)+Math.abs(b.vy)<25;b.rest=slow?b.rest+dt:0;
+      if(b.y>720||b.x>470||b.x<-80||b.age>5||b.rest>.5){removeBody(w,b);if(w.pearl===b)w.pearl=null;continue;}
+      moving=true;
+    }
+  }
+  if(w.set>=0&&w.setCups.length&&!w.nextSetAt&&!w.allClear&&w.setCups.every(c=>c.dropped)){
+    w.clears.push({set:w.set,t:w.t,shot:w.shots.length-1});
+    ev.push({type:'clear',set:w.set,pts:CLEAR_PTS[w.set],final:w.set===SETS.length-1});
+    if(w.set===SETS.length-1){w.allClear=true;if(w.phase==='charge'){w.phase='ready';w.ammo++;}}
+    else w.nextSetAt=w.t+SET_DELAY;
+  }
+  if(w.nextSetAt&&w.t>=w.nextSetAt){spawnSet(w,w.set+1);ev.push({type:'spawn',set:w.set});}
+  // The game ends once the last pearl is used (or every set is cleared) and the stall has gone quiet.
+  const done=(w.ammo===0||w.allClear)&&w.phase!=='charge'&&w.phase!=='cough'&&!w.nextSetAt;
+  w.quiet=done&&!moving?w.quiet+dt:0;
+  if(!w.over&&done&&(w.quiet>=.8||w.t-(w.shots.at(-1)?.t??0)>5)){w.over=true;ev.push({type:'over'});}
+  return ev;
+}
+function shoot(w,ev){
+  const p=powerOf(w.hold), v=speedOf(p), m=muzzle(w.aim);
+  const pearl=addBody(w,circleBody('pearl',m.x,m.y,PEARL_R,PEARL_M,PEARL_FRICTION));
+  Object.assign(pearl,{vx:Math.cos(w.aim)*v,vy:-Math.sin(w.aim)*v,age:0,rest:0});
+  w.pearl=pearl;w.phase='ready';
+  w.shots.push({t:w.t,p,aim:w.aim,cups:0});
+  ev.push({type:'shot',p,last:w.ammo===0});
+}
+function dropCup(w,cup,ev){
+  cup.dropped=true;w.cups++;
+  const shot=w.shots.length-1;
+  if(shot>=0)w.shots[shot].cups++;
+  cup.pyr.left--;cup.pyr.shots.add(shot);
+  // One shot clearing a whole pyramid of six or more.
+  if(!cup.pyr.left&&cup.pyr.size>=6&&cup.pyr.shots.size===1)w.oneShot=true;
+  ev.push({type:'drop',x:cup.x,y:cup.y,shot});
+}
+function scoreOf(w){
+  let s=w.cups*CUP_PTS;
+  for(const c of w.clears)s+=CLEAR_PTS[c.set];
+  if(w.allClear)s+=w.ammo*LEFT_PTS;
+  return s;
+}
+// Ranks: 特賞 by score, then how you played, then the other prize ranks by score. First match wins.
+// gulp: every pearl swallowed, none shot. perfect: no cough and every pearl shot dropped a cup.
+// oneshot: one shot cleared a whole pyramid of six or more. cough: COUGH_RANK swallowed pearls or more.
+const COUGH_RANK=5, SCORE_RANKS=[['tokusho',4000],['first',2700],['second',1800],['third',900]];
+function chooseRankId(w){
+  const s=scoreOf(w);
+  if(!w.shots.length)return 'gulp';
+  if(s>=SCORE_RANKS[0][1])return 'tokusho';
+  if(!w.coughs&&(w.shots.length===PEARLS||w.allClear)&&w.shots.every(x=>x.cups>0))return 'perfect';
+  if(w.oneShot)return 'oneshot';
+  if(w.coughs>=COUGH_RANK)return 'cough';
+  if(!w.cups)return 'zero';
+  for(const [id,min] of SCORE_RANKS)if(s>=min)return id;
+  return 'sanka';
+}
+/* PHYSICS-END */
+
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const ROUND_FONT = '800 X "M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif';
+const URL_PUBLIC = 'https://lys-games.github.io/mini-games/shooter/';
+const HASHTAG = '#タピオカ射的';
+const END_TO_REVEAL_MS = 1300;
+// Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: prizes, then
+// the ranks for how you played.
+const RANKS = [
+  {"id":"tokusho","name":"特賞","verdict":"棚のカップを、ごっそり落としきった。","line":"まいったまいった！大当たりだ！","hint":"棚を全部空にすると、残った粒もボーナスに。","mood":"amazed"},
+  {"id":"perfect","name":"百発百中","verdict":"撃った粒が、ひとつ残らずカップを落とした。","line":"全弾命中！こりゃ商売あがったりだ！","hint":"特賞は4,000点から。","mood":"amazed"},
+  {"id":"oneshot","name":"一網打尽","verdict":"たった1粒で、ピラミッドをまるごと崩した。","line":"一発でまるごと！？見たことないよ！","hint":"1粒も外さずに撃ちきると…？","mood":"shock"},
+  {"id":"first","name":"1等","verdict":"カップの山を、次々に崩していった。","line":"いい腕してるねえ！また来ておくれ！","hint":"上の棚は、山なりにふわっと。","mood":"happy"},
+  {"id":"second","name":"2等","verdict":"ねらいも勢いも、なかなかのもの。","line":"あとひと押しだったねえ！","hint":"ピラミッドは、下の段をねらうと崩れやすい。","mood":"happy"},
+  {"id":"third","name":"3等","verdict":"何個かは、しっかり落とした。","line":"次はもっといけるよ！","hint":"ゲージ満タンで離すと、いちばん強く飛ぶ。","mood":"watch"},
+  {"id":"sanka","name":"参加賞","verdict":"カップは、ほとんど棚に残った。","line":"また遊びにおいで！","hint":"押したまま上下になぞって、ねらいを合わせよう。","mood":"watch"},
+  {"id":"cough","name":"むせ名人","verdict":"粒の半分以上を、飲みこんでむせた。","line":"吸いすぎだって！お茶でも飲むかい？","hint":"ゲージが赤に入ったら、すぐ離そう。","mood":"worried"},
+  {"id":"zero","name":"かすりもせず","verdict":"カップには、1粒も届かなかった。","line":"どんまい！カップは逃げないよ！","hint":"押したまま上下になぞって、ねらいを合わせよう。","mood":"sad"},
+  {"id":"gulp","name":"ごちそうさま","verdict":"10粒ぜんぶ、1発も撃たずに飲みこんだ。","line":"射的屋で、タピオカ完食とはねえ！","hint":"ゲージが赤に入る前に、指を離そう。","mood":"laugh"}
+];
+const rankById = id => RANKS.find(e => e.id === id);
+const OWNER_NAME = 'ぽん吉';
+const INTRO_TEXT = 'らっしゃい！タピオカ10粒で、カップを落としてごらん！';
+const HIT_LINES = [
+  {"id":"hit0","text":"お見事！"},
+  {"id":"hit1","text":"やるねえ！"},
+  {"id":"hit2","text":"いい音！"},
+  {"id":"hit3","text":"ドンピシャ！"}
+];
+const BIG_LINES = [
+  {"id":"big0","text":"ごっそりいった！"},
+  {"id":"big1","text":"こりゃまいった！"}
+];
+const MISS_LINES = [
+  {"id":"miss0","text":"おしいっ！"},
+  {"id":"miss1","text":"ありゃ、はずれ！"},
+  {"id":"miss2","text":"どんまい！"},
+  {"id":"miss3","text":"もうひと息！"}
+];
+const COUGH_LINES = [
+  {"id":"cough0","text":"おっと、飲んじゃった！"},
+  {"id":"cough1","text":"吸いすぎ吸いすぎ！"},
+  {"id":"cough2","text":"大丈夫かい？"}
+];
+const CLEAR_LINES = [
+  {"id":"clear0","text":"全部落ちた！次いくよ！"},
+  {"id":"clear1","text":"お見事！次の山だ！"}
+];
+const LAST_LINES = [
+  {"id":"last0","text":"ラスト一粒！"},
+  {"id":"last1","text":"最後の一発だよ！"}
+];
+// What ?card=<id> leaves on the shelf: the set shown, cups taken off its top, cups dropped.
+const CARD_STATE = {tokusho:{set:3,gone:13},perfect:{set:2,gone:5},oneshot:{set:1,gone:0},first:{set:2,gone:3},second:{set:1,gone:4},third:{set:1,gone:0},sanka:{set:0,gone:1},cough:{set:0,gone:3},zero:{set:0,gone:0},gulp:{set:0,gone:0}};
+const clamp = clampN;
+const rand = (a,b) => a + Math.random()*(b-a);
+const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
+const show = (id,on) => { $(id).hidden = !on; };
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+// The aim follows the finger's (or mouse's) vertical travel while it is held, never the spot it lands on.
+const AIM_GAIN = .45*DEG, KEY_AIM = 55*DEG;
+const HOW = TOUCH ? ['長押しでタピオカを吸って、離して発射！<br>押したまま上下になぞると、ねらいが動く。<br>吸いすぎると、飲みこんじゃう。','長押しで吸って、離して発射！']
+  : ['長押しでタピオカを吸って、離して発射！<br>押したまま上下に動かすと、ねらいが動く。<br>吸いすぎると、飲みこんじゃう。<br><small>スペースと↑↓キーでも遊べます</small>','長押しで吸って、離して発射！'];
+$('how').innerHTML=HOW[0];$('instruction').textContent=HOW[1];
+$('ammo').innerHTML='<i></i>'.repeat(PEARLS);
+
+/* ---------- layout ---------- */
+// Stage units: 400 wide. Each screen group shows a band of the stage between its UI blocks.
+const VIEW = {home:[230,668], play:[50,668], result:[236,668]};
+let scale=1, ox=0, oy=0, dpr=1, sizes=null, targets={}, layoutState=null;
+function measureLayout() {
+  // Measure every panel with its longest content in a hidden copy, so the scene never jumps on content.
+  const ui=$('ui'), box=ui.getBoundingClientRect(), copy=ui.cloneNode(true);
+  copy.removeAttribute('id');copy.inert=true;copy.setAttribute('aria-hidden','true');copy.style.visibility='hidden';
+  const el=id=>copy.querySelector('#'+id);
+  for(const id of ['title','hud','home','result'])el(id).hidden=false;
+  el('tip').style.display='none';el('bubble').hidden=true;
+  el('save').style.display=TOUCH?'inline-flex':'none';
+  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  document.body.append(copy);
+  const top=copy.getBoundingClientRect().top, bottom=copy.getBoundingClientRect().bottom;
+  const title=el('title').getBoundingClientRect().bottom-top;
+  const hud=el('hud').getBoundingClientRect().bottom-top;
+  const homeTop=el('home').getBoundingClientRect().top-top;
+  let resultTop=bottom;
+  for(const e of RANKS) {
+    el('rank-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
+    el('best').textContent='カップ 41個 · 新記録！ 自己ベスト 8,800点';
+    resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
+  }
+  copy.remove();
+  return {title,hud,homeTop,resultTop:resultTop-top,height:bottom-top,top:box.top};
+}
+function fit(group) {
+  const top=sizes.top+(group==='home'?sizes.title+2:group==='play'?sizes.hud+4:4);
+  const bottom=sizes.top+(group==='home'?sizes.homeTop-8:group==='play'?sizes.height:sizes.resultTop-6);
+  const [y0,y1]=VIEW[group];
+  const k=Math.max(.2,Math.min((Math.min(innerWidth,520)-8)/400,(bottom-top)/(y1-y0)));
+  const extra=Math.max(0,(bottom-top)-(y1-y0)*k);
+  return {scale:k,ox:(innerWidth-400*k)/2,oy:top-y0*k+(group==='play'?extra:extra/2)};
+}
+const layoutGroup=()=>state==='home'?'home':state==='reveal'||state==='done'?'result':'play';
+function easeLayout(dt) {
+  const t=targets[layoutGroup()];if(!t)return;
+  const a=REDUCED||!dt?1:1-Math.exp(-9*dt);
+  scale+=(t.scale-scale)*a;ox+=(t.ox-ox)*a;oy+=(t.oy-oy)*a;
+}
+function resize() {
+  layoutState=state;
+  const first=!sizes;
+  sizes=measureLayout();
+  for(const g of ['home','play','result'])targets[g]=fit(g);
+  if(first)({scale,ox,oy}=targets[layoutGroup()]);
+  dpr=Math.min(devicePixelRatio||1,2.5);
+  const w=Math.round(innerWidth*dpr), h=Math.round(innerHeight*dpr);
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+}
+const stageToUi=(x,y)=>{const box=$('ui').getBoundingClientRect();return {x:ox+x*scale-box.left,y:oy+y*scale-box.top,w:box.width};};
+// The bubble sits to the left of his face, its tail pointing at his mouth, below the low shelf so it never
+// covers the cups or the pearl's way up.
+const OWNER={x:340,y:506}, MOUTH=[312,524];
+function bubble(text,{shout=false}={}) {
+  // Phrase-aware wrapping that does not depend on the browser: each phrase (up to its punctuation) is one unbroken
+  // block, so a line only breaks between phrases; word-break:auto-phrase still splits a phrase too long for a line.
+  const el=$('bubble-text');el.textContent='';
+  for(const part of text.match(/[^、。！？…」]+[、。！？…」]*|[、。！？…」]+/g)||[text]){const s=document.createElement('span');s.className='ph';s.textContent=part;el.append(s);}
+  $('bubble').style.visibility='';$('bubble').classList.toggle('shout',shout);
+  bubbleHideAt=0;placeBubble();
+}
+function placeBubble() {
+  const b=$('bubble'), p=stageToUi(...MOUTH), ceil=stageToUi(0,SHELVES[0].y+SHELF_T+16).y, right=Math.min(p.x-18,p.w-4);
+  // In play it stays clear of the shooter's face and most of the cup; on the other screens it may cover them.
+  // Never wider than the room left of his mouth, so it can't run off either edge.
+  b.style.maxWidth=Math.min(right-4,clamp(right-stageToUi(state==='play'||state==='count'?118:16,0).x,150,250))+'px';
+  // Anchored by its right edge, so its width never shrinks against the screen edge.
+  b.style.left='auto';b.style.right=(p.w-right)+'px';
+  const h=b.offsetHeight, top=Math.max(ceil,p.y-h/2);
+  b.style.top=top+'px';b.style.setProperty('--tail',clamp(p.y-top,16,h-16)+'px');
+}
+addEventListener('resize',resize);
+new ResizeObserver(resize).observe($('ui'));
+document.fonts?.ready.then(resize);
+
+/* ---------- audio ---------- */
+// Optional files: a missing or undecodable recording is skipped silently.
+const VOICE_LINES=[...HIT_LINES,...BIG_LINES,...MISS_LINES,...COUGH_LINES,...CLEAR_LINES,...LAST_LINES];
+const AUDIO_NAMES=['k_select_003','k_bong_001','k_confirmation_001','k_maximize_003','k_impactPlate_light_000','k_impactSoft_medium_000','k_impactPlank_medium_000','k_impactWood_medium_000',
+  'v_intro','v_c3','v_c2','v_c1','v_end',...VOICE_LINES.map(l=>'v_'+l.id),...RANKS.flatMap(e=>['v_rank_'+e.id,'v_say_'+e.id])];
+const rawAudio={}, buffers={}, decoded={}, speakers={};
+for(const name of AUDIO_NAMES) rawAudio[name]=fetch('sfx/'+name+'.mp3').then(r=>r.ok?r.arrayBuffer():null).catch(()=>null);
+let ac=null, master=null, slurp=null, noise=null;
+function initAudio() {
+  try {
+    if(ac){ac.resume().catch(()=>{});return;}
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    ac=new Ctx();master=ac.createGain();master.gain.value=.8;master.connect(ac.destination);
+    for(const name of AUDIO_NAMES) decoded[name]=rawAudio[name].then(async b=>{if(b)try{buffers[name]=await ac.decodeAudioData(b);}catch(_){}});
+    const len=ac.sampleRate, d=(noise=ac.createBuffer(1,len,ac.sampleRate)).getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    slurp=makeSlurp();
+    ac.resume().catch(()=>{});
+  } catch(_) {}
+}
+function play(name,volume=1,rate=1,delay=0) {
+  if(!ac||!buffers[name])return null;
+  const source=ac.createBufferSource(), gain=ac.createGain();source.buffer=buffers[name];source.playbackRate.value=rate;gain.gain.value=volume;
+  source.connect(gain);gain.connect(master);source.start(ac.currentTime+delay);return source;
+}
+const live=()=>ac&&ac.state==='running';
+// The slurp while charging: looping noise through a band-pass, chopped into a gurgle that climbs with the pearl.
+function makeSlurp() {
+  try {
+    const src=ac.createBufferSource();src.buffer=noise;src.loop=true;
+    const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=420;bp.Q.value=1.6;
+    const am=ac.createGain();am.gain.value=.55;
+    const lfo=ac.createOscillator();lfo.type='square';lfo.frequency.value=9;
+    const depth=ac.createGain();depth.gain.value=.45;lfo.connect(depth);depth.connect(am.gain);
+    const out=ac.createGain();out.gain.value=0;
+    src.connect(bp);bp.connect(am);am.connect(out);out.connect(master);src.start();lfo.start();
+    return {bp,lfo,out};
+  } catch(_) { return null; }
+}
+function updateSlurp(k) {
+  if(!slurp||!ac)return;
+  const t=ac.currentTime, on=k!==null;
+  slurp.out.gain.setTargetAtTime(on?.18+.12*k:0,t,on?.02:.04);
+  if(on){slurp.bp.frequency.setTargetAtTime(380+520*k,t,.03);slurp.lfo.frequency.setTargetAtTime(k>=1?18:8+6*k,t,.05);}
+}
+// The shot: a puff of air and a pop, stronger with power.
+function puff(p) {
+  if(!live())return;
+  try {
+    const t=ac.currentTime, src=ac.createBufferSource(), hp=ac.createBiquadFilter(), g=ac.createGain();
+    src.buffer=noise;hp.type='highpass';hp.frequency.value=1200;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25+.35*p,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.12+.08*p);
+    src.connect(hp);hp.connect(g);g.connect(master);src.start(t);src.stop(t+.25);
+    const o=ac.createOscillator(), og=ac.createGain(), f=420+300*p;
+    o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.45,t+.09);
+    og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(.45,t+.006);og.gain.exponentialRampToValueAtTime(.0001,t+.1);
+    o.connect(og);og.connect(master);o.start(t);o.stop(t+.12);
+  } catch(_) {}
+}
+// ゴクッ: a low falling bloop.
+function gulpSound() {
+  if(!live())return;
+  try {
+    const t=ac.currentTime, o=ac.createOscillator(), g=ac.createGain();
+    o.type='sine';o.frequency.setValueAtTime(240,t);o.frequency.exponentialRampToValueAtTime(90,t+.16);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.7,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.2);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+.22);
+  } catch(_) {}
+}
+// ゲホッゲホッ: three rough bursts of band-passed noise.
+function coughSound() {
+  if(!live())return;
+  try {
+    for(const [d,v] of [[.28,.9],[.55,.75],[.8,.55]]){
+      const t=ac.currentTime+d, src=ac.createBufferSource(), bp=ac.createBiquadFilter(), g=ac.createGain();
+      src.buffer=noise;bp.type='bandpass';bp.frequency.value=rand(650,900);bp.Q.value=.9;
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(v*.3,t+.07);g.gain.exponentialRampToValueAtTime(.0001,t+.17);
+      src.connect(bp);bp.connect(g);g.connect(master);src.start(t,Math.random()*.5);src.stop(t+.2);
+    }
+  } catch(_) {}
+}
+let lastClatter=0;
+function hitSound(e) {
+  const now=performance.now(), v=clamp(e.v/500,.15,1);
+  if(e.b==='pearl'){play(e.a==='cup'?'k_impactPlate_light_000':'k_impactSoft_medium_000',.35+.5*v,rand(1.05,1.3));return;}
+  if(now-lastClatter<45)return;lastClatter=now;
+  play(e.a==='shelf'?'k_impactWood_medium_000':'k_impactPlate_light_000',.12+.4*v,rand(1.2,1.6));
+}
+// One voice: the owner never cuts himself off; a line waits for the current one.
+let ownerUntil=0, bubbleHideAt=0;
+function voice(name,rate=1) { try{speakers.owner?.stop();}catch(_){} speakers.owner=play('v_'+name,1,rate); }
+const lineMs=id=>(buffers['v_'+id]?.duration??1.2)*1000;
+function sayOwner(text,id,opts={}) {
+  const now=performance.now();if(now<ownerUntil)return false;
+  bubble(text,opts);voice(id);ownerUntil=now+lineMs(id)+150;
+  if(state==='play'||state==='count')bubbleHideAt=now+Math.max(1400,lineMs(id)+500);
+  return true;
+}
+async function sayOwnerQueued(text,id,g,opts={}) {
+  const left=ownerUntil-performance.now();if(left>0)await wait(left);
+  if(g!==generation)return;sayOwner(text,id,opts);
+}
+function stopVoices() { for(const s of Object.values(speakers))try{s?.stop();}catch(_){} ownerUntil=0; }
+const pick=(list,last)=>{const options=list.filter(l=>l.id!==last);return options[Math.floor(Math.random()*options.length)];};
+const lastSaid={};
+function react(list,chance=1,queued=false) {
+  if(Math.random()>chance)return;
+  const l=pick(list,lastSaid[list[0].id]);
+  if(queued)sayOwnerQueued(l.text,l.id,generation);
+  else if(sayOwner(l.text,l.id))lastSaid[list[0].id]=l.id;
+}
+
+/* ---------- round ---------- */
+let state='home', generation=0, hasStarted=false, endAt=0, lastFrame=0;
+let world=createWorld(), rank=null, mood='watch', moodUntil=0, fx=[], confetti=[], flash=0, shake=0, trail=[];
+// The one finger (or mouse button) that charges and aims, its last y on screen, and aim travel not yet applied.
+const finger={id:null,down:false,lastY:0,daim:0};
+let keyDown=false, keyUp=false, keyDn=false;
+// Each shot is judged once its pearl has gone and the cups have had a moment to fall.
+let judge=null, saidLast=false;
+let best=null;try{const b=Number(localStorage.getItem('shooter.bestScore'));if(b>0)best=b;}catch(_){}
+const fmt = n => n.toLocaleString('ja-JP');
+function setMood(m,ms=0) { mood=m;moodUntil=ms?performance.now()+ms:0; }
+function updateHud() {
+  $('score-n').textContent=fmt(scoreOf(world));
+  $('cups-n').textContent=`カップ ${world.cups}個`;
+  const dots=$('ammo').children, left=world.ammo+(world.phase==='charge'?1:0);
+  for(let i=0;i<dots.length;i++)dots[i].classList.toggle('used',i>=left);
+}
+function bump() { if(REDUCED)return;const el=$('score');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump'); }
+async function start() {
+  initAudio();const first=!hasStarted, g=++generation;hasStarted=true;
+  state='intro';rank=null;fx=[];confetti=[];trail=[];shareFile=null;judge=null;saidLast=false;stopVoices();
+  world=createWorld();finger.daim=0;av={sip:0,recoil:0,mood:'idle',moodUntil:0,cough:0};
+  for(const id of ['title','home','result'])show(id,false);
+  $('count').classList.remove('small');
+  show('hud',true);$('save').style.display='none';$('tip').style.display='none';updateHud();
+  // The first tap creates the AudioContext; give the opening sounds a moment to decode.
+  if(first){await Promise.race([Promise.all(['k_select_003','v_intro','v_c3'].map(n=>decoded[n])),wait(500)]);if(g!==generation)return;}
+  play('k_select_003',.7);
+  if(first) {
+    setMood('talk');sayOwner(INTRO_TEXT,'intro');
+    await wait(Math.max(2600,lineMs('intro')+250));if(g!==generation)return;
+  }
+  // The countdown: the aim already moves, and a finger held when play starts charges from the first frame.
+  state='count';setMood('watch');ownerUntil=0;$('bubble').style.visibility='hidden';
+  for(const n of [3,2,1]){$('count').textContent=String(n);show('count',true);voice('c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return;}
+  show('count',false);
+  state='play';
+  setMood('watch');
+}
+$('go').onclick=start;$('again').onclick=start;
+function onEvents(events,now) {
+  for(const e of events){
+    if(e.type==='charge'){updateHud();}
+    else if(e.type==='shot'){
+      puff(e.p);updateHud();judge={shot:world.shots.length-1,at:0};trail=[];setAvMood('spit',320);av.recoil=1;
+      fx.push({text:e.p>=1?'プッ！！':'プッ',x:muzzle(world.aim).x+18,y:muzzle(world.aim).y-24,born:now,life:500,color:'#fff',size:e.p>=1?26:20});
+    }
+    else if(e.type==='gulp'){
+      gulpSound();coughSound();updateHud();shake=REDUCED?0:1;
+      av.coughAt=now;
+      fx.push({text:'ゴクッ',x:muzzle(world.aim).x+44,y:muzzle(world.aim).y-26,born:now,life:600,color:'#ffd84a',size:28});
+      // ゲホッ in the rounded font: in Dela Gothic One its ゲ reads like グ at this size.
+      // ゴクッ first; the coughs start once it has faded, higher up, so the two never overlap.
+      fx.push({text:'ゲホッ',x:NECK.x+86,y:NECK.y-118,born:now+620,life:800,color:'#fff',size:30,font:ROUND_FONT});
+      fx.push({text:'ゲホッ',x:NECK.x+118,y:NECK.y-160,born:now+900,life:800,color:'#fff',size:30,font:ROUND_FONT});
+      setMood('shock',1300);react(COUGH_LINES,1,true);
+    }
+    else if(e.type==='hit')hitSound(e);
+    else if(e.type==='drop'){
+      updateHud();bump();
+      fx.push({text:'+100',x:e.x,y:e.y-10,born:now,life:800,color:'#ffd84a',size:22});
+      if(judge&&judge.shot===e.shot&&!judge.hit){judge.hit=true;setMood('happy',900);setAvMood('proud',1100);}
+    }
+    else if(e.type==='clear'){
+      play('k_confirmation_001',.8);updateHud();bump();flash=REDUCED?0:.35;
+      fx.push({text:`ぜんぶ落とした！ +${e.pts}`,x:260,y:300,born:now,life:1500,color:'#ffd84a',size:26});
+      if(!REDUCED)for(let i=0;i<30;i++)confetti.push({x:rand(170,390),y:rand(160,330),vx:rand(-70,70),vy:rand(-160,-30),r:rand(3,6),life:rand(1,1.7),color:['#e8383d','#ffc83a','#fff','#7fd8ff'][i%4]});
+      setMood('laugh',1500);judge=null;
+      if(!e.final)react(CLEAR_LINES,1,true);
+    }
+    else if(e.type==='spawn'){play('k_maximize_003',.4,1.2);fx.push({text:`${e.set+1}段目！`,x:270,y:200,born:now,life:1100,color:'#fff',size:30});}
+    else if(e.type==='over')finish();
+  }
+}
+// After the pearl is gone and a short wait for cups still falling: a cheer, a big cheer or a miss.
+function judgeShot(now) {
+  if(!judge)return;
+  if(world.pearl&&world.shots.length-1===judge.shot){judge.at=0;return;}
+  if(!judge.at){judge.at=now;return;}
+  if(now-judge.at<450)return;
+  const n=world.shots[judge.shot].cups;judge=null;
+  if(n>=3){setMood('amazed',1200);setAvMood('proud',1300);react(BIG_LINES);}
+  else if(n>0)react(HIT_LINES,.6);
+  else{setMood('worried',1000);setAvMood('grimace',1100);react(MISS_LINES,.6);}
+}
+function playTick(now) {
+  const input={down:finger.down||keyDown,daim:finger.daim+((keyUp?1:0)-(keyDn?1:0))*KEY_AIM*dtFrame};finger.daim=0;
+  const events=stepWorld(world,input,dtFrame);
+  onEvents(events,now);
+  updateSlurp(world.phase==='charge'?Math.min(1,world.hold/CHARGE_S):null);
+  if(world.pearl)trail.push([world.pearl.x,world.pearl.y]);if(trail.length>6)trail.shift();
+  judgeShot(now);
+  if(!saidLast&&world.ammo===1&&world.phase==='ready'&&!world.pearl&&!world.allClear&&!judge){saidLast=true;react(LAST_LINES,1,true);}
+  if(moodUntil&&now>=moodUntil)setMood(world.phase==='charge'&&world.hold>CHARGE_S?'worried':'watch');
+  if(world.phase==='charge'&&world.hold>CHARGE_S&&mood==='watch')setMood('worried');
+}
+async function finish(forced) {
+  if(state!=='play')return;
+  // A new generation drops any reaction still queued from play.
+  const g=++generation;state='end';endAt=performance.now();finger.down=keyDown=false;finger.id=null;updateSlurp(null);
+  rank=forced||rankById(chooseRankId(world));
+  show('hud',false);
+  if(!forced){$('count').textContent='おしまい！';$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);ownerUntil=0;sayOwner('おしまい！','end',{shout:true});}
+  setMood('talk');
+  await wait(forced?300:END_TO_REVEAL_MS);if(g!==generation)return;
+  show('count',false);
+  state='reveal';setMood(rank.mood);setAvMood(AV_RESULT[rank.id]||'idle');
+  const prize=['tokusho','perfect','oneshot','first'].includes(rank.id);
+  play(prize?'k_confirmation_001':'k_bong_001',prize?.8:.4,prize?1:.7);
+  ownerUntil=0;sayOwner(rank.name+'！','rank_'+rank.id,{shout:true});
+  if(prize&&!REDUCED)for(let i=0;i<40;i++)confetti.push({x:rand(150,390),y:rand(250,400),vx:rand(-60,60),vy:rand(-140,-20),r:rand(3,6),life:rand(1,1.8),color:['#e8383d','#ffc83a','#fff','#7fd8ff'][i%4]});
+  sayOwnerQueued(rank.line,'say_'+rank.id,g);
+  await wait(600);if(g!==generation)return;
+  state='done';
+  const n=world.cups, score=scoreOf(world);
+  $('rank-name').textContent=rank.name;$('verdict').textContent=rank.verdict;$('hint').textContent=rank.hint;
+  const newBest=!CARD_MODE&&score>0&&(best===null||score>best);
+  if(newBest){best=score;try{localStorage.setItem('shooter.bestScore',String(best));}catch(_){}}
+  const parts=[`カップ ${n}個`];if(best)parts.push((newBest?'新記録！ ':'')+`自己ベスト ${fmt(best)}点`);
+  $('best').textContent=parts.join(' · ');
+  countUp(score,g);
+  shareText=rank.id==='gulp'
+    ? `${OWNER_NAME}「${rank.line}」\nタピオカ10粒、ぜんぶ飲んじゃった【${rank.name}】\nあなたは何個落とせる？ ${HASHTAG}`
+    : `${OWNER_NAME}「${rank.line}」\nタピオカ10粒でカップ${n}個、${fmt(score)}点【${rank.name}】\nあなたは何点？ ${HASHTAG}`;
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+rank.id+'.html');
+  if(CARD_MODE){resize();({scale,ox,oy}=targets.result);showPicture(await drawShareImage({rank}));return;}
+  show('result',true);
+  prepareShare({rank,cups:n,score},g);
+}
+function countUp(n,g) {
+  const el=$('points-n'), t0=performance.now(), ms=REDUCED||n<3?0:900;
+  const tick=now=>{if(g!==generation)return;const k=ms?Math.min(1,(now-t0)/ms):1;el.textContent=fmt(Math.round(n*(1-(1-k)**3)));if(k<1)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);
+}
+
+/* ---------- input ---------- */
+// One gesture for a finger and a mouse: press anywhere to slurp (charge), slide up or down while holding to turn
+// the straw, release to shoot. Where the press lands does nothing, so a tap is never both the aim and the shot.
+// Space charges and the up and down arrows aim.
+const aiming=()=>['intro','count','play'].includes(state);
+cv.addEventListener('pointerdown',e=>{
+  if(!aiming())return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();initAudio();
+  if(finger.id!==null)return;
+  try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  Object.assign(finger,{id:e.pointerId,down:true,lastY:e.clientY});
+});
+// Android's long press would open a menu and cancel the touch.
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('pointermove',e=>{
+  if(e.pointerId!==finger.id)return;
+  if(aiming())finger.daim+=(finger.lastY-e.clientY)/scale*AIM_GAIN;
+  finger.lastY=e.clientY;
+});
+const lift=e=>{if(e.pointerId===finger.id){finger.down=false;finger.id=null;}};
+for(const type of ['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(type,lift);
+addEventListener('keydown',e=>{
+  if(!aiming())return;
+  if(e.code==='Space'||e.key===' '){e.preventDefault();initAudio();keyDown=true;}
+  else if(e.key==='ArrowUp'){e.preventDefault();keyUp=true;}
+  else if(e.key==='ArrowDown'){e.preventDefault();keyDn=true;}
+});
+addEventListener('keyup',e=>{if(e.code==='Space'||e.key===' ')keyDown=false;else if(e.key==='ArrowUp')keyUp=false;else if(e.key==='ArrowDown')keyDn=false;});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){finger.down=keyDown=keyUp=keyDn=false;finger.id=null;updateSlurp(null);ac?.suspend().catch(()=>{});}
+  else if(ac)ac.resume().catch(()=>{});
+  show('paused',document.hidden&&state==='play');
+});
+
+/* ---------- art ---------- */
+const INK='#1d1533', SKIN='#f6c9a0', SKIN_DARK='#e0a77c', HAIR='#22182c', WHITE='#fff8e8', RED='#e8383d', GOLD='#ffc83a', INDIGO='#2f3f8f', TEAR='#7fd8ff';
+const WOOD='#e8b36c', WOOD_DARK='#b97a3e', CLOTH='#c9303a', CLOTH_DARK='#a8242f', TEA='#d9b38a', PEARL_C='#3a2219';
+const CUP_TINTS=['#ffb3c7','#bdf0c8','#d6c4ff','#fff0a0'];
+function ellipse(c,x,y,rx,ry,fill,stroke=true) { c.beginPath();c.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill();}if(stroke)c.stroke(); }
+function poly(c,points,fill) { c.beginPath();c.moveTo(...points[0]);for(const p of points.slice(1))c.lineTo(...p);c.closePath();if(fill){c.fillStyle=fill;c.fill();}c.stroke(); }
+function line(c,pts,width,color=INK) { c.beginPath();c.moveTo(pts[0],pts[1]);if(pts.length===6)c.quadraticCurveTo(pts[2],pts[3],pts[4],pts[5]);else c.lineTo(pts[2],pts[3]);c.lineWidth=width;c.strokeStyle=color;c.stroke(); }
+function star(c,x,y,r,fill) { c.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4, rr=i%2?r*.36:r;c.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}c.closePath();c.fillStyle=fill;c.fill();c.lineWidth=2;c.strokeStyle=INK;c.stroke(); }
+// Face presets, drawn in a 0,190-centred head. brow > 0 lifts the inner ends (worry), < 0 lowers them (anger).
+const FACES={
+  watch:{brow:-.15,eye:'dot',mouth:'smile'},
+  talk:{brow:-.1,eye:'dot',mouth:'open'},
+  happy:{brow:0,eye:'happy',mouth:'grin'},
+  laugh:{brow:.1,eye:'happy',mouth:'laugh'},
+  amazed:{brow:.4,eye:'star',mouth:'O',sparkle:1},
+  shock:{brow:.55,eye:'wide',mouth:'O',sweat:1},
+  worried:{brow:.55,eye:'dot',mouth:'wobble',sweat:1},
+  sad:{brow:.6,eye:'dot',mouth:'frown',tears:'drop'},
+};
+function drawEye(c,x,kind,t,side) {
+  c.strokeStyle=INK;c.lineWidth=4;
+  if(kind==='dot'){ellipse(c,x,190,6,8,INK,false);ellipse(c,x-2,186,2,2.5,'#fff',false);}
+  else if(kind==='happy')line(c,[x-10,194,x,180,x+10,194],5);
+  else if(kind==='wide'){ellipse(c,x,188,11,12,'#fff');ellipse(c,x,189,4,4,INK,false);}
+  else if(kind==='star'){ellipse(c,x,189,11,12,INK,false);star(c,x,189,7,GOLD);}
+}
+function drawFace(c,m,t) {
+  const f=FACES[m]||FACES.watch;
+  c.lineCap='round';
+  // Thick festival brows.
+  for(const s of [-1,1]){const b=f.brow;line(c,[s*7,170-b*10,s*20,163-Math.abs(b)*2,s*34,168+b*6],8,HAIR);}
+  for(const s of [-1,1])drawEye(c,s*20,f.eye,t,s);
+  c.save();c.globalAlpha=.45;for(const s of [-1,1])ellipse(c,s*34,210,9,5.5,'#ff8f8f',false);c.restore();
+  c.strokeStyle=INK;c.lineWidth=4;
+  const mo=f.mouth, mf='#a8323f';
+  if(mo==='smile')line(c,[-12,214,0,224,12,214],4.5);
+  else if(mo==='grin'){c.beginPath();c.moveTo(-16,212);c.quadraticCurveTo(0,238,16,212);c.closePath();c.fillStyle=mf;c.fill();c.stroke();}
+  else if(mo==='laugh'){c.beginPath();c.moveTo(-18,210);c.quadraticCurveTo(0,246,18,210);c.closePath();c.fillStyle=mf;c.fill();c.stroke();ellipse(c,0,228,8,5,'#ff8f8f',false);}
+  else if(mo==='open')ellipse(c,0,220,8,5+Math.abs(Math.sin(t*.018))*4,mf);
+  else if(mo==='O')ellipse(c,0,222,9,12,mf);
+  else if(mo==='frown')line(c,[-12,224,0,213,12,224],4.5);
+  else if(mo==='wobble'){c.beginPath();c.moveTo(-12,219);for(let i=1;i<=6;i++)c.lineTo(-12+i*4,219+(i%2?-3:2));c.stroke();}
+  c.lineWidth=3;c.strokeStyle=INK;
+  if(f.tears==='drop')for(const s of [-1,1]){const k=(t*.0012+(s>0?.5:0))%1;c.beginPath();c.ellipse(s*21,200+k*28,4,6,0,0,7);c.fillStyle=TEAR;c.fill();}
+  if(f.sweat){const y=150+((t*.03)%6);c.beginPath();c.moveTo(50,y-9);c.quadraticCurveTo(57,y+3,50,y+5);c.quadraticCurveTo(43,y+3,50,y-9);c.fillStyle=TEAR;c.fill();c.lineWidth=2.5;c.stroke();}
+  if(f.sparkle)for(let i=0;i<3;i++){const a=t*.002+i*2.1;star(c,Math.cos(a)*74,176+Math.sin(a)*58,7+Math.sin(t*.01+i)*2,GOLD);}
+}
+// ぽん吉 stands behind the counter at the bottom right, hands on it, watching the shelf.
+function drawOwner(c,t) {
+  c.save();c.translate(OWNER.x,OWNER.y);
+  const bob=state==='play'?0:Math.sin(t*.003)*1.5, hop=mood==='happy'||mood==='laugh'||mood==='amazed'?-Math.abs(Math.sin(t*.02))*4:0, jolt=mood==='shock'&&!REDUCED?Math.sin(t*.08)*2:0;
+  c.translate(jolt,bob+hop);c.scale(.7,.7);c.translate(0,-190);
+  c.lineJoin=c.lineCap='round';c.strokeStyle=INK;c.lineWidth=4;
+  // Happi coat with a white collar band.
+  c.beginPath();c.moveTo(-100,420);c.lineTo(-92,300);c.quadraticCurveTo(-84,262,-44,254);c.lineTo(44,254);c.quadraticCurveTo(84,262,92,300);c.lineTo(100,420);c.closePath();c.fillStyle=INDIGO;c.fill();c.stroke();
+  for(const s of [-1,1]){c.beginPath();c.moveTo(s*30,254);c.lineTo(s*6,330);c.lineTo(s*20,330);c.lineTo(s*46,256);c.closePath();c.fillStyle=WHITE;c.fill();c.stroke();}
+  for(let i=0;i<3;i++)line(c,[-80+i*12,300+i*14,-60+i*12,300+i*14],3,'rgba(255,255,255,.5)');
+  ellipse(c,0,242,18,18,SKIN);
+  // Short hair, the head, then a twisted headband knotted on the side.
+  ellipse(c,0,176,58,58,HAIR);
+  for(let i=-3;i<=3;i++){c.beginPath();c.moveTo(i*15-10,136);c.lineTo(i*15,116-Math.abs(i)*2);c.lineTo(i*15+10,136);c.closePath();c.fillStyle=HAIR;c.fill();}
+  for(const s of [-1,1])ellipse(c,s*53,198,9,12,SKIN);
+  ellipse(c,0,192,51,52,SKIN);
+  c.beginPath();c.moveTo(-54,160);c.quadraticCurveTo(0,138,54,160);c.lineTo(54,176);c.quadraticCurveTo(0,154,-54,176);c.closePath();c.fillStyle='#fff';c.fill();c.stroke();
+  for(let i=-4;i<=4;i++)line(c,[i*12-4,152+Math.abs(i)*.6,i*12+4,166+Math.abs(i)*.6],3,RED);
+  c.beginPath();c.moveTo(50,164);c.lineTo(76,150);c.lineTo(70,170);c.closePath();c.fillStyle='#fff';c.fill();c.stroke();
+  c.beginPath();c.moveTo(52,168);c.lineTo(80,180);c.lineTo(62,186);c.closePath();c.fillStyle='#fff';c.fill();c.stroke();
+  drawFace(c,mood,t);
+  c.restore();
+}
+function lantern(c,x,y,t,i) {
+  const glow=c.createRadialGradient(x,y,4,x,y,44);glow.addColorStop(0,'rgba(255,214,120,.55)');glow.addColorStop(1,'rgba(255,214,120,0)');
+  c.fillStyle=glow;c.fillRect(x-44,y-44,88,88);
+  c.lineWidth=3;c.strokeStyle=INK;
+  line(c,[x,y-30,x,y-20],3);
+  c.beginPath();c.roundRect(x-7,y-21,14,5,2);c.fillStyle=INK;c.fill();c.beginPath();c.roundRect(x-7,y+16,14,5,2);c.fill();
+  ellipse(c,x,y,15,17,i%2?'#ff6a5c':'#fff3d6');
+  for(const k of [-.55,0,.55])line(c,[x+k*15*.9,y-15,x+k*15*1.1,y,x+k*15*.9,y+15],1.6,'rgba(29,21,51,.45)');
+}
+function drawStall(c,t,w) {
+  // Night sky with a few stars, then the stall: red cloth back, wooden posts, striped awning, lanterns.
+  const sky=c.createLinearGradient(0,-300,0,600);sky.addColorStop(0,'#10123a');sky.addColorStop(1,'#2a2466');
+  c.fillStyle=sky;c.fillRect(-600,-600,1600,2200);
+  c.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<24;i++){const x=(i*137)%1000-300, y=-200+((i*71)%240);c.fillRect(x,y,2,2);}
+  c.fillStyle=CLOTH;c.fillRect(4,40,392,560);
+  c.save();c.globalAlpha=.5;for(let x=24;x<396;x+=34)line(c,[x,46,x+4,320,x,596],5,CLOTH_DARK);c.restore();
+  // Sets so far, on a little wooden plaque (not on the title screen, where the title covers it).
+  if(state!=='home'){c.save();c.translate(70,170);c.rotate(-.05);c.lineWidth=3;c.strokeStyle=INK;
+  line(c,[-18,-46,0,-30],2);line(c,[18,-46,0,-30],2);
+  c.beginPath();c.roundRect(-42,-30,84,52,8);c.fillStyle=WOOD;c.fill();c.stroke();
+  c.font=`20px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=INK;c.fillText(`${Math.max(1,w.set+1)}段目`,0,-6);
+  c.font=`800 12px "M PLUS Rounded 1c",system-ui,sans-serif`;c.fillText(`全${SETS.length}段`,0,12);
+  c.restore();}
+  // Posts.
+  c.lineWidth=4;c.strokeStyle=INK;
+  for(const x of [-10,392]){c.beginPath();c.rect(x,20,18,700);c.fillStyle=WOOD_DARK;c.fill();c.stroke();}
+  // Awning: red and white stripes with a scalloped edge.
+  for(let i=-6;i<18;i++){c.fillStyle=i%2?RED:'#fff';c.fillRect(i*34,-160,34,196);}
+  c.beginPath();c.moveTo(-204,36);for(let i=-6;i<18;i++){c.quadraticCurveTo(i*34+17,58,i*34+34,36);}c.lineTo(612,-160);c.lineTo(-204,-160);c.closePath();c.lineWidth=4;c.stroke();
+  for(let i=-6;i<18;i++){c.beginPath();c.moveTo(i*34,36);c.quadraticCurveTo(i*34+17,58,i*34+34,36);c.fillStyle=i%2?RED:'#fff';c.fill();c.stroke();}
+  // A string of lanterns under the awning.
+  line(c,[0,70,200,92,400,70],2.5);
+  [40,120,200,280,360].forEach((x,i)=>lantern(c,x,70+22*(1-((x-200)/200)**2)+30,t,i));
+}
+function drawShelves(c) {
+  c.lineWidth=4;c.strokeStyle=INK;c.lineJoin='round';
+  for(const s of SHELVES){
+    // Brackets under each end, then the plank.
+    for(const x of [s.x0+18,s.x1-18]){c.beginPath();c.moveTo(x-6,s.y+SHELF_T);c.lineTo(x+6,s.y+SHELF_T);c.lineTo(x,s.y+SHELF_T+26);c.closePath();c.fillStyle=WOOD_DARK;c.fill();c.stroke();}
+    c.fillStyle='rgba(29,21,51,.25)';c.fillRect(s.x0+4,s.y+SHELF_T,s.x1-s.x0-4,8);
+    c.beginPath();c.rect(s.x0,s.y,s.x1-s.x0,SHELF_T);c.fillStyle=WOOD;c.fill();c.stroke();
+    line(c,[s.x0+4,s.y+4,s.x1-4,s.y+4],2,'rgba(255,255,255,.55)');
+  }
+}
+// A cup: a clear tapered cup with a sealed top, drawn inside its box (24 by 32).
+function drawCup(c,b,now) {
+  const age=(world.t-(b.born||0)), pop=age<.25&&!REDUCED&&b.born>0?.6+.4*age/.25:1;
+  c.save();c.translate(b.x,b.y);c.rotate(b.a);c.scale(pop,pop);
+  const hw=b.hw, hh=b.hh, bw=hw*.78;
+  c.lineJoin='round';c.lineWidth=2.5;c.strokeStyle=INK;
+  c.beginPath();c.moveTo(-hw,-hh+4);c.lineTo(-bw,hh);c.lineTo(bw,hh);c.lineTo(hw,-hh+4);c.closePath();
+  c.fillStyle='rgba(255,255,255,.62)';c.fill();
+  c.save();c.clip();c.fillStyle=CUP_TINTS[b.tint];c.globalAlpha=.75;c.fillRect(-hw,hh-11,hw*2,11);c.restore();
+  c.stroke();
+  c.beginPath();c.roundRect(-hw-1.5,-hh,hw*2+3,5,2);c.fillStyle=CUP_TINTS[b.tint];c.fill();c.stroke();
+  line(c,[-hw+5,-hh+9,-bw+4,hh-4],2.5,'rgba(255,255,255,.95)');
+  c.restore();
+}
+function drawPearl(c,x,y,r) {
+  c.lineWidth=2.5;c.strokeStyle=INK;
+  ellipse(c,x,y,r,r,PEARL_C);
+  ellipse(c,x-r*.35,y-r*.38,r*.32,r*.24,'rgba(255,255,255,.65)',false);
+}
+// The shooter: a kid in a yukata with a fox mask on the back of the head, seen from the side, cup in hand.
+// Holding: the straw goes in the mouth, the pearl climbs it and the cheeks puff up with the charge (they are the
+// power gauge). Release: off the straw, the pearl is spat out and the head kicks back. Overcharge: eyes wide,
+// ゴクッ, then a coughing fit bent forward with a red face.
+const AV_SKIN='#ffd6b8', AV_HAIR='#4a2b1f', AV_YUKATA='#8fd3ff', AV_OBI='#ffc83a';
+let av={sip:0,recoil:0,mood:'idle',moodUntil:0,cough:0};
+// The shooter's face on the result.
+const AV_RESULT={tokusho:'proud',perfect:'proud',oneshot:'proud',first:'proud',second:'proud',third:'idle',sanka:'grimace',cough:'cough',zero:'grimace',gulp:'gulp'};
+function setAvMood(m,ms=0) { av.mood=m;av.moodUntil=ms?performance.now()+ms:0; }
+// The face shown now: a timed reaction first, then whatever the charge or cough says.
+function avFace(w,now) {
+  if(w.phase==='cough')return now-av.coughAt<320?'gulp':'cough';
+  if(w.phase==='charge')return w.hold>=CHARGE_S?'strain':'focus';
+  // A mood without an end (the result) stays; a timed one falls back to idle.
+  return !av.moodUntil||now<av.moodUntil?av.mood:'idle';
+}
+function updateAvatar(w,dt) {
+  const target=w.phase==='charge'?1:0;
+  av.sip+=(target-av.sip)*(REDUCED?1:1-Math.exp(-(target?22:14)*dt));
+  av.recoil=Math.max(0,av.recoil-dt/.35);
+  // Coughing in play, and on the むせ名人 result, which keeps the coughing pose.
+  const coughing=w.phase==='cough'||(av.mood==='cough'&&!av.moodUntil);
+  av.cough+=((coughing?1:0)-av.cough)*(REDUCED?1:1-Math.exp(-10*dt));
+}
+// The cup in hand and the straw. In the sip pose the cup is raised and the straw's top is in the mouth.
+function cupGeom(w) {
+  const lift=14*(1-av.sip)+10*av.cough, top=476+lift, m=muzzle(w.aim);
+  const tipRest={x:126,y:top-54}, tip={x:tipRest.x+(m.x+2-tipRest.x)*av.sip,y:tipRest.y+(m.y+3-tipRest.y)*av.sip};
+  return {x:124,top,bot:top+82,tip};
+}
+function drawAvatar(c,w,t) {
+  const now=performance.now(), face=avFace(w,now), tilt=headTilt(w.aim)+av.recoil*.32-av.cough*.38;
+  const shake=!REDUCED&&w.phase==='cough'?Math.sin(t*.06)*2.2:0, k=w.phase==='charge'?Math.min(1,w.hold/CHARGE_S):0;
+  c.save();c.lineJoin=c.lineCap='round';c.strokeStyle=INK;
+  // Hunched while coughing, pushed back by a spit.
+  c.translate(shake-av.recoil*6+av.cough*6,av.cough*12);
+  // The sash bow at the back, behind the body.
+  c.lineWidth=3.5;
+  for(const [a,r] of [[-.5,1],[.6,.85]]){c.save();c.translate(14,584);c.rotate(a);ellipse(c,-16*r,0,16*r,10*r,AV_OBI);c.restore();}
+  // A small round body in a yukata with a simple pattern.
+  c.lineWidth=4;
+  c.beginPath();c.moveTo(-6,760);c.quadraticCurveTo(0,600,14,540);c.quadraticCurveTo(18,480,46,474);c.lineTo(74,474);c.quadraticCurveTo(102,482,106,540);c.quadraticCurveTo(118,600,124,760);c.closePath();
+  c.fillStyle=AV_YUKATA;c.fill();
+  c.save();c.clip();
+  for(let r=0;r<12;r++)for(let i=0;i<6;i++){const x=-6+i*26+(r%2)*13, y=488+r*22;c.lineWidth=2.5;c.strokeStyle='rgba(47,63,143,.45)';c.beginPath();c.arc(x,y,6,Math.PI*1.1,Math.PI*1.9);c.stroke();c.beginPath();c.arc(x,y+4,3,Math.PI*1.1,Math.PI*1.9);c.stroke();}
+  c.restore();
+  c.lineWidth=4;c.strokeStyle=INK;c.stroke();
+  // Crossed collar: a white under-collar and the navy edge, left over right.
+  line(c,[52,474,84,560],7,INK);line(c,[52,474,84,560],4,'#fff');
+  line(c,[74,474,62,520,86,566],9,INK);line(c,[74,474,62,520,86,566],5,INDIGO);
+  c.lineWidth=4;c.beginPath();c.roundRect(12,566,96,24,4);c.fillStyle=AV_OBI;c.fill();c.stroke();
+  line(c,[14,578,106,578],3,RED);
+  c.strokeStyle=INK;ellipse(c,16,578,7,8,AV_OBI);
+  // Short neck.
+  c.beginPath();c.roundRect(NECK.x-10,NECK.y-18,22,24,8);c.fillStyle=AV_SKIN;c.fill();c.stroke();
+  line(c,[52,474,74,474],4);
+  // Head, turned about the neck with the aim.
+  c.save();c.translate(NECK.x,NECK.y);c.rotate(-tilt);
+  drawAvHead(c,face,k,t);
+  c.restore();
+  const g=cupGeom(w);
+  // The sleeve: the forearm comes from behind the cup and the wide sleeve hangs under it.
+  c.lineWidth=4;c.strokeStyle=INK;
+  c.beginPath();c.moveTo(80,486);c.quadraticCurveTo(96,g.top+28,g.x-18,g.top+34);c.lineTo(g.x-20,g.top+62);
+  c.quadraticCurveTo(g.x-14,g.top+104,g.x-36,g.top+108);c.quadraticCurveTo(70,g.top+112,64,g.top+86);c.quadraticCurveTo(58,520,80,486);c.closePath();
+  c.fillStyle=AV_YUKATA;c.fill();c.stroke();
+  line(c,[g.x-24,g.top+62,g.x-34,g.top+100],2.5,'rgba(47,63,143,.45)');
+  // Palm behind the cup.
+  c.lineWidth=3.5;ellipse(c,g.x-14,g.top+50,11,14,AV_SKIN);
+  // Straw, with the pearl climbing it over the first part of the charge.
+  c.lineWidth=STRAW_W;c.strokeStyle='rgba(170,240,230,.92)';c.beginPath();c.moveTo(g.x,g.bot-16);c.lineTo(g.tip.x,g.tip.y);c.stroke();
+  c.strokeStyle=INK;
+  const sx=g.tip.x-g.x, sy=g.tip.y-(g.bot-16), sl=Math.hypot(sx,sy), nx=-sy/sl*STRAW_W/2, ny=sx/sl*STRAW_W/2;
+  for(const s of [-1,1])line(c,[g.x+s*nx,g.bot-16+s*ny,g.tip.x+s*nx,g.tip.y+s*ny],3);
+  if(w.phase==='charge'&&k<.45){const q=k/.45;drawPearl(c,g.x+sx*q,g.bot-16+sy*q,6);}
+  // The cup: milk tea and the pearls still to shoot.
+  c.beginPath();c.moveTo(g.x-20,g.top);c.lineTo(g.x-15,g.bot);c.lineTo(g.x+15,g.bot);c.lineTo(g.x+20,g.top);c.closePath();c.fillStyle='rgba(255,255,255,.55)';c.fill();
+  c.save();c.clip();c.fillStyle=TEA;c.fillRect(g.x-24,g.top+22,48,80);
+  for(let i=0;i<w.ammo;i++){const row=Math.floor(i/4), col=i%4;drawPearl(c,g.x-12+col*8+(row%2)*4,g.bot-7-row*7,4.6);}
+  // The thumb on the far side of the cup, faint through the plastic and the tea.
+  c.save();c.globalAlpha=.4;c.translate(g.x+4,g.top+44);c.rotate(-.35);c.beginPath();c.roundRect(-2,-5,20,10,5);c.fillStyle='#f4b48c';c.fill();c.lineWidth=2;c.strokeStyle=INK;c.stroke();c.restore();
+  c.restore();
+  c.lineWidth=3.5;c.strokeStyle=INK;c.beginPath();c.moveTo(g.x-20,g.top);c.lineTo(g.x-15,g.bot);c.lineTo(g.x+15,g.bot);c.lineTo(g.x+20,g.top);c.closePath();c.stroke();
+  c.beginPath();c.ellipse(g.x,g.top,20,4.5,0,0,Math.PI*2);c.fillStyle='rgba(255,236,190,.9)';c.fill();c.stroke();
+  line(c,[g.x+12,g.top+10,g.x+9,g.bot-10],4,'rgba(255,255,255,.75)');
+  // Four fingers wrapped across the front of the cup (the thumb is on the far side, seen through it).
+  c.lineWidth=2.5;c.strokeStyle=INK;
+  [[8,4],[11,0],[10,1],[6,3]].forEach(([len,dy],i)=>{
+    const y=g.top+42+i*9;c.beginPath();c.roundRect(g.x-22,y,22+len,8.5,4.25);c.fillStyle=i%2?AV_SKIN:'#ffcdab';c.fill();c.strokeStyle=INK;c.stroke();
+    line(c,[g.x+len-4,y+2.5,g.x+len-4,y+6],1.6,'rgba(29,21,51,.35)');
+  });
+  c.restore();
+}
+// The head in neck space: the neck at 0,0, facing right, the mouth at MOUTH_OFF. A big round head, a small nose,
+// one big eye on the near side.
+function drawAvHead(c,face,k,t) {
+  const hx=2, hy=-56, R=52, puff=face==='focus'||face==='strain'?k:face==='gulp'?1:0;
+  c.strokeStyle=INK;
+  // Fox mask worn on the back of the head.
+  c.save();c.translate(hx-48,hy-22);c.rotate(-.7);c.lineWidth=3.5;
+  for(const s of [-1,1]){c.beginPath();c.moveTo(s*5,-14);c.lineTo(s*12,-27);c.lineTo(s*14,-10);c.closePath();c.fillStyle='#fff';c.fill();c.stroke();}
+  ellipse(c,0,0,15,19,'#fff');line(c,[-8,-3,-3,-1],3,RED);line(c,[3,-1,8,-3],3,RED);ellipse(c,0,10,3,2.5,RED,false);
+  c.restore();
+  // Head: one round curve, the mouth on its front edge and a plain line from the mouth back to the neck.
+  c.lineWidth=4;c.beginPath();c.moveTo(57,-40);c.quadraticCurveTo(59,-62,50,-82);c.quadraticCurveTo(32,-110,0,-110);
+  c.quadraticCurveTo(-52,-108,-52,-58);c.quadraticCurveTo(-50,-20,-22,-10);c.lineTo(8,-8);c.quadraticCurveTo(42,-14,57,-40);c.closePath();
+  c.fillStyle=AV_SKIN;c.fill();c.stroke();
+  // Small nose.
+  c.lineWidth=3.5;ellipse(c,55,-56,4.5,4,AV_SKIN);ellipse(c,52,-56,4,5,AV_SKIN,false);
+  // Ear.
+  ellipse(c,-12,-44,8,10,AV_SKIN);line(c,[-14,-48,-10,-42,-14,-38],2.5);
+  // Hair: tufted back, a fringe of locks over the brow, a cowlick.
+  line(c,[0,-106,-6,-128,14,-126],10,INK);line(c,[0,-106,-6,-128,14,-126],4,AV_HAIR);
+  c.lineWidth=4;c.beginPath();
+  c.moveTo(-26,-16);c.lineTo(-44,-20);c.lineTo(-40,-30);c.lineTo(-60,-36);c.quadraticCurveTo(-62,-70,-52,-84);c.lineTo(-62,-92);c.lineTo(-46,-98);
+  c.quadraticCurveTo(-26,-114,4,-112);c.quadraticCurveTo(46,-110,58,-76);
+  c.lineTo(46,-82);c.lineTo(46,-68);c.lineTo(36,-82);c.lineTo(28,-70);c.lineTo(20,-86);c.lineTo(10,-72);
+  c.quadraticCurveTo(-2,-66,-4,-54);c.lineTo(-20,-60);c.lineTo(-22,-30);c.closePath();
+  c.fillStyle=AV_HAIR;c.fill();c.stroke();
+  line(c,[-36,-88,-12,-104,16,-104],5,'#7b4a35');line(c,[-48,-60,-46,-74],4,'#7b4a35');
+  // Blush.
+  if(!puff){c.save();c.globalAlpha=face==='cough'?.95:.7;ellipse(c,30,-36,9,5,'#ff8fab',false);c.restore();
+    c.lineWidth=2;for(const d of [-4,0,4])line(c,[27+d,-34,30+d,-38],2,'rgba(232,80,120,.7)');}
+  // Eye, with highlights, and a small brow.
+  const ex=32, ey=-56;
+  const openEye=(rx,ry)=>{ellipse(c,ex,ey,rx,ry,INK,false);ellipse(c,ex-2.5,ey-ry*.4,rx*.42,ry*.36,'#fff',false);ellipse(c,ex+2.5,ey+ry*.45,1.8,1.8,'#fff',false);line(c,[ex-rx-1,ey-ry+2,ex,ey-ry-2,ex+rx+1,ey-ry+3],4);line(c,[ex+rx,ey-ry+3,ex+rx+5,ey-ry],3);};
+  c.lineWidth=4;c.strokeStyle=INK;
+  if(face==='focus'){openEye(7.5,10.5);c.fillStyle=AV_SKIN;c.fillRect(ex-10,ey-14,22,5);line(c,[ex-8,ey-8,ex+9,ey-9],4);line(c,[ex-7,ey-17,ex+8,ey-15],3,AV_HAIR);}
+  else if(face==='strain'){openEye(8.5,12);line(c,[ex-7,ey-20,ex+8,ey-22],3.5,AV_HAIR);}
+  else if(face==='gulp'){ellipse(c,ex,ey,9,11.5,'#fff');ellipse(c,ex+1,ey+1,3.5,4,INK,false);line(c,[ex-7,ey-21,ex+8,ey-23],3.5,AV_HAIR);}
+  else if(face==='cough'){line(c,[ex-6,ey-7,ex+5,ey,ex-6,ey+7],4.5);c.fillStyle=TEAR;c.beginPath();c.ellipse(ex+9,ey+6,2.5,3.5,0,0,7);c.fill();}
+  else if(face==='proud'){line(c,[ex-8,ey+3,ex,ey-7,ex+8,ey+3],4.5);line(c,[ex+7,ey,ex+11,ey-3],3);}
+  else if(face==='grimace'){openEye(7,8.5);c.fillStyle=AV_SKIN;c.fillRect(ex-10,ey-12,22,6);line(c,[ex-8,ey-6,ex+9,ey-5],4);line(c,[ex-7,ey-15,ex+8,ey-20],3.5,AV_HAIR);}
+  else openEye(7.5,10.5);
+  if(face==='strain'||face==='grimace'||face==='gulp'){const y=-104+((t*.03)%5);c.beginPath();c.moveTo(56,y-8);c.quadraticCurveTo(62,y+3,56,y+5);c.quadraticCurveTo(50,y+3,56,y-8);c.fillStyle=TEAR;c.fill();c.lineWidth=2.5;c.stroke();}
+  // The cheek is the power gauge: it swells with the charge, rosy and shaking when full.
+  const mx=MOUTH_OFF.x, my=MOUTH_OFF.y, wob=face==='strain'&&!REDUCED?Math.sin(t*.09)*1.4:0;
+  if(puff>0){
+    const r=6+16*puff;
+    c.lineWidth=3.5;c.strokeStyle=INK;ellipse(c,mx-15+wob,my+2,r,r*.92,AV_SKIN);
+    c.save();c.globalAlpha=.55+.4*puff;ellipse(c,mx-17+wob,my+4,r*.6,r*.38,face==='strain'?'#ff7d9c':'#ffa0b8',false);c.restore();
+    ellipse(c,mx-22+wob,my-4-r*.4,r*.22,r*.14,'rgba(255,255,255,.8)',false);
+  }
+  // Mouth.
+  const mf='#c2455a';c.lineWidth=3;c.strokeStyle=INK;
+  if(face==='focus'||face==='strain')ellipse(c,mx,my,3.5,3.5,mf);
+  else if(face==='spit'){ellipse(c,mx+1,my,4,4.5,mf);for(const d of [-6,0,6])line(c,[mx+9,my+d*.8,mx+15,my+d*1.3],2.5,'#fff');}
+  else if(face==='gulp')ellipse(c,mx-1,my+1,3.5,4.5,mf);
+  else if(face==='cough'){ellipse(c,mx-2,my+2,4,5,mf);}
+  else if(face==='proud'){c.beginPath();c.moveTo(mx-12,my-3);c.quadraticCurveTo(mx-6,my+12,mx+2,my-3);c.closePath();c.fillStyle=mf;c.fill();c.stroke();ellipse(c,mx-5,my+3,3,2,'#ff8fab',false);}
+  else if(face==='grimace'){c.beginPath();c.moveTo(mx-11,my);for(let i=1;i<=4;i++)c.lineTo(mx-11+i*3.2,my+(i%2?-2.5:1.5));c.stroke();}
+  else line(c,[mx-9,my-2,mx-4,my+2,mx+1,my-2],3);
+}
+// A small gauge behind the head: its red top is the moment the pearl sits in the full cheeks.
+const GAUGE={x:4,y:356,w:12,h:118};
+function drawGauge(c,w,t) {
+  const g=GAUGE, total=CHARGE_S+GRACE_S, red=g.h*GRACE_S/total, k=w.phase==='charge'?Math.min(1,w.hold/total):0;
+  c.save();c.lineWidth=3;c.strokeStyle=INK;
+  c.beginPath();c.roundRect(g.x,g.y,g.w,g.h,5);c.fillStyle='rgba(29,21,51,.75)';c.fill();
+  c.save();c.clip();
+  c.fillStyle='rgba(232,56,61,.5)';c.fillRect(g.x,g.y,g.w,red);
+  if(k>0){const h=g.h*k, hot=w.hold>=CHARGE_S;c.fillStyle=hot?(Math.floor(t/70)%2?'#ff4a4a':'#fff'):GOLD;c.fillRect(g.x,g.y+g.h-h,g.w,h);}
+  c.restore();
+  c.beginPath();c.roundRect(g.x,g.y,g.w,g.h,5);c.stroke();
+  line(c,[g.x-2,g.y+red,g.x+g.w+2,g.y+red],3);
+  c.restore();
+}
+// Only the start of the arc: where the pearl goes in its first moment at the power it would leave with now.
+function drawGuide(c,w,t) {
+  if(w.over)return;
+  const p=w.phase==='charge'?powerOf(w.hold):.55, m=muzzle(w.aim), v=speedOf(p), vx=Math.cos(w.aim)*v, vy=-Math.sin(w.aim)*v;
+  c.save();c.globalAlpha=w.phase==='charge'?1:.55;c.lineWidth=2;c.strokeStyle=INK;
+  for(let i=1;i<=6;i++){const s=i*.028, x=m.x+vx*s, y=m.y+vy*s+GRAV*s*s/2;ellipse(c,x,y,3.4-i*.25,3.4-i*.25,'#fff');}
+  c.restore();
+}
+function drawCounter(c) {
+  c.save();c.strokeStyle=INK;c.lineWidth=4;
+  c.fillStyle=WOOD_DARK;c.fillRect(-600,592,1600,1400);
+  for(let x=-200;x<620;x+=36)line(c,[x,604,x,1200],3,'#a66a34');
+  c.beginPath();c.rect(-600,584,1600,14);c.fillStyle=WOOD;c.fill();c.stroke();
+  // A cloth panel on the counter front.
+  c.beginPath();c.roundRect(160,612,120,64,6);c.fillStyle=INDIGO;c.fill();c.stroke();
+  ellipse(c,220,644,26,26,'#fff');
+  c.font=`26px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=RED;c.fillText('的',220,646);
+  // His hands on the counter.
+  for(const s of [-1,1])ellipse(c,OWNER.x+s*48,588,13,10,SKIN);
+  c.restore();
+}
+function outlined(c,str,x,y,size,fill,rot=0,font=null) {
+  c.save();c.translate(x,y);c.rotate(rot);c.font=font?font.replace('X',size+'px'):`${size}px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+  c.lineWidth=size*.16;c.strokeStyle=INK;c.strokeText(str,0,size*.05);c.strokeText(str,0,0);c.fillStyle=fill;c.fillText(str,0,0);c.restore();
+}
+function drawFx(c,t) {
+  for(const f of fx){const k=(t-f.born)/f.life;if(k<0||k>1)continue;c.globalAlpha=k>.7?(1-k)/.3:1;outlined(c,f.text,clamp(f.x,70,330),f.y-k*30,f.size||28,f.color,-.06,f.font);c.globalAlpha=1;}
+  fx=fx.filter(f=>t-f.born<f.life);
+  for(const p of confetti){c.fillStyle=p.color;c.fillRect(p.x-p.r,p.y-p.r*.5,p.r*2,p.r);}
+}
+function updateConfetti(dt) {
+  for(const p of confetti){p.vy+=260*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}
+  confetti=confetti.filter(p=>p.life>0);
+}
+// The whole scene in stage units; also drawn straight into the share picture.
+function drawScene(c,t) {
+  const w=world;
+  drawStall(c,t,w);
+  drawShelves(c);
+  for(const b of w.bodies)if(b.kind==='cup')drawCup(c,b,t);
+  if(w.pearl){
+    c.save();trail.forEach(([x,y],i)=>{c.globalAlpha=(i+1)/trail.length*.35;ellipse(c,x,y,PEARL_R*.8,PEARL_R*.8,'#fff',false);});c.restore();
+  }
+  for(const b of w.bodies)if(b.kind==='pearl')drawPearl(c,b.x,b.y,PEARL_R);
+  drawOwner(c,t);
+  drawCounter(c);
+  drawAvatar(c,w,t);
+  drawGuide(c,w,t);
+  drawGauge(c,w,t);
+  drawFx(c,t);
+}
+let dtFrame=1/60;
+function draw(now,dt) {
+  if(layoutState!==state)resize();
+  easeLayout(dt);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#1b1d4a';ctx.fillRect(0,0,innerWidth,innerHeight);
+  const sx=shake>0?(Math.random()-.5)*14*shake:0, sy=shake>0?(Math.random()-.5)*10*shake:0;shake=Math.max(0,shake-dt*1.6);
+  ctx.setTransform(dpr*scale,0,0,dpr*scale,(ox+sx)*dpr,(oy+sy)*dpr);
+  updateConfetti(dt);updateAvatar(world,dt);
+  drawScene(ctx,now);
+  if(flash>0){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=flash;ctx.fillStyle='#fff6d0';ctx.fillRect(0,0,innerWidth,innerHeight);ctx.globalAlpha=1;flash=Math.max(0,flash-dt*2);}
+  placeBubble();
+  $('count').style.top=(stageToUi(200,300).y)+'px';
+}
+function frame(now) {
+  const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;dtFrame=dt;
+  if(!document.hidden&&!CARD_THUMB){
+    if(state==='play')playTick(now);
+    else if(state==='count'||state==='intro'){world.aim=clamp(world.aim+finger.daim+((keyUp?1:0)-(keyDn?1:0))*KEY_AIM*dt,AIM_MIN,AIM_MAX);finger.daim=0;}
+    else if(state==='end'||state==='reveal'||state==='done'){stepWorld(world,{down:false,daim:0},dt);updateSlurp(null);}
+    if(bubbleHideAt&&now>=bubbleHideAt){$('bubble').style.visibility='hidden';bubbleHideAt=0;}
+    if(state!=='play'&&moodUntil&&now>=moodUntil)setMood('watch');
+  }
+  if(!document.hidden||CARD_MODE)draw(now,dt);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- share picture ---------- */
+// The framed picture is the live scene redrawn at card size, including his actual reaction.
+async function drawShareImage({rank:e,card,cups:n,score}) {
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`,'タピオカ射的10粒で、カップを何個落とせる？ストロー1本「」0123456789,個点あなたはぽん吉段目全'+RANKS.map(x=>x.name+x.line).join(''));
+  const c=document.createElement('canvas');c.width=1200;c.height=675;
+  const x=c.getContext('2d');
+  x.fillStyle='#1b1d4a';x.fillRect(0,0,1200,675);
+  // Text sits on a cream panel styled like the in-game HUD (ink border, hard drop shadow).
+  x.beginPath();x.roundRect(488,42,686,599,28);x.fillStyle=INK;x.fill();
+  x.beginPath();x.roundRect(486,34,686,599,28);x.fillStyle=WHITE;x.fill();x.lineWidth=6;x.strokeStyle='#000';x.stroke();
+  const FX=26, FY=42, FW=430, FH=591, y0=150, y1=676, k=FH/(y1-y0), cx=205;
+  x.save();x.beginPath();x.rect(FX,FY,FW,FH);x.clip();
+  x.setTransform(k,0,0,k,FX+FW/2-cx*k,FY-y0*k);drawScene(x,performance.now());x.restore();
+  x.lineWidth=8;x.strokeStyle='#000';x.strokeRect(FX,FY,FW,FH);
+  const CX=829, MAXW=620;
+  // Dense kanji stay readable with a thin outline: dark text gets a thin white halo, red text a thin dark edge
+  // plus a drop shadow, never a thick stroke that fills the gaps inside the glyphs.
+  const fitFont=(str,size,maxW)=>{x.font=`${size}px ${DISPLAY_FONT}`;const tw=x.measureText(str).width;if(tw>maxW){size*=maxW/tw;x.font=`${size}px ${DISPLAY_FONT}`;}return size;};
+  const text=(str,tx,ty,size,fill,maxW=MAXW,align='center')=>{
+    x.textAlign=align;x.textBaseline='middle';x.lineJoin='round';size=fitFont(str,size,maxW);
+    if(fill===INK){x.lineWidth=Math.max(3,size*.1);x.strokeStyle='#fff';x.strokeText(str,tx,ty);}
+    else{x.fillStyle=INK;x.fillText(str,tx,ty+size*.06);x.lineWidth=Math.max(2.5,size*.05);x.strokeStyle=INK;x.strokeText(str,tx,ty);}
+    x.fillStyle=fill;x.fillText(str,tx,ty);
+    return x.measureText(str).width;
+  };
+  const stamp=(str,tx,ty,size)=>{
+    x.save();x.translate(tx,ty);x.rotate(-.06);x.font=`${size}px ${DISPLAY_FONT}`;x.textAlign='center';x.textBaseline='middle';
+    const tw=x.measureText(str).width+size*.9, th=size*1.35;
+    x.beginPath();x.roundRect(-tw/2,-th/2,tw,th,size*.25);x.fillStyle='#fff';x.fill();x.lineWidth=9;x.strokeStyle=RED;x.stroke();
+    x.fillStyle=RED;x.fillText(str,0,size*.04);x.restore();
+  };
+  // Title: タピオカ in dark, 射的 in red, as on the page.
+  x.font=`66px ${DISPLAY_FONT}`;const w1=x.measureText('タピオカ').width, w2=x.measureText('射的').width, left=CX-(w1+w2)/2;
+  text('タピオカ',left,100,66,INK,MAXW,'left');text('射的',left+w1,100,66,RED,MAXW,'left');
+  if(card===null){
+    text('タピオカ10粒で、',CX,238,80,RED);text('何個落とせる？',CX,346,92,RED);
+    text('長押しで吸って、離して発射！',CX,480,40,INK);
+    text('吸いすぎると、ゴクッ。',CX,548,40,INK);
+  } else {
+    // A real game stamps the player's own score and cups under the rank; the static ?card pages have none.
+    if(n===undefined){
+      text(e.name,CX,250,e.name.length>4?96:120,RED);
+    } else {
+      text(e.name,CX,200,e.name.length>4?84:100,RED);
+      stamp(`${fmt(score)}点`,CX,326,60);
+      text(`タピオカ10粒で、カップ ${n}個`,CX,398,32,INK);
+    }
+    const quote=OWNER_NAME+'「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?412:476;
+    x.font=`36px ${DISPLAY_FONT}`;
+    if(x.measureText(quote).width>MAXW){let mid=Math.ceil(chars.length/2);{let best=-1;chars.forEach((ch,i)=>{if('、。！？…」'.includes(ch)&&i+1<chars.length&&!'、。！？…」'.includes(chars[i+1])&&Math.abs(i+1-chars.length/2)<chars.length/4&&(best<0||Math.abs(i+1-chars.length/2)<Math.abs(best-chars.length/2)))best=i+1;});if(best>0)mid=best;}text(chars.slice(0,mid).join(''),CX,qy-14,34,INK);text(chars.slice(mid).join(''),CX,qy+30,34,INK);}
+    else text(quote,CX,qy,36,INK);
+    text(e.id==='gulp'?'あなたは何個落とせる？':'あなたは何点とれる？',CX,580,42,INK);
+  }
+  return new Promise(res=>c.toBlob(res,'image/png'));
+}
+let shareFile=null, shareText='';
+async function prepareShare(shot,g) {
+  try {
+    const blob=await drawShareImage(shot);
+    if(g!==generation||!blob)return;
+    shareFile=new File([blob],'tapioca-shateki.png',{type:'image/png'});
+    // Phones that can share files: the picture is the main way to post, so its button leads.
+    const sheet=canShareFile();
+    $('save').textContent=sheet?'画像でシェア':'画像を保存';
+    $('save').className=sheet?'':'alt';
+    $('save').style.display=TOUCH?'inline-flex':'none';
+  } catch(err) { console.warn('share image',err); }
+}
+const canShareFile=()=>!!(TOUCH&&shareFile&&navigator.canShare&&navigator.share&&navigator.canShare({files:[shareFile]}));
+function download() {
+  const a=document.createElement('a'), url=URL.createObjectURL(shareFile);
+  a.href=url;a.download=shareFile.name;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+function note(text) { const el=$('tip');el.textContent=text;el.style.display='block'; }
+// On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
+// X opens after the copy, while the page still has focus.
+if(!TOUCH)$('share').innerHTML='Xでポスト<small>画像もコピー</small>';
+$('share').addEventListener('click',async e=>{
+  if(TOUCH||!shareFile)return;
+  e.preventDefault();
+  const href=$('share').href, paste=/Mac/.test(navigator.platform)?'⌘V':'Ctrl+V';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({'image/png':shareFile})]);
+    note(`リンクに結果カードが付きます。射的の画像も付けるなら ${paste}`);
+  } catch(err) { console.warn('clipboard',err);download();note('画像を保存しました。投稿に添付してください'); }
+  window.open(href,'_blank','noopener');
+});
+$('save').addEventListener('click',e=>{
+  e.currentTarget.blur();
+  if(!shareFile)return;
+  if(!canShareFile())return download();
+  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC}).catch(err=>{
+    if(err.name!=='AbortError'){console.warn('share',err);download();}   // AbortError: the sheet was closed
+  });
+});
+function showPicture(blob) {
+  const i=new Image();i.id='preview';i.src=URL.createObjectURL(blob);
+  i.style.cssText='position:fixed;left:0;top:0;width:1200px;height:675px;z-index:99';document.body.append(i);
+}
+
+/* ---------- boot ---------- */
+const query=new URLSearchParams(location.search), CARD_MODE=query.has('card');
+// ?card (no id) freezes a moment of play for the thumbnail: a pearl on its way to a full pyramid.
+const CARD_THUMB=CARD_MODE&&!query.get('card')?1:0;
+resize();placeBubble();
+requestAnimationFrame(frame);
+if(CARD_MODE) {
+  show('home',false);show('title',false);$('bubble').style.visibility='hidden';
+  if(CARD_THUMB){
+    world=createWorld();state='play';world.aim=34*DEG;world.ammo=7;world.cups=0;
+    const m=muzzle(world.aim), pearl=circleBody('pearl',m.x+98,m.y-52,PEARL_R,PEARL_M,PEARL_FRICTION);
+    world.bodies.push(pearl);world.pearl=pearl;for(let i=1;i<=6;i++)trail.push([m.x+98-i*15,m.y-52+i*7.5]);
+    setMood('amazed');fx.push({text:'プッ！',x:m.x+44,y:m.y-46,born:performance.now(),life:1e9,color:'#fff',size:26});
+    resize();setTimeout(()=>drawShareImage({card:null}).then(showPicture),300);
+  } else {
+    const forced=rankById(query.get('card'))||rankById('tokusho'), s=CARD_STATE[forced.id];
+    world=createWorld();
+    if(s.set)spawnSet(world,s.set);
+    const cups=world.bodies.filter(b=>b.kind==='cup').sort((a,b)=>a.y-b.y);
+    for(const b of cups.slice(0,s.gone))removeBody(world,b);
+    world.ammo=0;
+    if(forced.id==='cough'){av.cough=1;fx.push({text:'ゲホッ',x:NECK.x+92,y:NECK.y-132,born:performance.now(),life:1e9,color:'#fff',size:30,font:ROUND_FONT});}
+    state='play';finish(forced);
+  }
+}
+</script>
+</body>
+</html>
