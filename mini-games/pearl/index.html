@@ -21,6 +21,8 @@
 <style>
 :root{--ink:#2b1b14;--bg:#8fe3cc;--pink:#ff5d8f;--tea:#c98d5c;--cream:#fffdf6;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--toolbar:calc(16vh + var(--safe-bottom))}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-weight:400}
+html{font-synthesis:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
 body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:700;user-select:none;-webkit-user-select:none}
 canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
@@ -46,7 +48,7 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 #fill{height:100%;width:100%;background:linear-gradient(90deg,#a9683f,var(--tea) 60%,#e8b98c)}
 #timebar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--ink);transform-origin:left}
 #instruction{grid-column:1/-1;text-align:center;font-size:15px;font-weight:800;margin:4px 0 0}
-#bubble{position:absolute;min-height:40px;max-width:300px;text-align:center;padding:8px 12px;font-size:16px;line-height:1.4;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);z-index:4}
+#bubble{position:absolute;min-height:40px;max-width:300px;text-align:center;word-break:auto-phrase;text-wrap:balance;padding:8px 12px;font-size:16px;line-height:1.4;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);z-index:4}
 #bubble::before,#bubble::after{content:"";position:absolute;top:var(--tail,50%);transform:translateY(-50%);border:solid transparent}
 #bubble::before{left:-19px;border-width:11px 19px 11px 0;border-right-color:var(--ink)}
 #bubble::after{left:-13px;border-width:8px 15px 8px 0;border-right-color:#fff}
@@ -110,7 +112,7 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 // Plain functions shared with tools/sim.js: no DOM, no audio. Stage units (400 wide), y points down.
 const CUP={rimY:215,floorY:690,rimL:34,rimR:366,floorL:78,floorR:322};
 // The straw's open top end stays at STRAW_TOP; the tip only moves in the bottom band of the cup.
-const TEA_H=100, PEARL_R=15, STRAW_R=17, STRAW_TOP=178, TIP_MIN_Y=470, TIP_SPEED=2200, GRAV=2000;
+const TEA_H=100, PEARL_R=15, STRAW_R=17, STRAW_TOP=178, TIP_MIN_Y=470, TIP_SPEED=1800, GRAV=2000;
 // A touch teleports the finger: the tip sweeps there at TIP_SPEED, and whatever it shoves never moves faster than
 // these caps, so nothing is flung. Pearls only leave the cup through the straw.
 const PEARL_VMAX=700, ICE_VMAX=420;
@@ -119,13 +121,13 @@ const PEARL_VMAX=700, ICE_VMAX=420;
 // and a catch needs WEAK_HOLD of contact.
 const SUCK_R=50, SUCK_ACC=8600, AIR_PULL=.6, WEAK_PULL=.2, CATCH_HOLD=.04, AIR_HOLD=.15, WEAK_HOLD=.45;
 // Tea drunk per second of sucking (more when only tea comes up), plus a gulp per pearl.
-const DRAIN_TEA=.45, DRAIN_PEARL=.22, GULP=.015;
+const DRAIN_TEA=.45, DRAIN_PEARL=.22, GULP=.026;
 // One sip, one pearl: a caught pearl plugs the straw until the finger lifts. A second pearl gets in only if it
 // was touching the mouth too, within PAIR_S of the first.
-const PAIR_S=.06;
+const PAIR_S=.02;
 // A moving straw loses its grip: the pull fades with tip speed and nothing is caught above GRIP_SPEED.
 const GRIP_SPEED=120, SLIP_SPEED=400;
-const ZUGOGO_S=1.5, SNIPER_TEA=.3, MOST=.7, HALF=.35;
+const ZUGOGO_S=1.5, SNIPER_TEA=.07, MOST=.7, HALF=.35;
 // Every cup has the same number of pearls so scores compare.
 const PEARLS=16, ROUND_S=6;
 // Score: 100 per pearl. Only a full clear adds 100 per second left on the clock and 500 times the tea left,
@@ -268,7 +270,7 @@ const ROUND_MS = ROUND_S*1000, END_TO_REVEAL_MS = 1400, JACKPOT_ODDS = 1/16, TOU
 // Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: kind to cruel.
 const ENDINGS = [
   {"id":"refill","name":"おかわり無料","verdict":"大当たり！16杯に1杯、もちこがおかわりをサービス。","line":"いい飲みっぷり！おかわり、サービスしちゃう！","hint":"まだ見ていない結末を探そう。","mood":"happy"},
-  {"id":"sniper","name":"粒だけ一本釣り","verdict":"お茶はたっぷり残して、タピオカだけ全部。","line":"え、粒だけ全部！？吸い方がプロすぎる…！","hint":"お茶もタピオカも、ぜんぶ飲みきると…？","mood":"amazed"},
+  {"id":"sniper","name":"粒だけ一本釣り","verdict":"お茶をちゃんと残して、タピオカだけ全部。","line":"え、粒だけ全部！？吸い方がプロすぎる…！","hint":"お茶もタピオカも、ぜんぶ飲みきると…？","mood":"amazed"},
   {"id":"kanin","name":"完飲","verdict":"一粒残らず、きれいに飲みきった。","line":"全部飲んでくれた…作ってよかったぁ…！","hint":"お茶を残して、粒だけ全部すくえる？","mood":"moved"},
   {"id":"most","name":"あと一歩","verdict":"残りはほんの少し。ストローがあと一歩届かなかった。","line":"惜しい！あとちょっとだったのに〜！","hint":"氷のそばで吸うと、氷がずれるよ。","mood":"worried"},
   {"id":"half","name":"はんぶんこ","verdict":"半分は、カップの底に置いてきた。","line":"残った子たち、ちょっとさみしそう…。","hint":"粒の真上で、短くチュッと吸うのがコツ。","mood":"sad"},
@@ -366,7 +368,7 @@ function bubble(text,{shout=false}={}) {
 }
 function placeBubble() {
   const b=$('bubble'), p=stageToUi(...MOUTH), floor=stageToUi(0,STRAW_TOP-4).y, left=p.x+16;
-  b.style.maxWidth=clamp(p.w-left-6,140,300)+'px';
+  b.style.maxWidth=clamp(p.w-left-16,140,280)+'px';
   const h=b.offsetHeight, top=clamp(p.y-h/2,4,floor-h);
   b.style.left=left+'px';b.style.top=top+'px';b.style.setProperty('--tail',clamp(p.y-top,16,h-16)+'px');
 }
