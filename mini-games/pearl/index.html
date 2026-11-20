@@ -144,9 +144,9 @@ const PAIR_S=.02, PAIR_TOUCH=1, PAIR_GAP=2;
 const GRIP_SPEED=120, SLIP_SPEED=400;
 const ZUGOGO_S=1.5, SNIPER_TEA=.07, MOST=.7, HALF=.35;
 // Every cup has the same number of pearls so scores compare.
-const PEARLS=16, ROUND_S=6;
+const PEARLS=20, ROUND_S=6;
 // Score: 100 per pearl. Only a full clear adds 100 per second left on the clock and 500 times the tea left,
-// so a clear (1,600 or more) always beats a partial cup (1,500 at most).
+// so a clear (2,000 or more) always beats a partial cup (1,900 at most).
 const PEARL_PTS=100, TIME_PTS=100, TEA_PTS=500;
 const clampN=(n,a,b)=>Math.max(a,Math.min(b,n));
 function wallX(y,side){const k=clampN((y-CUP.rimY)/(CUP.floorY-CUP.rimY),0,1);return side<0?CUP.rimL+(CUP.floorL-CUP.rimL)*k:CUP.rimR+(CUP.floorR-CUP.rimR)*k;}
@@ -335,7 +335,7 @@ const IDLE_LINES = [
   {"id":"idle1","text":"あれ？どうしたの？"}
 ];
 // What ?card=<id> leaves in the cup: pearls caught and tea left.
-const CARD_STATE = {refill:{n:13,tea:0},sniper:{n:16,tea:.45},kanin:{n:16,tea:0},most:{n:13,tea:0},half:{n:8,tea:0},few:{n:3,tea:.1},teaonly:{n:0,tea:0},zugogo:{n:6,tea:0},nothing:{n:0,tea:1}};
+const CARD_STATE = {refill:{n:16,tea:0},sniper:{n:20,tea:.45},kanin:{n:20,tea:0},most:{n:16,tea:0},half:{n:10,tea:0},few:{n:4,tea:.1},teaonly:{n:0,tea:0},zugogo:{n:8,tea:0},nothing:{n:0,tea:1}};
 const clamp = clampN;
 const rand = (a,b) => a + Math.random()*(b-a);
 const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
@@ -374,7 +374,7 @@ function measureLayout() {
   let resultTop=bottom;
   for(const e of ENDINGS) {
     el('ending-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
-    el('best').textContent='16粒 / 16粒 · 新記録！ 自己ベスト 2,700点';
+    el('best').textContent='20粒 / 20粒 · 新記録！ 自己ベスト 3,100点';
     resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
   }
   copy.remove();
@@ -783,14 +783,14 @@ function drawCupBack(c) {
   ellipse(c,200,CUP.floorY+14,150,12,'rgba(43,27,20,.18)',false);
   cupPath(c);c.fillStyle='rgba(255,255,255,.32)';c.fill();
   c.strokeStyle='rgba(43,27,20,.35)';c.lineWidth=3;c.beginPath();c.ellipse(200,CUP.rimY,(CUP.rimR-CUP.rimL)/2,14,0,Math.PI,Math.PI*2);c.stroke();
-  // A light film of tea on the walls where it used to be.
-  c.save();cupPath(c);c.clip();c.fillStyle='rgba(201,141,92,.16)';c.fillRect(0,CUP.floorY-TEA_H-30,400,30);c.restore();
   c.restore();
 }
 function drawTea(c,w) {
   if(w.tea<=0)return;
   const y=teaSurface(w);
   c.save();cupPath(c);c.clip();
+  // A light film of tea on the walls just above the surface; it drops with the tea and fades out as it runs dry.
+  c.fillStyle=`rgba(201,141,92,${.16*Math.min(1,w.tea*5)})`;c.fillRect(0,y-30,400,30);
   c.fillStyle=TEA;c.fillRect(0,y,400,CUP.floorY-y+4);
   ellipse(c,200,y,(wallX(y,1)-wallX(y,-1))/2,5,TEA_TOP,false);
   c.restore();
