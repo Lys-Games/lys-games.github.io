@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>最後のタピオカ</title>
+<meta name="description" content="ミルクティーの底に残った最後のタピオカ、ストローで全部すくえる？押しているあいだだけ吸える6秒間。吸い方で店員さんの反応が変わる無料ミニゲーム。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="最後のタピオカ">
+<meta property="og:description" content="氷のすきまに残った最後のタピオカ。6秒で何粒すくえる？">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/pearl/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/pearl/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://lys-games.github.io/mini-games/pearl/thumb.jpg">
+<meta name="theme-color" content="#8fe3cc">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2b1b14;--bg:#8fe3cc;--pink:#ff5d8f;--tea:#c98d5c;--cream:#fffdf6;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--toolbar:calc(16vh + var(--safe-bottom))}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
+body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:700;user-select:none;-webkit-user-select:none}
+canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.ui-box{position:fixed;top:var(--safe-top);bottom:var(--toolbar);left:50%;width:min(420px,100%);transform:translateX(-50%);pointer-events:none}
+[hidden]{display:none!important}
+.t{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-weight:400;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em;color:#fff}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;min-height:44px;text-decoration:none;font:inherit;font-size:20px;font-weight:800;color:#fff;background:var(--pink);border:3px solid var(--ink);border-radius:16px;padding:10px 14px;box-shadow:0 4px 0 var(--ink);cursor:pointer;pointer-events:auto;touch-action:manipulation}
+button:active,.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:4px}
+.alt{background:var(--ink);color:#fff}
+#title{position:absolute;left:0;right:0;top:8px;text-align:center;transform:rotate(-3deg)}
+#title .eyebrow{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:800;display:block;-webkit-text-stroke:0;text-shadow:none;color:var(--ink)}
+#title h1{font-size:clamp(32px,5.6dvh,46px);margin:2px 0;color:var(--ink);-webkit-text-stroke:0;text-shadow:-2px 0 #fff,2px 0 #fff,0 -2px #fff,0 2px #fff,-1.5px -1.5px #fff,1.5px 1.5px #fff,-1.5px 1.5px #fff,1.5px -1.5px #fff}
+#title h1 span{color:var(--pink);display:block;font-size:1.22em;line-height:1.1;-webkit-text-stroke:.05em var(--ink);text-shadow:0 .05em 0 var(--ink)}
+#count{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;position:absolute;left:0;right:0;text-align:center;font-size:clamp(84px,26vw,128px);line-height:1;color:#fff;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .06em 0 var(--ink);z-index:5;transform:translateY(-50%);animation:pop .3s ease-out}
+#count.small{font-size:clamp(44px,13vw,64px);color:var(--pink)}
+#hud{position:absolute;top:6px;left:10px;right:10px;display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:12px;background:#fff;border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:4px 12px 6px}
+#score{font-size:44px;font-variant-numeric:tabular-nums;line-height:1;color:var(--pink);-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
+#score small{font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:18px;margin-left:3px;color:var(--ink)}
+#score.bump{animation:bump .14s ease-out}
+#meter-label{display:flex;justify-content:space-between;font-size:14px;font-weight:800;margin:2px 2px 3px}
+#meter{position:relative;height:22px;border:3px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+#fill{height:100%;width:100%;background:linear-gradient(90deg,#a9683f,var(--tea) 60%,#e8b98c)}
+#timebar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--ink);transform-origin:left}
+#instruction{grid-column:1/-1;text-align:center;font-size:15px;font-weight:800;margin:4px 0 0}
+#bubble{position:absolute;min-height:40px;max-width:300px;text-align:center;padding:8px 12px;font-size:16px;line-height:1.4;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);z-index:4}
+#bubble::before,#bubble::after{content:"";position:absolute;top:var(--tail,50%);transform:translateY(-50%);border:solid transparent}
+#bubble::before{left:-19px;border-width:11px 19px 11px 0;border-right-color:var(--ink)}
+#bubble::after{left:-13px;border-width:8px 15px 8px 0;border-right-color:#fff}
+#bubble.shout{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400;font-size:22px;line-height:1.2;color:var(--pink)}
+#home{position:absolute;left:10px;right:10px;bottom:0;text-align:center}
+#home-instructions{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:7px 10px;margin:0 4px 10px}
+#home .lead{font-size:19px;font-weight:800;line-height:1.35;margin:0}
+#home .sub{font-size:14px;font-weight:800;line-height:1.45;margin:3px 0 0}
+#go{font-size:23px;min-width:250px;min-height:52px;padding:6px 16px}
+.credit{color:var(--ink);font-size:12px;font-weight:700;line-height:1.5;text-align:center;margin:8px 0 0;pointer-events:auto}
+.credit a{color:inherit}
+.steam{color:var(--ink);font-size:13px;line-height:1.5;pointer-events:auto}
+.voice-credit{position:absolute;top:100%;left:0;right:0;margin-top:10px;font-size:10px;color:var(--ink);line-height:1.5;text-align:center}
+#result{position:absolute;left:8px;right:8px;bottom:0;max-height:calc(100% - 150px);overflow-y:auto;background:#fff;border:4px solid var(--ink);border-radius:20px;padding:8px 10px;text-align:center;pointer-events:auto;box-shadow:0 6px 0 var(--ink)}
+#result .label{font-size:13px;font-weight:800;line-height:1.4;color:#6b5a50}
+#ending-name{font-size:27px;color:var(--ink);margin:0;-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
+#pearls{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-size:40px;line-height:1.1;margin:2px 0;color:var(--pink)}
+#pearls .unit{font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:.6em;margin-left:3px}
+#result .voice-credit{position:static;margin-top:3px}
+#pearls small{display:block;font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:13px;color:#6b5a50;margin-top:2px}
+#verdict{font-size:15px;font-weight:800;line-height:1.4;margin:0 0 3px}
+#hint{font-size:13px;font-weight:700;line-height:1.4;margin:5px 0 0;color:#6b5a50}
+.actions{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.actions .btn,.actions button{font-size:15px;white-space:nowrap;flex:1;padding:5px 3px;min-height:46px;border-radius:12px}
+.actions small{font-size:11px;font-weight:700;line-height:1.3}
+#save{display:none}
+#tip{display:none;margin:6px 0 0;padding:6px;font-size:13px;font-weight:800;line-height:1.4;background:var(--ink);color:#fff;border-radius:10px}
+#paused{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:20;color:#fff;font-size:24px;pointer-events:none}
+@keyframes pop{from{transform:translateY(-50%) scale(.7)}to{transform:translateY(-50%) scale(1)}}
+@keyframes bump{from{transform:scale(1.2)}to{transform:scale(1)}}
+@media(max-height:700px){
+#score{font-size:36px}
+#score small{font-size:16px}
+#meter{height:18px}
+#meter-label{font-size:13px;margin:4px 2px 3px}
+#instruction{font-size:13px;margin-top:2px}
+#ending-name{font-size:23px}
+#pearls{font-size:32px}
+#verdict{font-size:12px;line-height:1.3}
+#hint{font-size:11px;line-height:1.3;margin-top:3px}
+#result .credit{font-size:10px;margin-top:4px}
+#result .steam{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="氷とタピオカが底に残った透明なカップと太いストロー、奥で見守る店員さん。プレイ中は指を置いた場所にストローが動き、押しているあいだ吸う。"></canvas>
+<div id="ui" class="ui-box">
+  <header id="title" class="t"><span class="eyebrow">カップの底に残った、あの粒</span><h1>最後の<span>タピオカ</span></h1></header>
+  <div id="hud" hidden><div id="score" class="t"><span id="score-n">0</span><small id="score-of">粒</small></div><div id="meter-box"><div id="meter-label"><span>のこりのお茶</span><span>6秒で何粒？</span></div><div id="meter" role="progressbar" aria-label="のこりのお茶" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div id="fill"></div><div id="timebar"></div></div></div><p id="instruction">粒をねらって、押して吸う！</p></div>
+  <div id="count" hidden></div>
+  <div id="bubble" role="status" aria-live="polite"><span id="bubble-text">いらっしゃいませ！店員のもちこです。</span></div>
+  <section id="home"><div id="home-instructions"><p class="lead">底のタピオカ、全部飲める？</p><p class="sub">押しているあいだ、ストローで吸う。<br>粒の真上で、短くチュッと。</p></div><button id="go">ストローを持つ</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pearl" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:四国めたん / VOICEVOX:ナースロボ＿タイプＴ</div></section>
+  <section id="result" aria-label="結果" hidden><div class="label">今日のタピオカ</div><h2 id="ending-name" class="t"></h2><p id="pearls"><span id="pearls-n">0</span><span class="unit">点</span><small id="best"></small></p><p id="verdict"></p><div class="actions"><button id="again">もう一杯</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pearl" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:四国めたん / VOICEVOX:ナースロボ＿タイプＴ</div></section>
+</div>
+<div id="paused" hidden>ひと休み中</div>
+<script>
+'use strict';
+/* PHYSICS-BEGIN */
+// Plain functions shared with tools/sim.js: no DOM, no audio. Stage units (400 wide), y points down.
+const CUP={rimY:215,floorY:690,rimL:34,rimR:366,floorL:78,floorR:322};
+// The straw's open top end stays at STRAW_TOP; the tip only moves in the bottom band of the cup.
+const TEA_H=100, PEARL_R=15, STRAW_R=17, STRAW_TOP=178, TIP_MIN_Y=470, TIP_SPEED=2200, GRAV=2000;
+// A touch teleports the finger: the tip sweeps there at TIP_SPEED, and whatever it shoves never moves faster than
+// these caps, so nothing is flung. Pearls only leave the cup through the straw.
+const PEARL_VMAX=700, ICE_VMAX=420;
+// Suction: a pearl within SUCK_R of the tip is pulled in; touching the mouth for CATCH_HOLD (in tea) catches it.
+// Above the tea it pulls air (AIR_PULL). Once the cup is dry the pull drops to WEAK_PULL, too weak to lift a pearl,
+// and a catch needs WEAK_HOLD of contact.
+const SUCK_R=50, SUCK_ACC=8600, AIR_PULL=.6, WEAK_PULL=.2, CATCH_HOLD=.04, AIR_HOLD=.15, WEAK_HOLD=.45;
+// Tea drunk per second of sucking (more when only tea comes up), plus a gulp per pearl.
+const DRAIN_TEA=.45, DRAIN_PEARL=.22, GULP=.015;
+// One sip, one pearl: a caught pearl plugs the straw until the finger lifts. A second pearl gets in only if it
+// was touching the mouth too, within PAIR_S of the first.
+const PAIR_S=.06;
+// A moving straw loses its grip: the pull fades with tip speed and nothing is caught above GRIP_SPEED.
+const GRIP_SPEED=120, SLIP_SPEED=400;
+const ZUGOGO_S=1.5, SNIPER_TEA=.3, MOST=.7, HALF=.35;
+// Every cup has the same number of pearls so scores compare.
+const PEARLS=16, ROUND_S=6;
+// Score: 100 per pearl. Only a full clear adds 100 per second left on the clock and 500 times the tea left,
+// so a clear (1,600 or more) always beats a partial cup (1,500 at most).
+const PEARL_PTS=100, TIME_PTS=100, TEA_PTS=500;
+const clampN=(n,a,b)=>Math.max(a,Math.min(b,n));
+function wallX(y,side){const k=clampN((y-CUP.rimY)/(CUP.floorY-CUP.rimY),0,1);return side<0?CUP.rimL+(CUP.floorL-CUP.rimL)*k:CUP.rimR+(CUP.floorR-CUP.rimR)*k;}
+function teaSurface(w){return CUP.floorY-TEA_H*w.tea;}
+function seeded(seed){let a=(seed>>>0)||1;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function createWorld(seed,{count=0}={}){
+  const rng=seeded(seed), n=count||PEARLS;
+  const w={rng,t:0,tea:1,tip:{x:200,y:TIP_MIN_Y},pearls:[],ice:[],total:n,caught:0,clearAt:0,tipV:0,suckT:0,emptyT:0,emptyRun:0,
+    sucking:false,emptyNow:false,pulling:false,wasDown:false,sipCatches:0,sipFirstAt:0,plugged:false};
+  for(let i=0;i<n;i++){const x=CUP.floorL+PEARL_R+4+rng()*(CUP.floorR-CUP.floorL-2*PEARL_R-8), y=CUP.floorY-PEARL_R-rng()*120;w.pearls.push({x,y,px:x,py:y,vx:0,vy:0,r:PEARL_R,state:'free',hold:0,s:0});}
+  const k=3+Math.floor(rng()*2);
+  for(let i=0;i<k;i++){const x=CUP.floorL+40+rng()*(CUP.floorR-CUP.floorL-80), y=CUP.floorY-150-rng()*110;w.ice.push({x,y,px:x,py:y,vx:0,vy:0,a:(rng()-.5)*1.1,va:0,hw:30+rng()*9,hh:26+rng()*8});}
+  // Let everything fall and wedge before the round.
+  for(let i=0;i<180;i++)stepWorld(w,{x:200,y:TIP_MIN_Y,down:false},1/60);
+  w.suckT=w.emptyT=w.emptyRun=0;w.t=0;
+  return w;
+}
+// Push a circle out of a rounded, rotated ice box. Returns [nx,ny,depth] in world space or null.
+function iceHit(c,x,y,r){
+  const cs=Math.cos(c.a), sn=Math.sin(c.a), dx=x-c.x, dy=y-c.y, lx=dx*cs+dy*sn, ly=-dx*sn+dy*cs, rr=7, ix=c.hw-rr, iy=c.hh-rr;
+  let nx=lx-clampN(lx,-ix,ix), ny=ly-clampN(ly,-iy,iy), d=Math.hypot(nx,ny);
+  if(d>=r+rr)return null;
+  if(d<1e-6){const px=ix-Math.abs(lx), py=iy-Math.abs(ly);if(px<py){nx=Math.sign(lx)||1;ny=0;d=-px;}else{nx=0;ny=Math.sign(ly)||1;d=-py;}}
+  else{nx/=d;ny/=d;}
+  return [nx*cs-ny*sn,nx*sn+ny*cs,r+rr-d];
+}
+function iceExtent(c){const cs=Math.abs(Math.cos(c.a)), sn=Math.abs(Math.sin(c.a));return [c.hw*cs+c.hh*sn,c.hw*sn+c.hh*cs];}
+function stepWorld(w,input,dt){
+  const events=[], h=Math.min(dt,1/30)/2;
+  for(let s=0;s<2;s++)substep(w,input,h,events);
+  return events;
+}
+function substep(w,input,h,events){
+  const tip=w.tip;w.t+=h;
+  // The tip chases the finger, inside the bottom of the cup.
+  const ty=clampN(input.y,TIP_MIN_Y,CUP.floorY-STRAW_R-1), tx=clampN(input.x,wallX(ty,-1)+STRAW_R+3,wallX(ty,1)-STRAW_R-3);
+  let mx=tx-tip.x, my=ty-tip.y;const md=Math.hypot(mx,my), step=TIP_SPEED*h;
+  if(md>step){mx*=step/md;my*=step/md;}
+  tip.x+=mx;tip.y+=my;
+  w.tipV+=(Math.hypot(mx,my)/h-w.tipV)*Math.min(1,h*25);
+  const grip=clampN(1-w.tipV/SLIP_SPEED,.15,1), still=w.tipV<GRIP_SPEED;
+  const surface=teaSurface(w), dry=w.tea<=0, inTea=!dry&&tip.y+STRAW_R+2>surface, down=!!input.down;
+  // Each press is a new sip.
+  if(down&&!w.wasDown){w.sipCatches=0;w.plugged=false;}
+  w.wasDown=down;
+  if(w.sipCatches===1&&w.t-w.sipFirstAt>PAIR_S)w.plugged=true;
+  const pull=down&&!w.plugged;
+  const str=(inTea?1:dry?WEAK_PULL:AIR_PULL)*grip, need=inTea?CATCH_HOLD:dry?WEAK_HOLD:AIR_HOLD;
+  // emptyNow drives the loud slurp; only sucking a dry cup counts toward the ズゴゴゴ ending.
+  w.sucking=down;w.emptyNow=down&&!inTea;w.pulling=false;
+  if(down)w.suckT+=h;
+  if(down&&dry){w.emptyT+=h;w.emptyRun+=h;}else w.emptyRun=0;
+  for(const p of w.pearls){
+    if(p.state==='straw'){p.s+=h/.55;if(p.s>=1){p.state='gone';events.push({type:'out'});}continue;}
+    if(p.state!=='free')continue;
+    p.vy+=GRAV*h;
+    if(pull){
+      const ex=tip.x-p.x, ey=tip.y-p.y, d=Math.hypot(ex,ey);
+      if(d<SUCK_R){const a=SUCK_ACC*str*(1-d/SUCK_R)/Math.max(d,1);p.vx+=ex*a*h;p.vy+=ey*a*h;if(d<p.r+STRAW_R+12)w.pulling=true;}
+      if(d<p.r+STRAW_R+3&&still){
+        p.hold+=h;
+        if(p.hold>=need&&!w.plugged){
+          p.state='straw';p.s=0;w.caught++;if(w.caught===w.total)w.clearAt=w.t;
+          if(w.sipCatches++===0)w.sipFirstAt=w.t;else w.plugged=true;
+          if(inTea)w.tea=Math.max(0,w.tea-GULP);
+          events.push({type:'catch',x:p.x,y:p.y});continue;
+        }
+      } else p.hold=Math.max(0,p.hold-h*2);
+    } else p.hold=0;
+    const drag=p.y>surface?5:1.2;p.vx/=1+drag*h;p.vy/=1+drag*h;
+    p.px=p.x;p.py=p.y;p.x+=p.vx*h;p.y+=p.vy*h;
+  }
+  for(const c of w.ice){
+    c.vy+=GRAV*h;
+    if(pull){
+      // Sucking next to a cube tugs and rattles it, which is how a wedged pearl gets freed.
+      const ex=tip.x-c.x, ey=tip.y-c.y, d=Math.hypot(ex,ey), reach=SUCK_R+Math.max(c.hw,c.hh);
+      if(d<reach){
+        const k=(1-d/reach)*(inTea?1:.5), inv=1/Math.max(d,1);
+        c.vx+=(ex*inv*SUCK_ACC*.16*k+(w.rng()-.5)*7000*k)*h;
+        c.vy+=(ey*inv*SUCK_ACC*.1*k-w.rng()*3500*k)*h;
+        c.va+=(w.rng()-.5)*90*k*h;
+        if(k>.25&&w.rng()<h*5)events.push({type:'clink'});
+      }
+    }
+    c.vx/=1+4*h;c.vy/=1+4*h;c.va/=1+3*h;
+    c.px=c.x;c.py=c.y;c.x+=c.vx*h;c.y+=c.vy*h;c.a=clampN(c.a+c.va*h,-.9,.9);
+  }
+  const free=w.pearls.filter(p=>p.state==='free');
+  for(let it=0;it<3;it++){
+    for(let i=0;i<free.length;i++)for(let j=i+1;j<free.length;j++){
+      const a=free[i], b=free[j], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy), m=a.r+b.r;
+      if(d<m&&d>1e-6){const k=(m-d)/d*.5;a.x-=dx*k;a.y-=dy*k;b.x+=dx*k;b.y+=dy*k;}
+    }
+    for(const p of free)for(const c of w.ice){const hit=iceHit(c,p.x,p.y,p.r);if(hit){const [nx,ny,pen]=hit;p.x+=nx*pen*.8;p.y+=ny*pen*.8;c.x-=nx*pen*.2;c.y-=ny*pen*.2;}}
+    for(let i=0;i<w.ice.length;i++)for(let j=i+1;j<w.ice.length;j++){
+      const a=w.ice[i], b=w.ice[j], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy), m=(a.hw+a.hh+b.hw+b.hh)*.47;
+      if(d<m&&d>1e-6){const k=(m-d)/d*.5;a.x-=dx*k;a.y-=dy*k;b.x+=dx*k;b.y+=dy*k;}
+    }
+    // The straw is a solid tube from the tip upward.
+    for(const p of free){const cy=Math.min(p.y,tip.y), dx=p.x-tip.x, dy=p.y-cy, d=Math.hypot(dx,dy), m=p.r+STRAW_R;if(d<m){if(d<1e-6){p.y+=m;}else{p.x+=dx/d*(m-d);p.y+=dy/d*(m-d);}}}
+    for(const c of w.ice){const r=Math.min(c.hw,c.hh)+STRAW_R, cy=Math.min(c.y,tip.y), dx=c.x-tip.x, dy=c.y-cy, d=Math.hypot(dx,dy);if(d<r&&d>1e-6){c.x+=dx/d*(r-d);c.y+=dy/d*(r-d);}}
+    for(const p of free){p.y=clampN(p.y,CUP.rimY+p.r,CUP.floorY-p.r);p.x=clampN(p.x,wallX(p.y,-1)+p.r,wallX(p.y,1)-p.r);}
+    for(const c of w.ice){const [ex,ey]=iceExtent(c);c.y=clampN(c.y,CUP.rimY+ey,CUP.floorY-ey);c.x=clampN(c.x,wallX(c.y+ey,-1)+ex,wallX(c.y+ey,1)-ex);}
+  }
+  // Ice it can't shove aside stops the tip.
+  for(const c of w.ice){const hit=iceHit(c,tip.x,tip.y,STRAW_R*.6);if(hit){tip.x+=hit[0]*hit[2];tip.y+=Math.min(0,hit[1]*hit[2]);}}
+  const cap=(b,max)=>{const v=Math.hypot(b.vx,b.vy);if(v>max){b.vx*=max/v;b.vy*=max/v;}};
+  for(const p of free){p.vx=(p.x-p.px)/h;p.vy=(p.y-p.py)/h;if(p.y>=CUP.floorY-p.r-.5)p.vx/=1+6*h;cap(p,PEARL_VMAX);}
+  for(const c of w.ice){c.vx=(c.x-c.px)/h;c.vy=(c.y-c.py)/h;if(c.y+iceExtent(c)[1]>=CUP.floorY-.5)c.vx/=1+10*h;cap(c,ICE_VMAX);}
+  if(down&&inTea)w.tea=Math.max(0,w.tea-h*(w.pulling?DRAIN_PEARL:DRAIN_TEA));
+}
+function scoreOf(w){
+  const base=w.caught*PEARL_PTS;
+  if(w.caught<w.total)return base;
+  return base+Math.round(Math.max(0,ROUND_S-w.clearAt)*TIME_PTS)+Math.round(w.tea*TEA_PTS);
+}
+// First match wins. jackpot is the game's 1-in-16 roll: a free refill from her, shown only on a round with at
+// least one pearl and no ズゴゴゴ. It changes the ending shown, never the cup or the score.
+function chooseEndingId(w,jackpot=false){
+  const n=w.caught, total=w.total;
+  if(w.emptyT>=ZUGOGO_S)return 'zugogo';
+  if(jackpot&&n>0)return 'refill';
+  if(n===total)return w.tea>=SNIPER_TEA?'sniper':'kanin';
+  if(n===0)return w.suckT>=.1?'teaonly':'nothing';
+  return n>=total*MOST?'most':n>=total*HALF?'half':'few';
+}
+/* PHYSICS-END */
+
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const URL_PUBLIC = 'https://lys-games.github.io/mini-games/pearl/';
+const HASHTAG = '#最後のタピオカ';
+const ROUND_MS = ROUND_S*1000, END_TO_REVEAL_MS = 1400, JACKPOT_ODDS = 1/16, TOUCH_LIFT = 40;
+// Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: kind to cruel.
+const ENDINGS = [
+  {"id":"refill","name":"おかわり無料","verdict":"大当たり！16杯に1杯、もちこがおかわりをサービス。","line":"いい飲みっぷり！おかわり、サービスしちゃう！","hint":"まだ見ていない結末を探そう。","mood":"happy"},
+  {"id":"sniper","name":"粒だけ一本釣り","verdict":"お茶はたっぷり残して、タピオカだけ全部。","line":"え、粒だけ全部！？吸い方がプロすぎる…！","hint":"お茶もタピオカも、ぜんぶ飲みきると…？","mood":"amazed"},
+  {"id":"kanin","name":"完飲","verdict":"一粒残らず、きれいに飲みきった。","line":"全部飲んでくれた…作ってよかったぁ…！","hint":"お茶を残して、粒だけ全部すくえる？","mood":"moved"},
+  {"id":"most","name":"あと一歩","verdict":"残りはほんの少し。ストローがあと一歩届かなかった。","line":"惜しい！あとちょっとだったのに〜！","hint":"氷のそばで吸うと、氷がずれるよ。","mood":"worried"},
+  {"id":"half","name":"はんぶんこ","verdict":"半分は、カップの底に置いてきた。","line":"残った子たち、ちょっとさみしそう…。","hint":"粒の真上で、短くチュッと吸うのがコツ。","mood":"sad"},
+  {"id":"few","name":"ちょびっと","verdict":"ほとんどの粒が、氷の下でお留守番。","line":"え、もう行っちゃうの？まだいっぱいあるよ…？","hint":"押しっぱなしだと、お茶がすぐなくなるよ。","mood":"sad"},
+  {"id":"teaonly","name":"お茶だけ飲み","verdict":"お茶だけ飲んで、タピオカは全部残した。","line":"タピオカ屋さんで、それやる…？","hint":"16杯に1杯、もちこから何かあるらしい…。","mood":"disappointed"},
+  {"id":"zugogo","name":"ズゴゴゴ魔","verdict":"空っぽのカップで、ずっとズゴゴゴ。","line":"お店じゅうに響いてるから！もうやめて〜！","hint":"粒をねらって、短く吸ってみよう。","mood":"angry"},
+  {"id":"nothing","name":"手つかず","verdict":"ひと口も飲まずに、帰っていった。","line":"せっかく作ったのに…飲まないんだ…。","hint":"押しているあいだだけ、ストローで吸えるよ。","mood":"sad"}
+];
+const endingById = id => ENDINGS.find(e => e.id === id);
+const CLERK_NAME = 'もちこ';
+const INTRO_TEXT = '底のタピオカ、残さず飲んでってね！';
+const CATCH_LINES = [
+  {"id":"catch0","text":"いい音！"},
+  {"id":"catch1","text":"ナイス！"},
+  {"id":"catch2","text":"上手〜！"},
+  {"id":"catch3","text":"その調子！"}
+];
+const SLURP_LINES = [
+  {"id":"slurp0","text":"ちょっと、音！"},
+  {"id":"slurp1","text":"もう空っぽだよ！？"},
+  {"id":"slurp2","text":"ズゴゴはやめて〜！"}
+];
+const IDLE_LINES = [
+  {"id":"idle0","text":"…飲まないの？"},
+  {"id":"idle1","text":"あれ？どうしたの？"}
+];
+// What ?card=<id> leaves in the cup: pearls caught and tea left.
+const CARD_STATE = {refill:{n:13,tea:0},sniper:{n:16,tea:.45},kanin:{n:16,tea:0},most:{n:13,tea:0},half:{n:8,tea:0},few:{n:3,tea:.1},teaonly:{n:0,tea:0},zugogo:{n:6,tea:0},nothing:{n:0,tea:1}};
+const clamp = clampN;
+const rand = (a,b) => a + Math.random()*(b-a);
+const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
+const show = (id,on) => { $(id).hidden = !on; };
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+
+/* ---------- layout ---------- */
+// Stage units: 400 wide. Each screen group shows a band of the stage between its UI blocks.
+const VIEW = {home:[14,712], play:[14,712], result:[14,430]};
+let scale=1, ox=0, oy=0, dpr=1, sizes=null, targets={}, layoutState=null;
+function measureLayout() {
+  // Measure every panel with its longest content in a hidden copy, so the scene never jumps on content.
+  const ui=$('ui'), box=ui.getBoundingClientRect(), copy=ui.cloneNode(true);
+  copy.removeAttribute('id');copy.inert=true;copy.setAttribute('aria-hidden','true');copy.style.visibility='hidden';
+  const el=id=>copy.querySelector('#'+id);
+  for(const id of ['title','hud','home','result'])el(id).hidden=false;
+  el('tip').style.display='none';el('bubble').hidden=true;
+  el('save').style.display=TOUCH?'inline-flex':'none';
+  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  document.body.append(copy);
+  const top=copy.getBoundingClientRect().top, bottom=copy.getBoundingClientRect().bottom;
+  const title=el('title').getBoundingClientRect().bottom-top;
+  const hud=el('hud').getBoundingClientRect().bottom-top;
+  const homeTop=el('home').getBoundingClientRect().top-top;
+  let resultTop=bottom;
+  for(const e of ENDINGS) {
+    el('ending-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
+    el('best').textContent='16粒 / 16粒 · 新記録！ 自己ベスト 2,700点';
+    resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
+  }
+  copy.remove();
+  return {title,hud,homeTop,resultTop:resultTop-top,height:bottom-top,top:box.top};
+}
+function fit(group) {
+  const top=sizes.top+(group==='home'?sizes.title+2:group==='play'?sizes.hud+4:4);
+  const bottom=sizes.top+(group==='home'?sizes.homeTop-8:group==='play'?sizes.height:sizes.resultTop-6);
+  const [y0,y1]=VIEW[group];
+  const k=Math.max(.2,Math.min((Math.min(innerWidth,520)-8)/400,(bottom-top)/(y1-y0)));
+  const extra=Math.max(0,(bottom-top)-(y1-y0)*k);
+  return {scale:k,ox:(innerWidth-400*k)/2,oy:top-y0*k+(group==='play'?extra:extra/2)};
+}
+const layoutGroup=()=>state==='home'?'home':state==='reveal'||state==='done'?'result':'play';
+function easeLayout(dt) {
+  const t=targets[layoutGroup()];if(!t)return;
+  const a=REDUCED||!dt?1:1-Math.exp(-9*dt);
+  scale+=(t.scale-scale)*a;ox+=(t.ox-ox)*a;oy+=(t.oy-oy)*a;
+}
+function resize() {
+  layoutState=state;
+  const first=!sizes;
+  sizes=measureLayout();
+  for(const g of ['home','play','result'])targets[g]=fit(g);
+  if(first)({scale,ox,oy}=targets[layoutGroup()]);
+  dpr=Math.min(devicePixelRatio||1,2.5);
+  const w=Math.round(innerWidth*dpr), h=Math.round(innerHeight*dpr);
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+}
+const stageToUi=(x,y)=>{const box=$('ui').getBoundingClientRect();return {x:ox+x*scale-box.left,y:oy+y*scale-box.top,w:box.width};};
+// The bubble hangs under her mouth, its tail pointing at it.
+// The bubble sits to the right of her face, its tail pointing at her mouth, and stays above the straw's top
+// end so it never covers the cup.
+const MOUTH=[128,136];
+function bubble(text,{shout=false}={}) {
+  $('bubble-text').textContent=text;$('bubble').style.visibility='';$('bubble').classList.toggle('shout',shout);
+  bubbleHideAt=0;placeBubble();
+}
+function placeBubble() {
+  const b=$('bubble'), p=stageToUi(...MOUTH), floor=stageToUi(0,STRAW_TOP-4).y, left=p.x+16;
+  b.style.maxWidth=clamp(p.w-left-6,140,300)+'px';
+  const h=b.offsetHeight, top=clamp(p.y-h/2,4,floor-h);
+  b.style.left=left+'px';b.style.top=top+'px';b.style.setProperty('--tail',clamp(p.y-top,16,h-16)+'px');
+}
+addEventListener('resize',resize);
+new ResizeObserver(resize).observe($('ui'));
+document.fonts?.ready.then(resize);
+
+/* ---------- audio ---------- */
+// Optional files: a missing or undecodable recording is skipped silently.
+const AUDIO_NAMES=['k_select_003','k_bong_001','k_confirmation_001','k_maximize_003',
+  'v_title','v_intro','v_c3','v_c2','v_c1',...[...CATCH_LINES,...SLURP_LINES,...IDLE_LINES].map(l=>'v_'+l.id),...ENDINGS.flatMap(e=>['v_rank_'+e.id,'v_say_'+e.id])];
+const rawAudio={}, buffers={}, decoded={}, speakers={};
+for(const name of AUDIO_NAMES) rawAudio[name]=fetch('sfx/'+name+'.mp3').then(r=>r.ok?r.arrayBuffer():null).catch(()=>null);
+let ac=null, master=null, slurp=null;
+function initAudio() {
+  try {
+    if(ac){ac.resume().catch(()=>{});return;}
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    ac=new Ctx();master=ac.createGain();master.gain.value=.8;master.connect(ac.destination);
+    for(const name of AUDIO_NAMES) decoded[name]=rawAudio[name].then(async b=>{if(b)try{buffers[name]=await ac.decodeAudioData(b);}catch(_){}});
+    slurp=makeSlurp();
+    ac.resume().catch(()=>{});
+  } catch(_) {}
+}
+function play(name,volume=1,rate=1,delay=0) {
+  if(!ac||!buffers[name])return null;
+  const source=ac.createBufferSource(), gain=ac.createGain();source.buffer=buffers[name];source.playbackRate.value=rate;gain.gain.value=volume;
+  source.connect(gain);gain.connect(master);source.start(ac.currentTime+delay);return source;
+}
+// The straw: looping noise through a band-pass, chopped by a low oscillator into a gurgle.
+// Quiet and soft while it drinks tea, loud and rattling (ズゴゴゴ) when it sucks air.
+function makeSlurp() {
+  try {
+    const len=ac.sampleRate*2, buf=ac.createBuffer(1,len,ac.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    const src=ac.createBufferSource();src.buffer=buf;src.loop=true;
+    const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=500;bp.Q.value=1.4;
+    const am=ac.createGain();am.gain.value=.55;
+    const lfo=ac.createOscillator();lfo.type='square';lfo.frequency.value=8;
+    const depth=ac.createGain();depth.gain.value=.45;lfo.connect(depth);depth.connect(am.gain);
+    const out=ac.createGain();out.gain.value=0;
+    src.connect(bp);bp.connect(am);am.connect(out);out.connect(master);src.start();lfo.start();
+    return {bp,lfo,out};
+  } catch(_) { return null; }
+}
+function updateSlurp(mode) {
+  if(!slurp||!ac)return;
+  const t=ac.currentTime;
+  const [vol,freq,rate]=mode==='empty'?[.9,rand(750,1100),rand(14,19)]:mode==='tea'?[.16,380,7]:[0,500,8];
+  slurp.out.gain.setTargetAtTime(vol,t,mode?.02:.04);slurp.bp.frequency.setTargetAtTime(freq,t,.03);slurp.lfo.frequency.setTargetAtTime(rate,t,.05);
+}
+// A pearl popping into the straw: a short rising bloop.
+function plop() {
+  if(!ac||ac.state!=='running')return;
+  try {
+    const o=ac.createOscillator(), g=ac.createGain(), t=ac.currentTime, f=rand(230,300);
+    o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*3.4,t+.07);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.11);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+.13);
+  } catch(_) {}
+  play('k_maximize_003',.22,1.7,.05);
+}
+// Ice knocking on the cup wall.
+function clink() {
+  if(!ac||ac.state!=='running')return;
+  try {
+    const t=ac.currentTime;
+    for(const [f,v] of [[rand(2100,2600),.09],[rand(3300,3800),.05]]){const o=ac.createOscillator(), g=ac.createGain();o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);o.connect(g);g.connect(master);o.start(t);o.stop(t+.14);}
+  } catch(_) {}
+}
+// One voice per speaker. She never cuts herself off: a line waits for the current one.
+let clerkUntil=0, bubbleHideAt=0;
+function voice(speaker,name,rate=1) { try{speakers[speaker]?.stop();}catch(_){} speakers[speaker]=play('v_'+name,1,rate); }
+const lineMs=id=>(buffers['v_'+id]?.duration??1.2)*1000;
+function sayClerk(text,id,opts={}) {
+  const now=performance.now();if(now<clerkUntil)return false;
+  // During play, no line starts that would run past the end of the round.
+  if(state==='play'&&now+lineMs(id)>playStart+ROUND_MS)return false;
+  bubble(text,opts);voice('clerk',id);clerkUntil=now+lineMs(id)+150;
+  if(state==='play'||state==='count')bubbleHideAt=now+Math.max(1400,lineMs(id)+500);
+  return true;
+}
+async function sayClerkQueued(text,id,g,opts={}) {
+  const left=clerkUntil-performance.now();if(left>0)await wait(left);
+  if(g!==generation)return;sayClerk(text,id,opts);
+}
+function stopVoices() { for(const s of Object.values(speakers))try{s?.stop();}catch(_){} clerkUntil=0; }
+const pick=(list,last)=>{const options=list.filter(l=>l.id!==last);return options[Math.floor(Math.random()*options.length)];};
+let lastCatch=null, lastSlurp=null, lastIdle=null;
+
+/* ---------- round ---------- */
+let state='home', generation=0, hasStarted=false, playStart=0, endAt=0, hiddenAt=0, lastFrame=0;
+let world=createWorld(7), ending=null, mood='watch', moodUntil=0, saidIdle=false, saidSlurp=false, lastClink=0, fx=[], confetti=[], flash=0;
+const finger={x:200,y:600,down:false,id:null};
+let keyDown=false;
+// The best is a score; the key changed when the score replaced the pearl count.
+let best=null;try{const b=Number(localStorage.getItem('pearl.bestScore'));if(b>0)best=b;}catch(_){}
+const fmt = n => n.toLocaleString('ja-JP');
+function setMood(m,ms=0) { mood=m;moodUntil=ms?performance.now()+ms:0; }
+function updateHud() {
+  $('score-n').textContent=String(world.caught);$('score-of').textContent=`粒 / ${world.total}`;
+  $('fill').style.width=(world.tea*100)+'%';
+  $('meter').setAttribute('aria-valuenow',String(Math.round(world.tea*100)));
+}
+async function start() {
+  initAudio();const first=!hasStarted, g=++generation;hasStarted=true;
+  state='intro';ending=null;fx=[];confetti=[];shareFile=null;saidIdle=saidSlurp=false;stopVoices();
+  world=createWorld(Math.floor(Math.random()*1e9));
+  finger.x=world.tip.x;finger.y=world.tip.y;
+  for(const id of ['title','home','result'])show(id,false);
+  $('count').classList.remove('small');
+  show('hud',true);$('timebar').style.transform='scaleX(1)';$('save').style.display='none';$('tip').style.display='none';updateHud();
+  // The first tap creates the AudioContext; give the opening sounds a moment to decode.
+  if(first){await Promise.race([Promise.all(['k_select_003','v_title','v_intro'].map(n=>decoded[n])),wait(500)]);if(g!==generation)return;}
+  play('k_select_003',.7);
+  if(first) {
+    setMood('talk');voice('host','title');
+    await wait(1100);if(g!==generation)return;
+    sayClerk(INTRO_TEXT,'intro');
+    await wait(Math.max(2300,lineMs('intro')+200));if(g!==generation)return;
+  }
+  // The countdown: aim now, the straw already follows the finger.
+  state='count';setMood('watch');
+  bubble('じーっ…');
+  for(const n of [3,2,1]){$('count').textContent=String(n);show('count',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return;}
+  show('count',false);
+  state='play';playStart=performance.now();hiddenAt=document.hidden?playStart:0;world.t=0;
+  $('bubble').style.visibility='hidden';
+  setMood('watch');
+}
+$('go').onclick=start;$('again').onclick=start;
+function onCatch(e) {
+  plop();updateHud();
+  if(!REDUCED){const el=$('score');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}
+  fx.push({text:'チュポッ',x:world.tip.x,y:world.tip.y-40,born:performance.now(),life:700,color:'#fff'});
+  setMood('happy',800);
+  // Randomized and not on every pearl, so the lines stay a reaction and not a metronome.
+  if(Math.random()<.45){const l=pick(CATCH_LINES,lastCatch);if(sayClerk(l.text,l.id))lastCatch=l.id;}
+}
+function playTick(now) {
+  const el=now-playStart;
+  const input={x:finger.x,y:finger.y,down:finger.down||keyDown};
+  const events=stepWorld(world,input,dtFrame);
+  for(const e of events){
+    if(e.type==='catch')onCatch(e);
+    else if(e.type==='out')fx.push({text:'ゴクッ',x:world.tip.x+44,y:STRAW_TOP+6,born:now,life:500,color:'#fff',size:22});
+    else if(e.type==='clink'&&now-lastClink>110){lastClink=now;clink();}
+  }
+  updateSlurp(world.emptyNow?'empty':world.sucking?'tea':null);
+  updateHud();
+  $('timebar').style.transform=`scaleX(${Math.max(0,1-el/ROUND_MS)})`;
+  if(world.emptyRun>.6){
+    if(now>=moodUntil)setMood('angry',500);
+    if(!saidSlurp||world.emptyRun>2.2){const l=pick(SLURP_LINES,lastSlurp);if(sayClerk(l.text,l.id)){lastSlurp=l.id;saidSlurp=true;world.emptyRun=.6;}}
+  }
+  if(!saidIdle&&el>2400&&world.suckT<.05){const l=pick(IDLE_LINES,lastIdle);if(sayClerk(l.text,l.id)){lastIdle=l.id;saidIdle=true;setMood('worried',2500);}}
+  if(moodUntil&&now>=moodUntil)setMood(world.tea<=0&&world.sucking?'worried':'watch');
+  if(el>=ROUND_MS)finish();
+}
+async function finish(forced) {
+  if(state!=='play')return;
+  const g=generation;state='end';endAt=performance.now();finger.down=keyDown=false;updateSlurp(null);
+  ending=forced||endingById(chooseEndingId(world,Math.random()<JACKPOT_ODDS));
+  $('timebar').style.transform='scaleX(0)';show('hud',false);
+  if(!forced){$('count').textContent='そこまで！';$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);}
+  setMood('talk');
+  await wait(forced?300:END_TO_REVEAL_MS);if(g!==generation)return;
+  show('count',false);
+  state='reveal';setMood(ending.mood);
+  const kind=['refill','sniper','kanin'].includes(ending.id);
+  play(kind?'k_confirmation_001':'k_bong_001',kind?.8:.4,kind?1:.7);voice('host','rank_'+ending.id);
+  if(kind&&!REDUCED)for(let i=0;i<34;i++)confetti.push({x:rand(30,370),y:rand(40,200),vx:rand(-60,60),vy:rand(-120,-20),r:rand(3,6),life:rand(1,1.8),color:['#ff5d8f','#ffcf3f','#fff','#6fd3ff'][i%4]});
+  setTimeout(()=>{if(g!==generation)return;sayClerkQueued(ending.line,'say_'+ending.id,g);},1150);
+  await wait(600);if(g!==generation)return;
+  state='done';
+  const n=world.caught, score=scoreOf(world);
+  $('ending-name').textContent=ending.name;$('verdict').textContent=ending.verdict;$('hint').textContent=ending.hint;
+  const newBest=!CARD_MODE&&score>0&&(best===null||score>best);
+  if(newBest){best=score;try{localStorage.setItem('pearl.bestScore',String(best));}catch(_){}}
+  const parts=[`${n}粒 / ${world.total}粒`];if(best)parts.push((newBest?'新記録！ ':'')+`自己ベスト ${fmt(best)}点`);
+  $('best').textContent=parts.join(' · ');
+  countUp(score,g);
+  shareText=n===0
+    ? `${CLERK_NAME}「${ending.line}」\nタピオカを1粒も飲まなかった【${ending.name}】\nあなたは全部飲める？ ${HASHTAG}`
+    : `${CLERK_NAME}「${ending.line}」\nタピオカ${n}粒で${fmt(score)}点【${ending.name}】\nあなたは何点？ ${HASHTAG}`;
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+ending.id+'.html');
+  if(CARD_MODE){resize();({scale,ox,oy}=targets.result);showPicture(await drawShareImage({ending}));return;}
+  show('result',true);
+  prepareShare({ending,pearls:n,score},g);
+}
+function countUp(n,g) {
+  const el=$('pearls-n'), t0=performance.now(), ms=REDUCED||n<3?0:800;
+  const tick=now=>{if(g!==generation)return;const k=ms?Math.min(1,(now-t0)/ms):1;el.textContent=fmt(Math.round(n*(1-(1-k)**3)));if(k<1)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);
+}
+
+/* ---------- input: one finger, or the mouse (hold the button to suck) ---------- */
+const toStage=e=>({x:(e.clientX-ox)/scale,y:(e.clientY-oy)/scale-(e.pointerType==='mouse'?0:TOUCH_LIFT)});
+const aiming=()=>['intro','count','play'].includes(state);
+cv.addEventListener('pointerdown',e=>{
+  if(!aiming())return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();initAudio();
+  // A finger that lands during the intro or countdown keeps holding into play and sucks from the first frame.
+  try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  Object.assign(finger,toStage(e),{down:true,id:e.pointerId});
+});
+cv.addEventListener('pointermove',e=>{
+  if(!aiming())return;
+  if(finger.down?e.pointerId===finger.id:e.pointerType==='mouse')Object.assign(finger,toStage(e));
+});
+const lift=e=>{if(e.pointerId===finger.id){finger.down=false;finger.id=null;}};
+cv.addEventListener('pointerup',lift);cv.addEventListener('pointercancel',lift);
+addEventListener('keydown',e=>{if((e.code==='Space'||e.key===' ')&&aiming()){e.preventDefault();initAudio();keyDown=true;}});
+addEventListener('keyup',e=>{if(e.code==='Space'||e.key===' ')keyDown=false;});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(state==='play')hiddenAt=performance.now();finger.down=keyDown=false;updateSlurp(null);ac?.suspend().catch(()=>{});}
+  else {if(hiddenAt&&state==='play'){playStart+=performance.now()-hiddenAt;}hiddenAt=0;if(ac)ac.resume().catch(()=>{});}
+  show('paused',document.hidden&&state==='play');
+});
+
+/* ---------- art ---------- */
+const INK='#2b1b14', SKIN='#ffd9bd', SKIN_DARK='#f0b994', HAIR='#3f2a22', WHITE='#fffdf6', PINK='#ff5d8f', MUSTARD='#ffc93c', BG='#8fe3cc', TEAR='#6cc7ff';
+const TEA='#c98d5c', TEA_TOP='#e2b285', PEARL='#3a2219';
+const CLERK={x:70,y:104};
+function ellipse(c,x,y,rx,ry,fill,stroke=true) { c.beginPath();c.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill();}if(stroke)c.stroke(); }
+function poly(c,points,fill) { c.beginPath();c.moveTo(...points[0]);for(const p of points.slice(1))c.lineTo(...p);c.closePath();if(fill){c.fillStyle=fill;c.fill();}c.stroke(); }
+function line(c,pts,width,color=INK) { c.beginPath();c.moveTo(pts[0],pts[1]);if(pts.length===6)c.quadraticCurveTo(pts[2],pts[3],pts[4],pts[5]);else c.lineTo(pts[2],pts[3]);c.lineWidth=width;c.strokeStyle=color;c.stroke(); }
+function star(c,x,y,r,fill) { c.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4, rr=i%2?r*.36:r;c.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}c.closePath();c.fillStyle=fill;c.fill();c.lineWidth=2;c.strokeStyle=INK;c.stroke(); }
+// Face presets, drawn in a 0,184-centred head. brow > 0 lifts the inner ends (worry), < 0 lowers them (anger).
+const FACES={
+  watch:{brow:0,eye:'dot',mouth:'smile'},
+  talk:{brow:0,eye:'dot',mouth:'open'},
+  happy:{brow:-.1,eye:'happy',mouth:'grin'},
+  moved:{brow:.5,eye:'happy',mouth:'smileWobble',tears:'joy'},
+  amazed:{brow:.35,eye:'star',mouth:'O',sparkle:1},
+  shock:{brow:.5,eye:'wide',mouth:'O',sparkle:1,sweat:1},
+  angry:{brow:-.6,eye:'narrow',mouth:'grit',anger:1},
+  worried:{brow:.55,eye:'dot',mouth:'wobble',sweat:1},
+  sad:{brow:.6,eye:'dot',mouth:'frown',tears:'drop'},
+  disappointed:{brow:.25,eye:'half',mouth:'flat',gloom:1},
+};
+function drawEye(c,x,kind,t,side) {
+  c.strokeStyle=INK;c.lineWidth=4;
+  if(kind==='dot'){ellipse(c,x,190,6,8.5,INK,false);ellipse(c,x-2,186,2,2.5,'#fff',false);}
+  else if(kind==='happy')line(c,[x-10,194,x,180,x+10,194],4.5);
+  else if(kind==='wide'){ellipse(c,x,188,12,13,'#fff');ellipse(c,x,189,4,4,INK,false);}
+  else if(kind==='star'){ellipse(c,x,189,11,12,INK,false);star(c,x,189,7,'#fff');}
+  else if(kind==='narrow'){line(c,[x-10,186+side*-3,x+10,186+side*3],4.5);ellipse(c,x,192,4,4,INK,false);}
+  else if(kind==='half'){line(c,[x-10,188,x+10,188],4);c.beginPath();c.arc(x,188,8,0,Math.PI);c.fillStyle=INK;c.fill();}
+}
+function drawFace(c,m,t) {
+  const f=FACES[m]||FACES.watch;
+  c.lineCap='round';
+  for(const s of [-1,1]){const b=f.brow;line(c,[s*8,166-b*10,s*20,160-Math.abs(b)*2,s*32,165+b*7],5,HAIR);}
+  for(const s of [-1,1])drawEye(c,s*20,f.eye,t,s);
+  c.save();c.globalAlpha=.5;for(const s of [-1,1])ellipse(c,s*33,210,9,5.5,'#ff8fa3',false);c.restore();
+  c.strokeStyle=INK;c.lineWidth=4;
+  const mo=f.mouth, mf='#a8323f';
+  if(mo==='smile')line(c,[-9,216,0,223,9,216],4);
+  else if(mo==='grin'){c.beginPath();c.moveTo(-14,214);c.quadraticCurveTo(0,236,14,214);c.closePath();c.fillStyle=mf;c.fill();c.stroke();}
+  else if(mo==='open')ellipse(c,0,220,7,5+Math.abs(Math.sin(t*.018))*3,mf);
+  else if(mo==='O')ellipse(c,0,222,8,11,mf);
+  else if(mo==='smileWobble'){c.beginPath();c.moveTo(-13,217);for(let i=1;i<=6;i++)c.lineTo(-13+i*4.4,217+(i%2?3:0)+Math.sin(i/6*Math.PI)*4);c.stroke();}
+  else if(mo==='grit'){c.beginPath();c.roundRect(-14,212,28,13,4);c.fillStyle='#fff';c.fill();c.stroke();line(c,[-14,218.5,14,218.5],2.5);}
+  else if(mo==='frown')line(c,[-12,224,0,213,12,224],4.5);
+  else if(mo==='wobble'){c.beginPath();c.moveTo(-12,219);for(let i=1;i<=6;i++)c.lineTo(-12+i*4,219+(i%2?-3:2));c.stroke();}
+  else if(mo==='flat')line(c,[-9,219,9,219],4.5);
+  c.lineWidth=3;c.strokeStyle=INK;
+  if(f.tears==='joy')for(const s of [-1,1]){const k=(t*.002)%1;line(c,[s*26,194,s*38,206+k*4,s*34,230],6,TEAR);ellipse(c,s*34,234+k*10,4,5,TEAR,false);}
+  if(f.tears==='drop')for(const s of [-1,1]){const k=(t*.0012+(s>0?.5:0))%1;c.beginPath();c.ellipse(s*21,200+k*28,4,6,0,0,7);c.fillStyle=TEAR;c.fill();}
+  if(f.sweat){const y=150+((t*.03)%6);c.beginPath();c.moveTo(48,y-9);c.quadraticCurveTo(55,y+3,48,y+5);c.quadraticCurveTo(41,y+3,48,y-9);c.fillStyle=TEAR;c.fill();c.lineWidth=2.5;c.stroke();}
+  if(f.anger){c.save();c.translate(44,136);c.rotate(Math.sin(t*.02)*.1);c.lineWidth=4;c.strokeStyle='#e8392b';for(const a of [0,1,2,3]){c.save();c.rotate(a*Math.PI/2);line(c,[4,-10,4,-4,10,-4],4,'#e8392b');c.restore();}c.restore();}
+  if(f.sparkle)for(let i=0;i<3;i++){const a=t*.002+i*2.1;star(c,Math.cos(a)*78,170+Math.sin(a)*60,7+Math.sin(t*.01+i)*2,'#fff');}
+  if(f.gloom){c.save();c.globalAlpha=.55;for(const x of [-26,-12,2,16])line(c,[x,128,x,152],3,'#5b6bd6');c.restore();}
+}
+// The clerk stands behind her counter at the top left, hands on it, watching you drink.
+function drawClerk(c,t) {
+  c.save();c.translate(CLERK.x,CLERK.y);
+  const bob=state==='play'?0:Math.sin(t*.003)*1.5, hop=mood==='happy'||mood==='shock'?-Math.abs(Math.sin(t*.02))*4:0;
+  c.translate(0,bob+hop);c.scale(.93,.93);c.translate(0,-184);
+  c.lineJoin=c.lineCap='round';c.strokeStyle=INK;c.lineWidth=4;
+  // Shirt and apron down to the counter.
+  c.beginPath();c.moveTo(-96,380);c.lineTo(-88,290);c.quadraticCurveTo(-80,258,-44,252);c.lineTo(44,252);c.quadraticCurveTo(80,258,88,290);c.lineTo(96,380);c.closePath();c.fillStyle=WHITE;c.fill();c.stroke();
+  c.beginPath();c.moveTo(-50,380);c.lineTo(-46,286);c.quadraticCurveTo(0,276,46,286);c.lineTo(50,380);c.closePath();c.fillStyle=MUSTARD;c.fill();c.stroke();
+  line(c,[-42,288,-30,252],5);line(c,[42,288,30,252],5);
+  c.beginPath();c.roundRect(-30,302,60,24,6);c.fillStyle='#fff';c.fill();c.stroke();
+  c.font=`700 15px ${DISPLAY_FONT}`;c.fillStyle=INK;c.textAlign='center';c.textBaseline='middle';c.fillText('もちこ',0,315);
+  ellipse(c,0,240,17,20,SKIN);
+  // Hair: two buns, then the head and the fringe.
+  for(const s of [-1,1]){ellipse(c,s*44,122,24,23,HAIR);ellipse(c,s*30,136,9,6,MUSTARD);}
+  ellipse(c,0,178,60,62,HAIR);
+  for(const s of [-1,1])ellipse(c,s*52,196,8,12,SKIN);
+  ellipse(c,0,190,50,52,SKIN);
+  c.beginPath();c.moveTo(-54,196);c.quadraticCurveTo(-62,124,0,122);c.quadraticCurveTo(62,124,54,196);c.quadraticCurveTo(46,160,28,154);c.quadraticCurveTo(14,166,6,150);c.quadraticCurveTo(-12,166,-22,152);c.quadraticCurveTo(-46,160,-54,196);c.closePath();c.fillStyle=HAIR;c.fill();c.stroke();
+  drawFace(c,mood,t);
+  c.restore();
+}
+function drawShop(c,t) {
+  c.fillStyle=BG;c.fillRect(-600,-600,1600,2200);
+  // Polka dots on the wall.
+  for(let r=0;r<5;r++)for(let x=-200;x<620;x+=46)ellipse(c,x+(r%2?23:0),-30+r*46,7,7,'#a9ecd9',false);
+  // A small menu board with three generic drinks, tucked in the top-right corner.
+  c.save();c.translate(388,12);c.scale(.7,.7);c.translate(-388,-12);c.strokeStyle=INK;c.lineWidth=4;c.lineJoin='round';
+  c.beginPath();c.roundRect(244,12,144,134,12);c.fillStyle='#33524a';c.fill();c.stroke();
+  for(let i=0;i<3;i++){
+    const x=274+i*44, y=46;
+    c.lineWidth=2.5;c.strokeStyle='#fff';c.beginPath();c.moveTo(x-14,y);c.lineTo(x-10,y+40);c.lineTo(x+10,y+40);c.lineTo(x+14,y);c.closePath();c.fillStyle=['#e2b285','#f7a8c4','#c6e88f'][i];c.fill();c.stroke();
+    line(c,[x+4,y-18,x+2,y+30],3,'#fff');
+    for(const k of [-6,0,6])ellipse(c,x+k,y+34,3,3,'#3a2219',false);
+    line(c,[x-12,y+56,x+12,y+56],3,'#fff');
+  }
+  c.restore();
+}
+function drawCounter(c) {
+  c.save();c.strokeStyle=INK;c.lineWidth=4;
+  c.fillStyle='#f3b67a';c.fillRect(-600,192,1600,1400);
+  for(let x=-200;x<620;x+=40)line(c,[x,210,x,1200],3,'#e3a46c');
+  c.strokeStyle=INK;c.lineWidth=4;c.beginPath();c.rect(-600,182,1600,14);c.fillStyle='#fff4e0';c.fill();c.stroke();
+  // Her hands resting on the counter.
+  for(const s of [-1,1])ellipse(c,CLERK.x+s*44,186,15,11,SKIN);
+  c.restore();
+}
+function cupPath(c) { c.beginPath();c.moveTo(CUP.rimL,CUP.rimY);c.lineTo(CUP.floorL,CUP.floorY);c.lineTo(CUP.floorR,CUP.floorY);c.lineTo(CUP.rimR,CUP.rimY);c.closePath(); }
+function drawCupBack(c) {
+  c.save();
+  ellipse(c,200,CUP.floorY+14,150,12,'rgba(43,27,20,.18)',false);
+  cupPath(c);c.fillStyle='rgba(255,255,255,.32)';c.fill();
+  c.strokeStyle='rgba(43,27,20,.35)';c.lineWidth=3;c.beginPath();c.ellipse(200,CUP.rimY,(CUP.rimR-CUP.rimL)/2,14,0,Math.PI,Math.PI*2);c.stroke();
+  // A light film of tea on the walls where it used to be.
+  c.save();cupPath(c);c.clip();c.fillStyle='rgba(201,141,92,.16)';c.fillRect(0,CUP.floorY-TEA_H-30,400,30);c.restore();
+  c.restore();
+}
+function drawTea(c,w) {
+  if(w.tea<=0)return;
+  const y=teaSurface(w);
+  c.save();cupPath(c);c.clip();
+  c.fillStyle=TEA;c.fillRect(0,y,400,CUP.floorY-y+4);
+  ellipse(c,200,y,(wallX(y,1)-wallX(y,-1))/2,5,TEA_TOP,false);
+  c.restore();
+}
+function drawPearl(c,x,y,r) {
+  c.lineWidth=3;c.strokeStyle=INK;
+  ellipse(c,x,y,r,r,PEARL);
+  ellipse(c,x-r*.35,y-r*.38,r*.3,r*.22,'rgba(255,255,255,.6)',false);
+}
+function drawIce(c,w) {
+  for(const ice of w.ice){
+    c.save();c.translate(ice.x,ice.y);c.rotate(ice.a);
+    c.beginPath();c.roundRect(-ice.hw,-ice.hh,ice.hw*2,ice.hh*2,7);c.fillStyle='rgba(226,247,255,.72)';c.fill();
+    c.lineWidth=3;c.strokeStyle='rgba(43,27,20,.75)';c.stroke();
+    c.lineWidth=4;c.strokeStyle='rgba(255,255,255,.9)';c.beginPath();c.moveTo(-ice.hw+8,-ice.hh+12);c.lineTo(-ice.hw+8,-ice.hh+7);c.lineTo(-ice.hw+20,-ice.hh+7);c.stroke();
+    c.restore();
+  }
+}
+// The straw ends at STRAW_TOP, inside the stage, so it never runs under the title or the HUD.
+function drawStraw(c,w,t) {
+  const shake=w.emptyNow&&!REDUCED?Math.sin(t*.9)*1.6:0, x=w.tip.x+shake, y=w.tip.y, top=STRAW_TOP, r=STRAW_R;
+  c.save();
+  // Tea and pearls going up, seen through the clear wall, out of the open top end.
+  c.beginPath();c.rect(x-r,top,r*2,y-top);c.clip();
+  if(w.sucking&&!w.emptyNow){c.fillStyle='rgba(201,141,92,.55)';c.fillRect(x-r,top,r*2,y-top);}
+  for(const p of w.pearls)if(p.state==='straw')drawPearl(c,x,y-10-p.s*(y-top),p.r*.92);
+  c.restore();
+  c.save();c.fillStyle='rgba(255,196,214,.32)';c.fillRect(x-r,top,r*2,y-top);
+  c.lineWidth=4;c.strokeStyle=INK;line(c,[x-r,top,x-r,y],4);line(c,[x+r,top,x+r,y],4);
+  line(c,[x-r+6,top,x-r+6,y-6],3,'rgba(255,255,255,.85)');
+  c.lineWidth=3;ellipse(c,x,y,r,5,'rgba(255,255,255,.5)');ellipse(c,x,top,r,5,'rgba(255,255,255,.7)');
+  // Suction lines into the mouth.
+  if(w.sucking&&!REDUCED){c.globalAlpha=w.emptyNow?.35:.6;for(let i=0;i<5;i++){const a=Math.PI*(.15+i*.175), k=(t*.006+i*.37)%1, d=42-k*26;line(c,[x+Math.cos(a)*d,y+Math.sin(a)*d*.8,x+Math.cos(a)*(d-8),y+Math.sin(a)*(d-8)*.8],2.5,'#fff');}}
+  c.restore();
+}
+function drawCupFront(c) {
+  c.save();c.strokeStyle=INK;c.lineWidth=5;c.lineJoin='round';
+  line(c,[CUP.rimL,CUP.rimY,CUP.floorL,CUP.floorY],5);line(c,[CUP.rimR,CUP.rimY,CUP.floorR,CUP.floorY],5);
+  c.beginPath();c.moveTo(CUP.floorL-2,CUP.floorY);c.lineTo(CUP.floorL+2,CUP.floorY+12);c.lineTo(CUP.floorR-2,CUP.floorY+12);c.lineTo(CUP.floorR+2,CUP.floorY);c.closePath();c.fillStyle='rgba(255,255,255,.55)';c.fill();c.stroke();
+  c.beginPath();c.ellipse(200,CUP.rimY,(CUP.rimR-CUP.rimL)/2,14,0,0,Math.PI);c.lineWidth=5;c.stroke();
+  c.beginPath();c.ellipse(200,CUP.rimY,(CUP.rimR-CUP.rimL)/2,14,0,Math.PI,Math.PI*2);c.lineWidth=3;c.stroke();
+  // Shine stripes on the plastic.
+  c.globalAlpha=.6;line(c,[CUP.rimL+20,CUP.rimY+30,CUP.floorL+14,CUP.floorY-40],7,'#fff');line(c,[CUP.rimL+38,CUP.rimY+40,CUP.rimL+46,CUP.rimY+120],4,'#fff');
+  c.restore();
+}
+function outlined(c,str,x,y,size,fill,rot=0) {
+  c.save();c.translate(x,y);c.rotate(rot);c.font=`${size}px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+  c.lineWidth=size*.14;c.strokeStyle=INK;c.strokeText(str,0,size*.05);c.strokeText(str,0,0);c.fillStyle=fill;c.fillText(str,0,0);c.restore();
+}
+function drawFx(c,w,t) {
+  for(const f of fx){const k=(t-f.born)/f.life;if(k<0||k>1)continue;c.globalAlpha=k>.7?(1-k)/.3:1;outlined(c,f.text,clamp(f.x,60,340),f.y-k*30,f.size||28,f.color,-.08);c.globalAlpha=1;}
+  fx=fx.filter(f=>t-f.born<f.life);
+  if(w.emptyNow){const j=REDUCED?0:Math.sin(t*.07)*3;outlined(c,'ズゴゴゴ…',clamp(w.tip.x,130,270)+j,CUP.rimY+70+(REDUCED?0:Math.sin(t*.11)*2),38,PINK,-.06);}
+  for(const p of confetti){c.fillStyle=p.color;c.fillRect(p.x-p.r,p.y-p.r*.5,p.r*2,p.r);}
+}
+function updateConfetti(dt) {
+  for(const p of confetti){p.vy+=260*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}
+  confetti=confetti.filter(p=>p.life>0);
+}
+// The whole scene in stage units; also drawn straight into the share picture.
+function drawScene(c,t) {
+  const w=world;
+  drawShop(c,t);
+  drawClerk(c,t);
+  drawCounter(c);
+  drawCupBack(c);
+  drawTea(c,w);
+  for(const p of w.pearls)if(p.state==='free')drawPearl(c,p.x,p.y,p.r);
+  drawIce(c,w);
+  drawStraw(c,w,t);
+  drawCupFront(c);
+  drawFx(c,w,t);
+}
+let dtFrame=1/60;
+function draw(now,dt) {
+  if(layoutState!==state)resize();
+  easeLayout(dt);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle=BG;ctx.fillRect(0,0,innerWidth,innerHeight);
+  ctx.setTransform(dpr*scale,0,0,dpr*scale,ox*dpr,oy*dpr);
+  updateConfetti(dt);
+  drawScene(ctx,now);
+  if(flash>0){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=flash;ctx.fillStyle='#fff8d6';ctx.fillRect(0,0,innerWidth,innerHeight);ctx.globalAlpha=1;flash=Math.max(0,flash-dt*2);}
+  placeBubble();
+  $('count').style.top=(stageToUi(200,420).y)+'px';
+}
+function frame(now) {
+  const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;dtFrame=dt;
+  if(!document.hidden&&!CARD_THUMB){
+    if(state==='play')playTick(now);
+    else if(state==='count'||state==='end')stepWorld(world,{x:finger.x,y:finger.y,down:false},dt);
+    if(state==='end')updateSlurp(null);
+    if(bubbleHideAt&&now>=bubbleHideAt){$('bubble').style.visibility='hidden';bubbleHideAt=0;}
+    if(state!=='play'&&moodUntil&&now>=moodUntil)setMood('watch');
+  }
+  if(!document.hidden||CARD_MODE)draw(now,dt);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- share picture ---------- */
+// The framed picture is the live scene redrawn at card size, including her actual reaction.
+async function drawShareImage({ending:e,card,pearls:n,score}) {
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`,'最後のタピオカ底の、何粒すくえる？ストロー1本6秒間「」0123456789,/粒点あなたは全部飲めるとれるもちこ'+ENDINGS.map(x=>x.name+x.line).join(''));
+  const c=document.createElement('canvas');c.width=1200;c.height=675;
+  const x=c.getContext('2d');
+  x.fillStyle='#8fe3cc';x.fillRect(0,0,1200,675);
+  // Text sits on a cream panel styled like the in-game HUD (ink border, hard drop shadow).
+  x.beginPath();x.roundRect(488,42,686,599,28);x.fillStyle=INK;x.fill();
+  x.beginPath();x.roundRect(486,34,686,599,28);x.fillStyle='#fffdf6';x.fill();x.lineWidth=6;x.strokeStyle=INK;x.stroke();
+  const FX=26, FY=42, FW=430, FH=591, y0=10, k=FH/(CUP.floorY+30-y0);
+  x.save();x.beginPath();x.rect(FX,FY,FW,FH);x.clip();
+  x.setTransform(k,0,0,k,FX+FW/2-200*k,FY-y0*k);drawScene(x,performance.now());x.restore();
+  x.lineWidth=8;x.strokeStyle=INK;x.strokeRect(FX,FY,FW,FH);
+  const CX=829, MAXW=620;
+  // Dense kanji stay readable with a thin outline: dark text gets a thin white halo, pink text a thin dark
+  // edge plus a drop shadow, never a thick stroke that fills the gaps inside the glyphs.
+  const fitFont=(str,size,maxW)=>{x.font=`${size}px ${DISPLAY_FONT}`;const tw=x.measureText(str).width;if(tw>maxW){size*=maxW/tw;x.font=`${size}px ${DISPLAY_FONT}`;}return size;};
+  const text=(str,tx,ty,size,fill,maxW=MAXW,align='center')=>{
+    x.textAlign=align;x.textBaseline='middle';x.lineJoin='round';size=fitFont(str,size,maxW);
+    if(fill===INK){x.lineWidth=Math.max(3,size*.1);x.strokeStyle='#fff';x.strokeText(str,tx,ty);}
+    else{x.fillStyle=INK;x.fillText(str,tx,ty+size*.06);x.lineWidth=Math.max(2.5,size*.05);x.strokeStyle=INK;x.strokeText(str,tx,ty);}
+    x.fillStyle=fill;x.fillText(str,tx,ty);
+    return x.measureText(str).width;
+  };
+  const stamp=(str,tx,ty,size)=>{
+    x.save();x.translate(tx,ty);x.rotate(-.06);x.font=`${size}px ${DISPLAY_FONT}`;x.textAlign='center';x.textBaseline='middle';
+    const tw=x.measureText(str).width+size*.9, th=size*1.35;
+    x.beginPath();x.roundRect(-tw/2,-th/2,tw,th,size*.25);x.fillStyle='#fff';x.fill();x.lineWidth=9;x.strokeStyle=PINK;x.stroke();
+    x.fillStyle=PINK;x.fillText(str,0,size*.04);x.restore();
+  };
+  // Title: 最後の in dark, タピオカ in pink, as on the page.
+  x.font=`66px ${DISPLAY_FONT}`;const w1=x.measureText('最後の').width, w2=x.measureText('タピオカ').width, left=CX-(w1+w2)/2;
+  text('最後の',left,100,66,INK,MAXW,'left');text('タピオカ',left+w1,100,66,PINK,MAXW,'left');
+  if(card===null){
+    text('底のタピオカ、',CX,238,92,PINK);text('何粒すくえる？',CX,352,92,PINK);
+    text('ストロー1本、6秒間。',CX,498,46,INK);
+  } else {
+    // Long names use two lines so every glyph stays large.
+    const names={sniper:['粒だけ','一本釣り'],refill:['おかわり','無料'],teaonly:['お茶だけ','飲み']};
+    const lines=names[e.id]||[e.name], two=lines.length>1;
+    // A real round stamps the player's own score and pearls under the name; the static ?card pages have none.
+    if(n===undefined){
+      lines.forEach((l,i)=>text(l,CX,two?205+i*96:250,two?90:110,PINK));
+    } else {
+      lines.forEach((l,i)=>text(l,CX,two?180+i*78:206,two?74:94,PINK));
+      stamp(`${fmt(score)}点`,CX,two?352:322,60);
+      text(`タピオカ ${n}粒 / ${PEARLS}粒`,CX,two?418:390,32,INK);
+    }
+    const quote=CLERK_NAME+'「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?(two?412:400):476;
+    x.font=`36px ${DISPLAY_FONT}`;
+    if(x.measureText(quote).width>MAXW){let mid=Math.ceil(chars.length/2);{let best=-1;chars.forEach((ch,i)=>{if('、。！？…」'.includes(ch)&&i+1<chars.length&&Math.abs(i+1-chars.length/2)<chars.length/4&&(best<0||Math.abs(i+1-chars.length/2)<Math.abs(best-chars.length/2)))best=i+1;});if(best>0)mid=best;}text(chars.slice(0,mid).join(''),CX,qy-14,34,INK);text(chars.slice(mid).join(''),CX,qy+30,34,INK);}
+    else text(quote,CX,qy,36,INK);
+    text(n===undefined?'あなたは何粒すくえる？':n===0?'あなたは、全部飲める？':'あなたは何点とれる？',CX,580,42,INK);
+  }
+  return new Promise(res=>c.toBlob(res,'image/png'));
+}
+let shareFile=null, shareText='';
+async function prepareShare(shot,g) {
+  try {
+    const blob=await drawShareImage(shot);
+    if(g!==generation||!blob)return;
+    shareFile=new File([blob],'tapioca.png',{type:'image/png'});
+    // Phones that can share files: the picture is the main way to post, so its button leads.
+    const sheet=canShareFile();
+    $('save').textContent=sheet?'画像でシェア':'画像を保存';
+    $('save').className=sheet?'':'alt';
+    $('save').style.display=TOUCH?'inline-flex':'none';
+  } catch(err) { console.warn('share image',err); }
+}
+const canShareFile=()=>!!(TOUCH&&shareFile&&navigator.canShare&&navigator.share&&navigator.canShare({files:[shareFile]}));
+function download() {
+  const a=document.createElement('a'), url=URL.createObjectURL(shareFile);
+  a.href=url;a.download=shareFile.name;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+function note(text) { const el=$('tip');el.textContent=text;el.style.display='block'; }
+// On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
+// X opens after the copy, while the page still has focus.
+if(!TOUCH)$('share').innerHTML='Xでポスト<small>画像もコピー</small>';
+$('share').addEventListener('click',async e=>{
+  if(TOUCH||!shareFile)return;
+  e.preventDefault();
+  const href=$('share').href, paste=/Mac/.test(navigator.platform)?'⌘V':'Ctrl+V';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({'image/png':shareFile})]);
+    note(`リンクに結果カードが付きます。タピオカ画像も付けるなら ${paste}`);
+  } catch(err) { console.warn('clipboard',err);download();note('画像を保存しました。投稿に添付してください'); }
+  window.open(href,'_blank','noopener');
+});
+$('save').addEventListener('click',e=>{
+  e.currentTarget.blur();
+  if(!shareFile)return;
+  if(!canShareFile())return download();
+  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC}).catch(err=>{
+    if(err.name!=='AbortError'){console.warn('share',err);download();}   // AbortError: the sheet was closed
+  });
+});
+function showPicture(blob) {
+  const i=new Image();i.id='preview';i.src=URL.createObjectURL(blob);
+  i.style.cssText='position:fixed;left:0;top:0;width:1200px;height:675px;z-index:99';document.body.append(i);
+}
+
+/* ---------- boot ---------- */
+const query=new URLSearchParams(location.search), CARD_MODE=query.has('card');
+// ?card (no id) freezes a moment of play for the thumbnail: a pearl halfway up the straw.
+const CARD_THUMB=CARD_MODE&&!query.get('card')?1:0;
+resize();placeBubble();
+requestAnimationFrame(frame);
+if(CARD_MODE) {
+  show('home',false);show('title',false);$('bubble').style.visibility='hidden';
+  if(CARD_THUMB){
+    world=createWorld(11);state='play';
+    const p=world.pearls.reduce((a,b)=>Math.abs(b.x-200)<Math.abs(a.x-200)?b:a);
+    world.tip.x=p.x;world.tip.y=clamp(p.y-STRAW_R-p.r+4,TIP_MIN_Y,CUP.floorY-STRAW_R-1);p.state='straw';p.s=.35;world.caught=5;world.tea=.55;world.sucking=true;
+    setMood('happy');fx.push({text:'チュポッ',x:p.x+40,y:world.tip.y-120,born:performance.now(),life:1e9});
+    resize();setTimeout(()=>drawShareImage({card:null}).then(showPicture),300);
+  } else {
+    const forced=endingById(query.get('card'))||endingById('refill'), s=CARD_STATE[forced.id];
+    world=createWorld(23);
+    let left=s.n;for(const p of world.pearls)if(left>0){p.state='gone';left--;}
+    world.caught=s.n;world.tea=s.tea;
+    state='play';finish(forced);
+  }
+}
+</script>
+</body>
+</html>
