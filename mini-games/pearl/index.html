@@ -604,7 +604,7 @@ async function finish(forced) {
   shareText=n===0
     ? `${CLERK_NAME}「${ending.line}」\nタピオカを1粒も飲まなかった【${ending.name}】\nあなたは全部飲める？ ${HASHTAG}`
     : `${CLERK_NAME}「${ending.line}」\nタピオカ${n}粒で${fmt(score)}点【${ending.name}】\nあなたは何点？ ${HASHTAG}`;
-  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+ending.id+'.html');
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText+'\n'+URL_PUBLIC+'card/'+ending.id+'.html');
   if(CARD_MODE){resize();({scale,ox,oy}=targets.result);showPicture(await drawShareImage({ending}));return;}
   show('result',true);
   prepareShare({ending,pearls:n,score},g);
