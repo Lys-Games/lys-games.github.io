@@ -57,6 +57,7 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 #home-instructions{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:7px 10px;margin:0 4px 10px}
 #home .lead{font-size:19px;font-weight:800;line-height:1.35;margin:0}
 #home .sub{font-size:14px;font-weight:800;line-height:1.45;margin:3px 0 0}
+#home .sub small{font-size:12px;color:#6b5a50}
 #go{font-size:23px;min-width:250px;min-height:52px;padding:6px 16px}
 .credit{color:var(--ink);font-size:12px;font-weight:700;line-height:1.5;text-align:center;margin:8px 0 0;pointer-events:auto}
 .credit a{color:inherit}
@@ -76,6 +77,8 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 .actions small{font-size:11px;font-weight:700;line-height:1.3}
 #save{display:none}
 #tip{display:none;margin:6px 0 0;padding:6px;font-size:13px;font-weight:800;line-height:1.4;background:var(--ink);color:#fff;border-radius:10px}
+#suck{position:absolute;left:10px;right:10px;bottom:6px;min-height:68px;font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400;font-size:30px;letter-spacing:.2em;border-width:4px;border-radius:22px;box-shadow:0 6px 0 var(--ink);touch-action:none;-webkit-text-stroke:.06em var(--ink);paint-order:stroke fill}
+#suck.on{transform:translateY(5px);box-shadow:0 1px 0 var(--ink);background:#e2386c}
 #paused{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:20;color:#fff;font-size:24px;pointer-events:none}
 @keyframes pop{from{transform:translateY(-50%) scale(.7)}to{transform:translateY(-50%) scale(1)}}
 @keyframes bump{from{transform:scale(1.2)}to{transform:scale(1)}}
@@ -96,13 +99,14 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 </style>
 </head>
 <body>
-<canvas id="cv" aria-label="氷とタピオカが底に残った透明なカップと太いストロー、奥で見守る店員さん。プレイ中は指を置いた場所にストローが動き、押しているあいだ吸う。"></canvas>
+<canvas id="cv" aria-label="氷とタピオカが底に残った透明なカップと太いストロー、奥で見守る店員さん。プレイ中はストローをドラッグかマウスで動かし、押しているあいだ吸う。"></canvas>
 <div id="ui" class="ui-box">
   <header id="title" class="t"><span class="eyebrow">カップの底に残った、あの粒</span><h1>最後の<span>タピオカ</span></h1></header>
   <div id="hud" hidden><div id="score" class="t"><span id="score-n">0</span><small id="score-of">粒</small></div><div id="meter-box"><div id="meter-label"><span>のこりのお茶</span><span>6秒で何粒？</span></div><div id="meter" role="progressbar" aria-label="のこりのお茶" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div id="fill"></div><div id="timebar"></div></div></div><p id="instruction">粒をねらって、押して吸う！</p></div>
+  <button id="suck" type="button" hidden>吸う</button>
   <div id="count" hidden></div>
   <div id="bubble" role="status" aria-live="polite"><span id="bubble-text">いらっしゃいませ！店員のもちこです。</span></div>
-  <section id="home"><div id="home-instructions"><p class="lead">底のタピオカ、全部飲める？</p><p class="sub">押しているあいだ、ストローで吸う。<br>粒の真上で、短くチュッと。</p></div><button id="go">ストローを持つ</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pearl" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:四国めたん / VOICEVOX:ナースロボ＿タイプＴ</div></section>
+  <section id="home"><div id="home-instructions"><p class="lead">底のタピオカ、全部飲める？</p><p class="sub" id="how">押しているあいだ、ストローで吸う。<br>粒の真上で、短くチュッと。</p></div><button id="go">ストローを持つ</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pearl" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:四国めたん / VOICEVOX:ナースロボ＿タイプＴ</div></section>
   <section id="result" aria-label="結果" hidden><div class="label">今日のタピオカ</div><h2 id="ending-name" class="t"></h2><p id="pearls"><span id="pearls-n">0</span><span class="unit">点</span><small id="best"></small></p><p id="verdict"></p><div class="actions"><button id="again">もう一杯</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pearl" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:四国めたん / VOICEVOX:ナースロボ＿タイプＴ</div></section>
 </div>
 <div id="paused" hidden>ひと休み中</div>
@@ -116,6 +120,17 @@ const TEA_H=100, PEARL_R=15, STRAW_R=17, STRAW_TOP=178, TIP_MIN_Y=470, TIP_SPEED
 // A touch teleports the finger: the tip sweeps there at TIP_SPEED, and whatever it shoves never moves faster than
 // these caps, so nothing is flung. Pearls only leave the cup through the straw.
 const PEARL_VMAX=700, ICE_VMAX=420, SNAP_SEAT=1;
+// Touch drag: the straw moves by the finger's sideways travel times DRAG_GAIN, never to the spot touched, and the
+// tip drops onto whatever is under it. The aim stays within DRAG_SLACK of the tip, so a straw stopped by ice
+// doesn't build up an offset. The arrow keys move it the same way at KEY_SPEED.
+const DRAG_GAIN=1, DRAG_SLACK=24, KEY_SPEED=330;
+// A dropped tip (input.drop) rests just above the pearl under it, never into it: sinking in would squeeze that
+// pearl out sideways while the player lines up the sip.
+const DROP_SEAT=-1;
+function dragAim(w,x,dx){
+  const y=w.tip.y;
+  return clampN(clampN(x+dx,w.tip.x-DRAG_SLACK,w.tip.x+DRAG_SLACK),wallX(y,-1)+STRAW_R+3,wallX(y,1)-STRAW_R-3);
+}
 // Suction: a pearl within SUCK_R of the tip is pulled in; touching the mouth for CATCH_HOLD (in tea) catches it.
 // Above the tea it pulls air (AIR_PULL). Once the cup is dry the pull drops to WEAK_PULL, too weak to lift a pearl,
 // and a catch needs WEAK_HOLD of contact.
@@ -173,7 +188,7 @@ function substep(w,input,h,events,snap){
   let ty=clampN(input.y,TIP_MIN_Y,CUP.floorY-STRAW_R-1), tx=clampN(input.x,wallX(ty,-1)+STRAW_R+3,wallX(ty,1)-STRAW_R-3);
   for(let k=0;k<2;k++)for(const p of w.pearls){
     if(p.state!=='free')continue;
-    const dx=p.x-tx, m=p.r+STRAW_R-SNAP_SEAT;
+    const dx=p.x-tx, m=p.r+STRAW_R-(input.drop?DROP_SEAT:SNAP_SEAT);
     if(Math.abs(dx)<m&&Math.hypot(dx,p.y-ty)<m)ty=Math.max(TIP_MIN_Y,Math.min(ty,p.y-Math.sqrt(m*m-dx*dx)));
   }
   tx=clampN(tx,wallX(ty,-1)+STRAW_R+3,wallX(ty,1)-STRAW_R-3);
@@ -327,6 +342,14 @@ const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
 const show = (id,on) => { $(id).hidden = !on; };
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches;
+// Input: 'drag' on touch screens (drag anywhere to move the straw, hold 吸う to suck), 'mouse' otherwise (the tip
+// follows the cursor, hold the button to suck). ?touch=direct keeps the old tap-to-place touch, ?touch=drag forces
+// the drag controls on a PC.
+const TOUCH_PARAM = new URLSearchParams(location.search).get('touch');
+const DRAG = TOUCH_PARAM==='drag' || (TOUCH && TOUCH_PARAM!=='direct');
+const HOW = DRAG ? ['ストローをドラッグして、粒の真上へ。<br>吸うボタンを押して、短くチュッと。','ストローをドラッグ、吸うボタンでチュッ！']
+  : ['押しているあいだ、ストローで吸う。<br>粒の真上で、短くチュッと。<br><small>矢印キーとスペースでも遊べます</small>','粒をねらって、押して吸う！'];
+$('how').innerHTML=HOW[0];$('instruction').textContent=HOW[1];
 
 /* ---------- layout ---------- */
 // Stage units: 400 wide. Each screen group shows a band of the stage between its UI blocks.
@@ -338,6 +361,7 @@ function measureLayout() {
   copy.removeAttribute('id');copy.inert=true;copy.setAttribute('aria-hidden','true');copy.style.visibility='hidden';
   const el=id=>copy.querySelector('#'+id);
   for(const id of ['title','hud','home','result'])el(id).hidden=false;
+  el('suck').hidden=!DRAG;
   el('tip').style.display='none';el('bubble').hidden=true;
   el('save').style.display=TOUCH?'inline-flex':'none';
   el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
@@ -346,6 +370,7 @@ function measureLayout() {
   const title=el('title').getBoundingClientRect().bottom-top;
   const hud=el('hud').getBoundingClientRect().bottom-top;
   const homeTop=el('home').getBoundingClientRect().top-top;
+  const playBottom=(DRAG?el('suck').getBoundingClientRect().top:bottom)-top;
   let resultTop=bottom;
   for(const e of ENDINGS) {
     el('ending-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
@@ -353,11 +378,11 @@ function measureLayout() {
     resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
   }
   copy.remove();
-  return {title,hud,homeTop,resultTop:resultTop-top,height:bottom-top,top:box.top};
+  return {title,hud,homeTop,playBottom,resultTop:resultTop-top,height:bottom-top,top:box.top};
 }
 function fit(group) {
   const top=sizes.top+(group==='home'?sizes.title+2:group==='play'?sizes.hud+4:4);
-  const bottom=sizes.top+(group==='home'?sizes.homeTop-8:group==='play'?sizes.height:sizes.resultTop-6);
+  const bottom=sizes.top+(group==='home'?sizes.homeTop-8:group==='play'?sizes.playBottom-(DRAG?8:0):sizes.resultTop-6);
   const [y0,y1]=VIEW[group];
   const k=Math.max(.2,Math.min((Math.min(innerWidth,520)-8)/400,(bottom-top)/(y1-y0)));
   const extra=Math.max(0,(bottom-top)-(y1-y0)*k);
@@ -485,7 +510,10 @@ let lastCatch=null, lastSlurp=null, lastIdle=null;
 let state='home', generation=0, hasStarted=false, playStart=0, endAt=0, hiddenAt=0, lastFrame=0;
 let world=createWorld(7), ending=null, mood='watch', moodUntil=0, saidIdle=false, saidSlurp=false, lastClink=0, fx=[], confetti=[], flash=0;
 const finger={x:200,y:600,down:false,id:null,snap:false};
-let keyDown=false;
+let keyDown=false, keyL=false, keyR=false, keyAim=false;
+// Drag mode: the finger that moves the straw, its last x on screen and the travel not yet applied (stage units),
+// and the finger holding 吸う.
+const drag={id:null,lastX:0,dx:0};let suckId=null;
 // The best is a score; the key changed when the score replaced the pearl count.
 let best=null;try{const b=Number(localStorage.getItem('pearl.bestScore'));if(b>0)best=b;}catch(_){}
 const fmt = n => n.toLocaleString('ja-JP');
@@ -499,7 +527,8 @@ async function start() {
   initAudio();const first=!hasStarted, g=++generation;hasStarted=true;
   state='intro';ending=null;fx=[];confetti=[];shareFile=null;saidIdle=saidSlurp=false;stopVoices();
   world=createWorld(Math.floor(Math.random()*1e9));
-  finger.x=world.tip.x;finger.y=world.tip.y;
+  finger.x=world.tip.x;finger.y=DRAG?CUP.floorY:world.tip.y;drag.dx=0;keyAim=false;
+  show('suck',DRAG);
   for(const id of ['title','home','result'])show(id,false);
   $('count').classList.remove('small');
   show('hud',true);$('timebar').style.transform='scaleX(1)';$('save').style.display='none';$('tip').style.display='none';updateHud();
@@ -532,8 +561,7 @@ function onCatch(e) {
 }
 function playTick(now) {
   const el=now-playStart;
-  const input={x:finger.x,y:finger.y,down:finger.down||keyDown,snap:finger.snap};finger.snap=false;
-  const events=stepWorld(world,input,dtFrame);
+  const events=stepWorld(world,aimInput(dtFrame,true),dtFrame);
   for(const e of events){
     if(e.type==='catch')onCatch(e);
     else if(e.type==='out')fx.push({text:'ゴクッ',x:world.tip.x+44,y:STRAW_TOP+6,born:now,life:500,color:'#fff',size:22});
@@ -552,9 +580,9 @@ function playTick(now) {
 }
 async function finish(forced) {
   if(state!=='play')return;
-  const g=generation;state='end';endAt=performance.now();finger.down=keyDown=false;updateSlurp(null);
+  const g=generation;state='end';endAt=performance.now();finger.down=keyDown=false;releaseSuck();updateSlurp(null);
   ending=forced||endingById(chooseEndingId(world,Math.random()<JACKPOT_ODDS));
-  $('timebar').style.transform='scaleX(0)';show('hud',false);
+  $('timebar').style.transform='scaleX(0)';show('hud',false);show('suck',false);
   if(!forced){$('count').textContent='そこまで！';$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);}
   setMood('talk');
   await wait(forced?300:END_TO_REVEAL_MS);if(g!==generation)return;
@@ -587,31 +615,62 @@ function countUp(n,g) {
   requestAnimationFrame(tick);
 }
 
-/* ---------- input: one finger, or the mouse (hold the button to suck) ---------- */
-// The tip goes exactly where the finger or cursor is. A press snaps it there; a hovering mouse only previews it.
+/* ---------- input ---------- */
+// Mouse: the tip follows the cursor and a press snaps it there; hold the button to suck. Drag (touch): a finger
+// anywhere on the scene moves the straw sideways by its own travel, the tip drops onto the pile, and only the
+// 吸う button sucks. ?touch=direct: a finger plays like the mouse. Arrow keys steer and the space bar sucks.
 const toStage=e=>({x:(e.clientX-ox)/scale,y:(e.clientY-oy)/scale});
 const aiming=()=>['intro','count','play'].includes(state);
+// This frame's input for stepWorld: drag travel and arrow keys move the aim sideways from where the straw is.
+function aimInput(dt,suck) {
+  if(DRAG||keyAim||keyL||keyR){
+    let dx=drag.dx*DRAG_GAIN;drag.dx=0;
+    if(keyL!==keyR){dx+=(keyR?1:-1)*KEY_SPEED*dt;keyAim=true;}
+    finger.x=dragAim(world,finger.x,dx);finger.y=CUP.floorY;
+  }
+  const input={x:finger.x,y:finger.y,down:suck&&(finger.down||keyDown||suckId!==null),snap:finger.snap,drop:DRAG||keyAim};
+  finger.snap=false;return input;
+}
 cv.addEventListener('pointerdown',e=>{
   if(!aiming())return;
   if(e.pointerType==='mouse'&&e.button!==0)return;
   e.preventDefault();initAudio();
-  // A finger that lands during the intro or countdown keeps holding into play and sucks from the first frame.
   try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  // Drag: where the finger lands does nothing; only its travel moves the straw.
+  if(DRAG){if(drag.id===null){drag.id=e.pointerId;drag.lastX=e.clientX;}return;}
+  // A finger that lands during the intro or countdown keeps holding into play and sucks from the first frame.
   // Every press (finger or mouse button) lands the tip on the spot, so a finger and a mouse play the same.
+  keyAim=false;
   Object.assign(finger,toStage(e),{down:true,id:e.pointerId,snap:true});
 });
 // Android's long press would open a menu and cancel the touch.
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointermove',e=>{
+  if(DRAG){if(e.pointerId===drag.id){if(aiming())drag.dx+=(e.clientX-drag.lastX)/scale;drag.lastX=e.clientX;}return;}
   if(!aiming())return;
-  if(finger.down?e.pointerId===finger.id:e.pointerType==='mouse')Object.assign(finger,toStage(e));
+  if(finger.down?e.pointerId===finger.id:e.pointerType==='mouse'){keyAim=false;Object.assign(finger,toStage(e));}
 });
-const lift=e=>{if(e.pointerId===finger.id){finger.down=false;finger.id=null;}};
+const lift=e=>{if(e.pointerId===drag.id)drag.id=null;if(e.pointerId===finger.id){finger.down=false;finger.id=null;}};
 cv.addEventListener('pointerup',lift);cv.addEventListener('pointercancel',lift);
-addEventListener('keydown',e=>{if((e.code==='Space'||e.key===' ')&&aiming()){e.preventDefault();initAudio();keyDown=true;}});
-addEventListener('keyup',e=>{if(e.code==='Space'||e.key===' ')keyDown=false;});
+// 吸う: held by its own finger, tracked by id so the other finger keeps dragging.
+const suckBtn=$('suck');
+function releaseSuck(){suckId=null;suckBtn.classList.remove('on');}
+suckBtn.addEventListener('pointerdown',e=>{
+  if(!aiming()||suckId!==null)return;
+  e.preventDefault();initAudio();
+  try{suckBtn.setPointerCapture(e.pointerId);}catch(_){}
+  suckId=e.pointerId;suckBtn.classList.add('on');
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])suckBtn.addEventListener(type,e=>{if(e.pointerId===suckId)releaseSuck();});
+suckBtn.addEventListener('contextmenu',e=>e.preventDefault());
+const ARROWS={ArrowLeft:'L',ArrowRight:'R'};
+addEventListener('keydown',e=>{
+  if((e.code==='Space'||e.key===' ')&&aiming()){e.preventDefault();initAudio();keyDown=true;}
+  else if(ARROWS[e.key]&&aiming()){e.preventDefault();if(ARROWS[e.key]==='L')keyL=true;else keyR=true;}
+});
+addEventListener('keyup',e=>{if(e.code==='Space'||e.key===' ')keyDown=false;else if(e.key==='ArrowLeft')keyL=false;else if(e.key==='ArrowRight')keyR=false;});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){if(state==='play')hiddenAt=performance.now();finger.down=keyDown=false;updateSlurp(null);ac?.suspend().catch(()=>{});}
+  if(document.hidden){if(state==='play')hiddenAt=performance.now();finger.down=keyDown=keyL=keyR=false;drag.id=null;releaseSuck();updateSlurp(null);ac?.suspend().catch(()=>{});}
   else {if(hiddenAt&&state==='play'){playStart+=performance.now()-hiddenAt;}hiddenAt=0;if(ac)ac.resume().catch(()=>{});}
   show('paused',document.hidden&&state==='play');
 });
@@ -821,7 +880,7 @@ function frame(now) {
   const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;dtFrame=dt;
   if(!document.hidden&&!CARD_THUMB){
     if(state==='play')playTick(now);
-    else if(state==='count'||state==='end'){stepWorld(world,{x:finger.x,y:finger.y,down:false,snap:finger.snap},dt);finger.snap=false;}
+    else if(state==='count'||state==='end')stepWorld(world,aimInput(dt,false),dt);
     if(state==='end')updateSlurp(null);
     if(bubbleHideAt&&now>=bubbleHideAt){$('bubble').style.visibility='hidden';bubbleHideAt=0;}
     if(state!=='play'&&moodUntil&&now>=moodUntil)setMood('watch');
