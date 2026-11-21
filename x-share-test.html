@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>X share test</title>
+<style>
+body{margin:0;padding:16px;font:17px/1.5 system-ui,sans-serif;background:#f6f1e7;color:#222}
+a{display:block;margin:12px 0;padding:14px 16px;border-radius:12px;background:#111;color:#fff;text-decoration:none;font-weight:600}
+small{display:block;font-weight:400;opacity:.75;font-size:14px}
+</style></head><body>
+<p>Tap each button, look at the top of the post, then close it without posting.</p>
+<div id="list"></div>
+<script>
+const URL_CARD='https://lys-games.github.io/mini-games/pearl/card/half.html';
+const L1='もちこ「全部飲んでくれてありがとう！」', L2='タピオカ12粒で340点【テスト】', L3='あなたは何点？ #最後のタピオカ';
+const multi=[L1,L2,L3].join('\n'), single=[L1,L2,L3].join(' ');
+const e=encodeURIComponent;
+const tests=[
+  ['A','x.com, link at the end of the text (pearl now)','https://x.com/intent/post?text='+e(multi+'\n'+URL_CARD)],
+  ['B','twitter.com, same text','https://twitter.com/intent/tweet?text='+e(multi+'\n'+URL_CARD)],
+  ['C','x.com, link separate (other games now)','https://x.com/intent/post?text='+e(multi)+'&url='+e(URL_CARD)],
+  ['D','x.com, one line, no newlines','https://x.com/intent/post?text='+e(single+' '+URL_CARD)],
+  ['E','x.com, text only, no link','https://x.com/intent/post?text='+e(multi)],
+  ['F','x.com, link first','https://x.com/intent/post?text='+e(URL_CARD+'\n'+multi)],
+];
+document.getElementById('list').innerHTML=tests.map(([k,d,h])=>`<a href="${h}">${k}<small>${d}</small></a>`).join('');
+</script>
+</body></html>
