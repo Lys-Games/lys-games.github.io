@@ -98,6 +98,10 @@ button:active,.btn:active{transform:translateY(calc(var(--u)*4));box-shadow:0 ca
 #save{display:none}
 #share small{display:block;font:800 calc(var(--u)*10)/1.2 system-ui,sans-serif}
 #tip{display:none;font:800 calc(var(--u)*12)/1.4 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#fff;background:var(--ink);border-radius:calc(var(--u)*8);padding:.4em .6em;margin:0 calc(var(--u)*6) calc(var(--u)*6)}
+/* Korean (?hl=ko): the web font has no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) #result .label,html:lang(ko) #rcom,html:lang(ko) #rpain,html:lang(ko) #rbest,html:lang(ko) #tip{font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif}
 </style>
 </head>
 <body>
@@ -135,10 +139,34 @@ button:active,.btn:active{transform:translateY(calc(var(--u)*4));box-shadow:0 ca
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (() => { const q = new URLSearchParams(location.search).get('hl'); if (q === 'ko' || q === 'ja') return q; return /^ko/i.test(navigator.language || '') ? 'ko' : 'ja'; })();
+const KO = HL === 'ko';
+const L = (ja, ko) => KO ? ko : ja;
 const cv = $('cv'), ctx = cv.getContext('2d'), ui = $('ui');
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const wait = ms => new Promise(r => setTimeout(r, ms));
+
+if (KO) {
+  document.documentElement.lang = 'ko'; document.title = '단숨에 떼어내!';
+  const meta = (sel, v) => document.querySelector(sel).setAttribute('content', v);
+  meta('meta[name=description]', '털보 씨의 반창고를 단숨에 떼어내는 게임. 빨리 뗄수록 털보 씨는 안 아파요. Lys Games의 무료 미니게임.');
+  meta('meta[property="og:title"]', '단숨에 떼어내!');
+  meta('meta[property="og:description"]', '털보 씨의 반창고를 단숨에 떼어내! 빨리 뗄수록 털보 씨는 안 아파요.');
+  meta('meta[property="og:url"]', 'https://lys-games.github.io/mini-games/bandage/?hl=ko');
+  $('title').innerHTML = '<span class="s">단숨에</span><span class="b">떼어내!</span>';
+  $('time').querySelector('small').textContent = '초';
+  document.querySelector('#gw .t').textContent = '고통';
+  $('hint').innerHTML = '단숨에 쫙!<b>▶▶</b><small>빠를수록 안 아파</small>';
+  document.querySelector('#start .tag').innerHTML = '털보 씨의 반창고를<br>한 방에 떼어내!';
+  document.querySelector('#start .sub').textContent = '빠를수록 안 아파. 느리면 지옥.';
+  $('go').textContent = '시작';
+  document.querySelector('#result .label').textContent = '떼어내는 데 걸린 시간';
+  document.querySelector('#rpain span').textContent = '고통';
+  $('again').textContent = '한 번 더'; $('share').textContent = 'X에 올리기'; $('save').textContent = '이미지 저장';
+  for (const el of document.querySelectorAll('.credit')) el.innerHTML = el.innerHTML.replace('by <a', '제작 <a').replace('Gopher It on Steam', '『Gopher It』 Steam에서 판매 중').replace('utm_campaign=bandage', 'utm_campaign=bandage_ko').replace('音声', '음성');
+}
 
 /* ---------- tuning ---------- */
 const RANKS = [ // [under this many seconds, rank, verdict, his line]
@@ -150,9 +178,21 @@ const RANKS = [ // [under this many seconds, rank, verdict, his line]
   [3, '拷問官', '長く、深く、苦しませた', 'わざとだよね？'],
   [Infinity, '悪魔', '人の心はないのか', 'もう…お婿に行けない…'],
 ];
+const RANKS_KO = [   // [rank, verdict, his line], same order as RANKS
+  ['신의 손', '아픔을 느낄 새도 없었다', '어? 벌써 끝났어?'],
+  ['프로의 솜씨', '거의 무통. 훌륭해!', '살짝 따끔했을 뿐이야'],
+  ['보통', '거의 안 아팠다', '…어라? 의외로 괜찮네'],
+  ['머뭇머뭇파', '망설인 만큼 그는 괴로웠다', '아야야… 망설이지 말라고…'],
+  ['질질파', '질질 끄는 게 제일 아프다', '털뿌리째 뽑혀 나갔어…'],
+  ['고문관', '길고 깊게 괴롭혔다', '일부러 그랬지?'],
+  ['악마', '인정머리도 없냐', '이제… 장가는 다 틀렸어…'],
+];
+if (KO) RANKS.forEach((q, i) => q.splice(1, 3, ...RANKS_KO[i]));
+const SCREAMS_KO = ['아야!', '아야야야야야!', '아파 아파 아파 아파!', '으아아아아아악!', '엄마아아아!', '으아아아아아악!', '아파 아파 아파 아파!', '엄마아아아!'];
 const SCREAMS = [[0.4, 'v_ow1', 'いてっ！'], [1.2, 'v_ow2', 'いたたたたたっ！'], [2.6, 'v_ow3', '痛い痛い痛い痛いっ！'],
   [4.6, 'v_ow4', 'ぎゃあああああっ！'], [7, 'v_ow5', 'おかあさあああんっ！'], [9.4, 'v_ow4', 'ぎゃあああああっ！'],
   [11.4, 'v_ow3', '痛い痛い痛い痛いっ！'], [13.2, 'v_ow5', 'おかあさあああんっ！']];
+if (KO) SCREAMS.forEach((q, i) => q[2] = SCREAMS_KO[i]);
 const FAINT_AT = 15;          // seconds of peeling before he passes out
 const GAIN = 1.25;            // bandage peeled per unit of finger travel
 const TAU = 200;              // ms, how long a released flick keeps ripping
@@ -164,9 +204,11 @@ const fmt = s => (Math.floor(s * 100 + 1e-6) / 100).toFixed(2);
 const cardOf = s => s >= 10 ? 'max' : s >= 1 ? 's' + Math.floor(s + 1e-6) : s >= .2 ? 'd' + Math.floor(s * 10 + 1e-6) : 'c' + Math.floor(s * 100 + 1e-6);
 const rankOf = s => RANKS.findIndex(q => s < q[0]);
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/bandage/';
+const URL_SHARE = KO ? URL_PUBLIC + '?hl=ko' : URL_PUBLIC;   // phone share sheet link
+const CARD_DIR = KO ? 'card/ko/' : 'card/';
 const QUOTE_POST = '';   // the game's launch post on X: result posts quote it once set
 const TOUCH = matchMedia('(pointer: coarse)').matches;
-const FONT = '"Dela Gothic One","Hiragino Sans",system-ui,sans-serif';
+const FONT = KO ? '"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif' : '"Dela Gothic One","Hiragino Sans",system-ui,sans-serif';
 
 /* ---------- stage ---------- */
 const U = 400, X0 = 62, BL = 280, BH = 60;
@@ -298,6 +340,7 @@ function reset() {
   bubble(); telop(); big(); show('hint', false); show('result', false);
 }
 
+const GO_TEXT = L('はがせ！', '떼어내!');
 async function start(first) {
   const g = ++gen;
   reset(); state = 'intro';
@@ -307,25 +350,25 @@ async function start(first) {
   play('k_select_003', 0.7);
   if (first) {
     voice('f', 'v_title'); await wait(1350); if (!ok()) return;
-    telop('絆創膏、はがしますよ〜'); await wait(900); if (!ok()) return;
+    telop(L('絆創膏、はがしますよ〜', '반창고, 뗄게요~')); await wait(900); if (!ok()) return;
     telop(); big('3'); voice('f', 'v_c3'); play('k_bong_001', 0.6); await wait(750); if (!ok()) return;
     big('2'); voice('f', 'v_c2'); play('k_bong_001', 0.6, 1.12); await wait(620); if (!ok()) return;
     // he bails before "1"
     mood = 'panic'; shake = 16; sndScratch(); big('2', 'drop'); voice('m', 'v_matte');
-    bubble('ちょ、ちょっと待って！\n怖いよ！', true); pop('待って!!', 200, headY - 120, 50, '#ffe14a');
+    bubble(L('ちょ、ちょっと待って！\n怖いよ！', '잠, 잠깐만요!\n무서워요!'), true); pop(L('待って!!', '잠깐!!'), 200, headY - 120, 50, '#ffe14a');
     await wait(2150); if (!ok()) return;
-    mood = 'plead'; big(); voice('m', 'v_gentle'); bubble('や、優しくお願いしますね…');
+    mood = 'plead'; big(); voice('m', 'v_gentle'); bubble(L('や、優しくお願いしますね…', '살, 살살 부탁해요…'));
     await wait(2450); if (!ok()) return;
-    bubble(); telop('優しく ＝ 一瞬で！'); play('k_maximize_003', 0.7); await wait(1000); if (!ok()) return;
+    bubble(); telop(L('優しく ＝ 一瞬で！', '살살 = 한 방에!')); play('k_maximize_003', 0.7); await wait(1000); if (!ok()) return;
   } else {
-    mood = 'plead'; bubble(['こ、今度こそ一瞬で…', 'ひとおもいに、お願いします…', 'ま、またやるの…？'][Math.floor(rand(0, 3))]);
-    telop('もう一回、いきますよ〜'); await wait(rand(700, 1300)); if (!ok()) return;
+    mood = 'plead'; bubble(L(['こ、今度こそ一瞬で…', 'ひとおもいに、お願いします…', 'ま、またやるの…？'], ['이, 이번엔 진짜 한 방에…', '단번에 부탁해요…', '또, 또 하는 거예요…?'])[Math.floor(rand(0, 3))]);
+    telop(L('もう一回、いきますよ〜', '한 번 더, 갑니다~')); await wait(rand(700, 1300)); if (!ok()) return;
   }
   telop(); bubble(); mood = 'idle';
-  big('はがせ！', 'go'); voice('f', 'v_go'); play('k_bong_001', 0.8, 1.5); shake = 8;
+  big(GO_TEXT, 'go'); voice('f', 'v_go'); play('k_bong_001', 0.8, 1.5); shake = 8;
   state = 'play'; goAt = performance.now();
   show('hint', true);
-  setTimeout(() => { if (ok() && $('big').textContent === 'はがせ！') big(); }, 700);
+  setTimeout(() => { if (ok() && $('big').textContent === GO_TEXT) big(); }, 700);
 }
 
 function finish(tEnd, fainted) {
@@ -344,35 +387,36 @@ function finish(tEnd, fainted) {
   flyer = { x: tip.x, y: tip.y, vx: rand(260, 420), vy: -rand(620, 820), rot: 0, vr: rand(7, 12) };
   burst(fast ? 150 : r <= 3 ? 70 : 30, fast ? 1 : 0.5);
   if (fainted) {
-    mood = 'dead'; shake = 6; sndSad(); pop('ぽろっ…', 200, armY - 90, 40, '#fff');
+    mood = 'dead'; shake = 6; sndSad(); pop(L('ぽろっ…', '툭…'), 200, armY - 90, 40, '#fff');
   } else if (fast) {
     mood = 'relief'; hue = r === 0 ? 1 : 0; shake = 30; freeze = 0.09; flash(0.85);
-    sndRip(true); play('k_impactPunch_heavy_000', 1); pop('ベリッ!!', 200, armY - 110, 96, '#ffe14a', true);
+    sndRip(true); play('k_impactPunch_heavy_000', 1); pop(L('ベリッ!!', '쫘악!!'), 200, armY - 110, 96, '#ffe14a', true);
     if (r === 0) { sndSparkle(); stars(40); }
   } else if (r <= 4) {
     mood = 'pain'; shake = 16; flash(0.4); sndRip(false); play('k_impactSoft_heavy_000', 0.9);
-    pop('ベリベリッ', 200, armY - 100, 58, '#fff', true);
+    pop(L('ベリベリッ', '쫘아악'), 200, armY - 100, 58, '#fff', true);
     setTimeout(() => { if (g === gen) mood = 'wreck'; }, 500);
   } else {
     mood = r >= 5 ? 'dead' : 'wreck'; shake = 8; noiseHit(0.5, 1800, 300, 0.4, 1.5); sndSad();
-    pop('ぺり…', 200, armY - 90, 44, '#fff');
+    pop(L('ぺり…', '스르륵…'), 200, armY - 90, 44, '#fff');
   }
 
   let newBest = false;
   if (!fainted && (best === null || secs < best)) { newBest = best !== null; best = secs; try { localStorage.setItem('bandage.best', String(secs)); } catch (e) {} }
 
   const pct = Math.round(pain * 100);
-  $('rtime').innerHTML = fmt(secs) + '<small>秒</small>';
+  $('rtime').innerHTML = fmt(secs) + L('<small>秒</small>', '<small>초</small>');
   $('rrank').textContent = R[1]; $('rrank').className = 't';
   $('rrank').style.color = ['#f5a800', '#1f9d55', '#1f78e0', '#8a5cf6', '#e8662b', '#e8392b', '#8a1fa8'][r];
   $('rcom').textContent = R[2];
   $('rpct').textContent = pct + '%'; $('rpfill').style.width = '0';
-  $('rbest').innerHTML = best === null ? '' : (newBest ? '<b>新記録！</b> ' : '') + '自己ベスト ' + fmt(best) + '秒';
-  const quote = fainted ? '（気絶）' : R[3];
-  const text = `毛深井さん「${quote}」\n絆創膏を${fmt(secs)}秒ではがした【${R[1]}】苦しみ${pct}%\nあなたは何秒？ #一気にはがせ`;
+  $('rbest').innerHTML = best === null ? '' : (newBest ? L('<b>新記録！</b> ', '<b>신기록!</b> ') : '') + L('自己ベスト ' + fmt(best) + '秒', '최고 기록 ' + fmt(best) + '초');
+  const quote = fainted ? L('（気絶）', '(기절)') : R[3];
+  const text = KO ? `털보 씨: "${quote}"\n반창고를 ${fmt(secs)}초 만에 뗐다 [${R[1]}] 고통 ${pct}%\n여러분은 몇 초? #단숨에떼어내`
+    : `毛深井さん「${quote}」\n絆創膏を${fmt(secs)}秒ではがした【${R[1]}】苦しみ${pct}%\nあなたは何秒？ #一気にはがせ`;
   // X's post link can't carry a picture: the URL is a card page whose preview image shows this time step and rank
   $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(QUOTE_POST ? text + '\n' + URL_PUBLIC : text)
-    + '&url=' + encodeURIComponent(QUOTE_POST || `${URL_PUBLIC}card/${cardOf(secs)}.html`);
+    + '&url=' + encodeURIComponent(QUOTE_POST || `${URL_PUBLIC}${CARD_DIR}${cardOf(secs)}.html`);
   shareFile = null; shareText = text; $('save').style.display = 'none'; $('tip').style.display = 'none';
   const shot = { secs, r, pct, quote };
 
@@ -385,7 +429,7 @@ function finish(tEnd, fainted) {
     await wait(380); if (g !== gen) return;
     $('rrank').classList.add('in'); voice('f', 'v_r' + r); shake = Math.max(shake, 6);
     await wait(950); if (g !== gen) return;
-    bubble(fainted ? '…（気絶）' : R[3]); if (!fainted) voice('m', 'v_say' + r);
+    bubble(fainted ? L('…（気絶）', '…(기절)') : R[3]); if (!fainted) voice('m', 'v_say' + r);
     prepareShare(shot, g);
   })();
 }
@@ -394,7 +438,7 @@ function finish(tEnd, fainted) {
 // 1200x675: the live scene (his face and the arm panel) on the left, the result on the right.
 // card: the link preview for a time step (`label` replaces the exact time; null = the default og image).
 async function drawShareImage({ secs, r, pct, quote, card }) {
-  await document.fonts?.load(`60px ${FONT}`, '一気にはがせ！秒台以上苦しみ%「」…？あなたは何でる速いほど、痛くない。0123456789.' + RANKS.map(q => q[1] + q[3]).join(''));
+  await document.fonts?.load(`60px ${FONT}`, L('一気にはがせ！秒台以上苦しみ%「」…？あなたは何でる速いほど、痛くない。0123456789.', '단숨에 떼어내! 초대 이상 고통 % “” …? 몇 초 만에 뗄 수 있어? 여러분은 빠를수록 안 아파요 0123456789.') + RANKS.map(q => q[1] + q[3]).join(''));
   const c = document.createElement('canvas'); c.width = 1200; c.height = 675;
   const x = c.getContext('2d');
   x.fillStyle = '#ffe14a'; x.fillRect(0, 0, 1200, 675);
@@ -415,16 +459,16 @@ async function drawShareImage({ secs, r, pct, quote, card }) {
     x.beginPath(); x.roundRect(-tw / 2, -th / 2, tw, th, size * .25); x.fillStyle = '#fff'; x.fill(); x.lineWidth = 9; x.strokeStyle = '#e8392b'; x.stroke();
     x.fillStyle = '#e8392b'; x.fillText(str, 0, size * .04); x.restore();
   };
-  text('一気にはがせ！', 890, 105, 72, '#fff');
+  text(L('一気にはがせ！', '단숨에 떼어내!'), 890, 105, 72, '#fff');
   if (card === null) {   // the default preview
-    text('何秒で', 890, 245, 100, '#e8392b'); text('はがせる？', 890, 360, 100, '#e8392b');
-    text('速いほど、痛くない。', 890, 510, 46, '#fff');
+    text(L('何秒で', '몇 초 만에'), 890, 245, 100, '#e8392b'); text(L('はがせる？', '뗄 수 있어?'), 890, 360, 100, '#e8392b');
+    text(L('速いほど、痛くない。', '빠를수록 안 아파.'), 890, 510, 46, '#fff');
   } else {
-    text(card || `${fmt(secs)}秒`, 890, card ? 235 : 220, 118, '#e8392b');
+    text(card || L(`${fmt(secs)}秒`, `${fmt(secs)}초`), 890, card ? 235 : 220, 118, '#e8392b');
     stamp(RANKS[r][1], 890, card ? 360 : 340, 58);
-    text(`「${quote}」`, 890, card ? 455 : 430, 38, '#fff');
-    if (!card) text(`苦しみ ${pct}%`, 890, 495, 42, '#fff');
-    text('あなたは何秒ではがせる？', 890, card ? 540 : 565, 40, '#fff');
+    text(L('「', '“') + quote + L('」', '”'), 890, card ? 455 : 430, 38, '#fff');
+    if (!card) text(L('苦しみ', '고통') + ` ${pct}%`, 890, 495, 42, '#fff');
+    text(L('あなたは何秒ではがせる？', '여러분은 몇 초 만에 뗄 수 있어요?'), 890, card ? 540 : 565, 40, '#fff');
   }
   return new Promise(res => c.toBlob(res, 'image/png'));
 }
@@ -436,7 +480,7 @@ async function prepareShare(shot, g) {
     shareFile = new File([blob], 'ikki-ni-hagase.png', { type: 'image/png' });
     // phones that can share files: the picture is the main way to post, so its button leads
     const sheet = canShareFile();
-    $('save').textContent = sheet ? '画像でシェア' : '画像を保存';
+    $('save').textContent = sheet ? L('画像でシェア', '이미지로 공유') : L('画像を保存', '이미지 저장');
     $('save').className = sheet ? '' : 'alt';
     $('save').style.display = TOUCH ? 'inline-block' : 'none';   // PC: the X button copies it
   } catch (e) { console.warn('share image', e); }
@@ -450,22 +494,22 @@ function download() {
 function note(text) { const el = $('tip'); el.textContent = text; el.style.display = 'block'; }
 // On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
 // X opens after the copy, while the page still has focus.
-if (!TOUCH) $('share').innerHTML = 'Xでポスト<small>画像もコピー</small>';
+if (!TOUCH) $('share').innerHTML = L('Xでポスト<small>画像もコピー</small>', 'X에 올리기<small>이미지도 복사</small>');
 $('share').addEventListener('click', async e => {
   if (TOUCH || !shareFile) return;
   e.preventDefault();
   const href = $('share').href, paste = /Mac/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
   try {
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareFile })]);
-    note(`リンクに結果カードが付きます。スコア画像も付けるなら ${paste}`);
-  } catch (err) { console.warn('clipboard', err); download(); note('画像を保存しました。投稿に添付してください'); }
+    note(L(`リンクに結果カードが付きます。スコア画像も付けるなら ${paste}`, `링크에 결과 카드가 붙어요. 점수 이미지도 넣으려면 ${paste}`));
+  } catch (err) { console.warn('clipboard', err); download(); note(L('画像を保存しました。投稿に添付してください', '이미지를 저장했어요. 게시물에 첨부해 주세요')); }
   window.open(href, '_blank', 'noopener');
 });
 $('save').addEventListener('click', e => {
   e.currentTarget.blur();
   if (!shareFile) return;
   if (!canShareFile()) return download();
-  navigator.share({ files: [shareFile], text: shareText, url: URL_PUBLIC }).catch(err => {
+  navigator.share({ files: [shareFile], text: shareText, url: URL_SHARE }).catch(err => {
     if (err.name !== 'AbortError') { console.warn('share', err); download(); }   // AbortError: the sheet was closed
   });
 });
@@ -779,7 +823,7 @@ function frame(now) {
         const s = SCREAMS[screamI++]; voice('m', s[1]); bubble(s[2], true); shake = Math.max(shake, 10 + screamI * 3);
       }
       if (el >= FAINT_AT) finish(now, true);
-    } else if (!nagged && now - goAt > 5000) { nagged = true; mood = 'plead'; bubble('は、早く…ひとおもいに…！'); }
+    } else if (!nagged && now - goAt > 5000) { nagged = true; mood = 'plead'; bubble(L('は、早く…ひとおもいに…！', '어, 어서요… 단번에…!')); }
   }
 
   // peel feedback: every bit of travel plucks hair
@@ -791,7 +835,7 @@ function frame(now) {
     while (pluckAcc > 8) { pluckAcc -= 8; if (n++ < 3) sndPluck(); }
     if (state === 'play') {
       popAcc += dpx;
-      if (popAcc > 26 && !quick) { popAcc = 0; pop(['プチ', 'ブチッ', 'ミチ…', 'ブチブチ', 'プチッ'][Math.floor(rand(0, 5))], xf + rand(-20, 20), armY - rand(60, 100), rand(22, 32), '#fff'); shake = Math.max(shake, 5); }
+      if (popAcc > 26 && !quick) { popAcc = 0; pop(L(['プチ', 'ブチッ', 'ミチ…', 'ブチブチ', 'プチッ'], ['뽁', '뿌직', '찌익…', '뿌지직', '뽁!'])[Math.floor(rand(0, 5))], xf + rand(-20, 20), armY - rand(60, 100), rand(22, 32), '#fff'); shake = Math.max(shake, 5); }
       if (pain > 0.2 && Math.random() < 0.5) tear(Math.random() < 0.5 ? -1 : 1);
     }
   }
@@ -826,9 +870,9 @@ function frame(now) {
 }
 
 const Q = new URLSearchParams(location.search), CQ = Q.get('card');
-const CARD = !Q.has('card') ? undefined : !CQ ? null : CQ === 'max' ? '10秒以上' : CQ[0] === 's' ? `${CQ.slice(1)}秒台` : CQ[0] === 'd' ? `${(CQ.slice(1) / 10).toFixed(1)}秒台` : `${(CQ.slice(1) / 100).toFixed(2)}秒`;
+const CARD = !Q.has('card') ? undefined : !CQ ? null : CQ === 'max' ? L('10秒以上', '10초 이상') : CQ[0] === 's' ? L(`${CQ.slice(1)}秒台`, `${CQ.slice(1)}초대`) : CQ[0] === 'd' ? L(`${(CQ.slice(1) / 10).toFixed(1)}秒台`, `${(CQ.slice(1) / 10).toFixed(1)}초대`) : L(`${(CQ.slice(1) / 100).toFixed(2)}秒`, `${(CQ.slice(1) / 100).toFixed(2)}초`);
 requestAnimationFrame(frame);
-if (CARD === undefined) { show('title', true); show('start', true); bubble('毛深井です…お手やわらかに…'); }
+if (CARD === undefined) { show('title', true); show('start', true); bubble(L('毛深井です…お手やわらかに…', '털보예요… 살살 부탁해요…')); }
 else if (CARD === null) { mood = 'dead'; state = 'done'; p = pDrawn = 1; pain = painShown = 1; setTimeout(async () => showPicture(await drawShareImage({ card: null })), 1200); }
 else {   // play the ending for this card's time, then draw the preview
   const secs = CQ === 'max' ? 10 : { s: 1, d: .1, c: .01 }[CQ[0]] * CQ.slice(1);

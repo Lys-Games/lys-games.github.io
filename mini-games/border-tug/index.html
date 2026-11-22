@@ -101,6 +101,10 @@ button.alt,.btn.alt{background:#222}
 #result .row button,#result .row .btn{font-size:clamp(18px,5.2vw,24px);padding:.3em .9em;margin:.2em 0;white-space:nowrap}
 #net{font-family:system-ui,sans-serif;font-size:11px;color:#a33;margin-top:.3em;display:none}
 .en{display:none!important}
+/* Korean (?hl=ko): the web font has no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body,html:lang(ko) #status b,html:lang(ko) .areas div b,html:lang(ko) #rm,html:lang(ko) #rrank,html:lang(ko) #result .btn,html:lang(ko) #result button,html:lang(ko) #rgone{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) .card,html:lang(ko) #result{font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
 </style>
 </head>
 <body>
@@ -146,7 +150,7 @@ button.alt,.btn.alt{background:#222}
 import {makeGeo} from './geo.js?v=12';
 import {makePull, target, ROUND} from './tug.js?v=12';
 import {makeStore} from './store.js?v=12';
-import {drawShareImage} from './share.js?v=12';
+import {drawShareImage} from './share.js?v=13';
 
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -156,8 +160,34 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const TOUCH = matchMedia('(pointer: coarse)').matches;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const Q = new URLSearchParams(location.search);
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (() => { const q = Q.get('hl'); if (q === 'ko' || q === 'ja') return q; return /^ko/i.test(navigator.language || '') ? 'ko' : 'ja'; })();
+const KO = HL === 'ko';
+const tr = (ja, ko) => KO ? ko : ja;
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/border-tug/';
-const QUOTE_POST = 'https://x.com/lysgamedev/status/2121760193780605210';   // the game's launch post on X (https://x.com/lysgamedev/status/…): result posts quote it once set
+const URL_SHARE = KO ? URL_PUBLIC + '?hl=ko' : URL_PUBLIC;   // phone share sheet link
+const DFONT = KO ? '"Dela Gothic One", KoDisplay, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui' : '"Dela Gothic One", system-ui';
+if (KO) {
+  document.documentElement.lang = 'ko'; document.title = '구 경계 줄다리기';
+  const meta = (sel, v) => document.querySelector(sel).setAttribute('content', v);
+  meta('meta[name=description]', '다이토구와 스미다구는 해마다 사쿠라바시에서 줄다리기로 진짜 구 경계를 옮깁니다. 그 온라인 버전. 어느 한쪽 편을 들어 연타하면 모두의 구 경계가 최대 1m 움직여요. Lys Games의 무료 미니게임.');
+  meta('meta[property="og:title"]', '구 경계 줄다리기');
+  meta('meta[property="og:description"]', '다이토구냐 스미다구냐. 연타로 모두의 구 경계를 최대 1m 움직여라.');
+  meta('meta[property="og:url"]', 'https://lys-games.github.io/mini-games/border-tug/?hl=ko');
+  const q = (sel, f) => f(document.querySelector(sel));
+  q('#hint', el => el.firstChild.nodeValue = '연타!');
+  q('#rope .end.l', el => el.textContent = '다이토구'); q('#rope .end.r', el => el.textContent = '스미다구');
+  q('#attr', el => el.innerHTML = el.innerHTML.replace('地理院タイル', '지리원 타일').replace('区境 ©', '구 경계 ©'));
+  q('#title h1', el => el.firstChild.nodeValue = '구 경계 줄다리기');
+  q('#title .card', el => el.firstChild.nodeValue = '다이토구와 스미다구는 해마다 사쿠라바시에서 줄다리기로 진짜 구 경계를 옮깁니다. 이건 그 온라인 버전. 한 번에 움직이는 건 최대 1m.\n        ');
+  q('#title .ask', el => el.firstChild.nodeValue = '어느 편?');
+  $('pickT').textContent = '다이토구'; $('pickS').textContent = '스미다구';
+  $('again').textContent = '한 번 더'; $('share').textContent = 'X에 올리기'; $('save').textContent = '이미지 저장';
+  $('switch').textContent = '진영 바꾸기';
+  q('#result .small:last-child', el => el.innerHTML = el.innerHTML.replace('制作', '제작').replace('『Gopher It』Steamで発売中', '『Gopher It』 Steam에서 판매 중').replace('utm_campaign=bordertug', 'utm_campaign=bordertug_ko'));
+}
+// The Korean version does not quote the Japanese launch post: its result post carries the game link instead.
+const QUOTE_POST = KO ? '' : 'https://x.com/lysgamedev/status/2121760193780605210';   // the game's launch post on X (https://x.com/lysgamedev/status/…): result posts quote it once set
 
 // ---------- data ----------
 const data = await (await fetch('wards.json?v=12')).json();
@@ -166,6 +196,7 @@ const SIDE = {
   taito:  {ja:'台東区', en:'Taito',  color:'#e8392b', sign:+1},
   sumida: {ja:'墨田区', en:'Sumida', color:'#1f78e0', sign:-1},
 };
+if (KO) { SIDE.taito.ja = '다이토구'; SIDE.sumida.ja = '스미다구'; }   // `ja` holds the display name in whichever language is on
 const RANKS = [ // `at` = metres
   {at:0,    ja:'ほぼ動かず',     en:'Barely moved'},
   {at:0.10, ja:'町内会級',   en:'Neighbourhood club'},
@@ -175,6 +206,7 @@ const RANKS = [ // `at` = metres
   {at:0.85, ja:'人間重機',       en:'Human bulldozer'},
   {at:0.95, ja:'伝説の引き手',   en:'Legendary puller'},
 ];
+if (KO) ['거의 안 움직임', '동네 팀급', '구 대표급', '올스타급', '요코즈나급', '인간 중장비', '전설의 줄다리기 고수'].forEach((n, i) => RANKS[i].ja = n);
 const rankOf = m => RANKS.reduce((r, R, i) => m >= R.at ? i : r, 0);
 const TATAMI = 1.62;   // m² per mat, the size Japanese property listings use
 
@@ -283,7 +315,7 @@ function drawMark({at, text, t0}){
   cx.strokeStyle = '#ffe14a'; cx.lineWidth = 4; cx.globalAlpha = 1 - u;
   cx.beginPath(); cx.arc(p.x, p.y, 8 + u*40, 0, 7); cx.stroke(); cx.globalAlpha = 1;
   cx.fillStyle = '#fff'; cx.strokeStyle = '#111'; cx.lineWidth = 4; cx.beginPath(); cx.arc(p.x, p.y, 8, 0, 7); cx.fill(); cx.stroke();
-  cx.font = `${size}px "Dela Gothic One", system-ui`; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
+  cx.font = `${size}px ${DFONT}`; cx.textAlign = 'left'; cx.textBaseline = 'middle'; cx.lineJoin = 'round';
   const w = cx.measureText(text).width, tx = clamp(p.x + 16, 8, innerWidth - 8 - w);
   cx.lineWidth = size*.28; cx.strokeText(text, tx, p.y - size*.9); cx.fillStyle = '#ffe14a'; cx.fillText(text, tx, p.y - size*.9);
 }
@@ -312,7 +344,7 @@ function drawTape([ax, ay], dir){
     const x = len * cm / 100, h = cm % 50 === 0 ? w*.7 : cm % 10 === 0 ? w*.45 : w*.25;
     cx.fillRect(x - 1, -w/2, 2, h);
   }
-  cx.font = `${Math.round(w*.5)}px "Dela Gothic One", system-ui`;
+  cx.font = `${Math.round(w*.5)}px ${DFONT}`;
   for (const cm of [0, 50, 100]) {
     cx.save(); cx.translate(len*cm/100, w*.16); if (Math.cos(Math.atan2(uy, ux)) < 0) cx.rotate(Math.PI);
     cx.fillText(cm === 100 ? '1m' : cm + '', 0, -w*.08); cx.restore();
@@ -321,9 +353,9 @@ function drawTape([ax, ay], dir){
 }
 function drawLabels(s){
   const a = geo.areas(s), size = clamp(innerWidth*.06, 17, 36);
-  cx.font = `${size}px "Dela Gothic One", system-ui`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.font = `${size}px ${DFONT}`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
   cx.lineJoin = 'round'; cx.lineWidth = size*.26; cx.strokeStyle = '#111';
-  const L = ['taito', 'sumida'].map(k => { const p = xyPt(geo.labelAt(k, s)), txt = SIDE[k].ja + (a[k] < 1 ? ' 消滅' : ''); return {k, x:p.x, y:p.y, txt, w:cx.measureText(txt).width}; });
+  const L = ['taito', 'sumida'].map(k => { const p = xyPt(geo.labelAt(k, s)), txt = SIDE[k].ja + (a[k] < 1 ? tr(' 消滅', ' 소멸') : ''); return {k, x:p.x, y:p.y, txt, w:cx.measureText(txt).width}; });
   // the smaller ward's name steps down when the two would overlap
   const [big, small] = a.taito >= a.sumida ? L : [L[1], L[0]];
   if (Math.abs(big.x - small.x) < (big.w + small.w)/2 && Math.abs(big.y - small.y) < size*1.2) small.y = big.y + size*1.3;
@@ -346,7 +378,7 @@ function flash(o=1, color='#fff'){ const f = $('flash'); f.style.background = co
 const bump = (el, s=1.25, ms=140) => el.animate([{transform:`scale(${s})`}, {transform:'scale(1)'}], {duration:ms, easing:'ease-out'});
 function rankUp(i, ms=2200){
   const R = RANKS[i], el = $('rankup');
-  el.innerHTML = `${R.ja}！<span class="en">${R.en}!</span>`;
+  el.innerHTML = `${R.ja}${tr('！', '!')}<span class="en">${R.en}!</span>`;
   el.style.color = ['#fff','#fff','#ffe14a','#ffd23a','#ffb03a','#ff8a3d','#ff3d6e'][i];
   el.style.fontSize = `clamp(26px, ${Math.min(8 + i, 84/(R.ja.length+1))}vw, ${44 + i*6}px)`;
   el.style.display = 'block';
@@ -362,16 +394,16 @@ function shake(a){ if (!REDUCED) shakeAmt = Math.max(shakeAmt, a); }
 
 function borderLine(s){
   s = sClamp(s);
-  if (Math.abs(s) < .005) return ['区境はいま、元の位置', 'The border is where it started'];
+  if (Math.abs(s) < .005) return [tr('区境はいま、元の位置', '구 경계는 지금 원래 위치'), 'The border is where it started'];
   const into = s > 0 ? SIDE.sumida : SIDE.taito;
-  return [`区境はいま <b>${into.ja}側へ ${fmtM(s)} m</b>`, `The border is now ${fmtM(s)} m into ${into.en}`];
+  return [tr(`区境はいま <b>${into.ja}側へ ${fmtM(s)} m</b>`, `구 경계는 지금 <b>${into.ja} 쪽으로 ${fmtM(s)} m</b>`), `The border is now ${fmtM(s)} m into ${into.en}`];
 }
 // one ward's box: name, m² (counting up from before the pull when `delta` is given), and km² or the change
 function areaBox(el, k, a, delta){
   const gone = a < 1;
   if (Math.abs(delta) < .5) delta = 0;
   el.className = (k === 'taito' ? 'ta' : 'su') + (gone ? ' gone' : '');
-  el.innerHTML = `${SIDE[k].ja}${gone ? ' 消滅' : ''}<b>${fmtInt(a)} m²</b>${delta ? (delta > 0 ? '+' : '−') + fmtInt(Math.abs(delta)) + ' m²' : fmtKm2(a) + ' km²'}`;
+  el.innerHTML = `${SIDE[k].ja}${gone ? tr(' 消滅', ' 소멸') : ''}<b>${fmtInt(a)} m²</b>${delta ? (delta > 0 ? '+' : '−') + fmtInt(Math.abs(delta)) + ' m²' : fmtKm2(a) + ' km²'}`;
   if (!delta || REDUCED) return;
   const b = el.querySelector('b'), from = Math.max(0, a - delta), t0 = performance.now(), T = 1100;
   (function tick(now){
@@ -381,10 +413,10 @@ function areaBox(el, k, a, delta){
   })(t0);
 }
 function showStatus(){
-  const [ja, en] = known ? borderLine(shared) : netOk ? ['区境を読み込み中…', 'Loading the border…'] : ['いまは区境を読み込めません', 'The border can\'t be loaded right now'], a = geo.areas(sClamp(shared));
+  const [ja, en] = known ? borderLine(shared) : netOk ? [tr('区境を読み込み中…', '구 경계를 불러오는 중…'), 'Loading the border…'] : [tr('いまは区境を読み込めません', '지금은 구 경계를 불러올 수 없어요'), 'The border can\'t be loaded right now'], a = geo.areas(sClamp(shared));
   const p = store.pulled();
-  const tot = p && (p.taito || p.sumida) ? `<span class="e">みんなが引いた合計：台東区 ${fmtM(p.taito)} m · 墨田区 ${fmtM(p.sumida)} m</span>` : '';
-  $('status').innerHTML = `${ja}${netOk ? '' : (known ? '<span class="e">つながりません。前に見た区境です</span>' : '')}${tot}`;
+  const tot = p && (p.taito || p.sumida) ? `<span class="e">${tr('みんなが引いた合計：', '모두가 당긴 합계: ')}${SIDE.taito.ja} ${fmtM(p.taito)} m · ${SIDE.sumida.ja} ${fmtM(p.sumida)} m</span>` : '';
+  $('status').innerHTML = `${ja}${netOk ? '' : (known ? `<span class="e">${tr('つながりません。前に見た区境です', '연결되지 않아요. 전에 본 구 경계예요')}</span>` : '')}${tot}`;
   areaBox($('aT'), 'taito', a.taito); areaBox($('aS'), 'sumida', a.sumida);
 }
 
@@ -456,7 +488,7 @@ function onTap(e){
   if (taps % 5 === 0 && now - lastOes > 650) {
     lastOes = now; say('oes', 1.1, 1 + x*.15);
     const px = e.clientX ?? innerWidth/2, py = e.clientY ?? innerHeight*.6;
-    pop('オーエス！', clamp(px, 0, innerWidth), clamp(py - 60, 80, innerHeight - 200), .9 + x*.4);
+    pop(tr('オーエス！', '영차!'), clamp(px, 0, innerWidth), clamp(py - 60, 80, innerHeight - 200), .9 + x*.4);
   }
   $('hint').style.display = 'none';
 }
@@ -488,7 +520,7 @@ async function play(){
   view.line = s0; view.ghost = null; view.tape = null; view.glow = 0; view.mark = null;
   // 1. down to the bridge (first round only)
   if (!played) {
-    telop('桜橋のまんなかが区境', 'The ward border runs across the middle of Sakurabashi');
+    telop(tr('桜橋のまんなかが区境', '사쿠라바시 한가운데가 구 경계'), 'The ward border runs across the middle of Sakurabashi');
     const flight = flyTo(LL(geo.bridgeAt(s0)), 19.2, 2.6);
     await wait(500); say('bridge');
     await flight; await wait(700);
@@ -496,15 +528,15 @@ async function play(){
   played = true;
   // 2. onto the deck, with the tape laid out toward the other ward
   view.tape = s0; view.tapeSide = me.sign; anchor0 = geo.anchor(s0);
-  telop(`${me.ja}のために引け！`, `Pull for ${me.en}!`);
+  telop(tr(`${me.ja}のために引け！`, `${me.ja}를 위해 당겨라!`), `Pull for ${me.en}!`);
   await flyTo(LL(geo.toLonLat([anchor0[0] + me.sign*.5, anchor0[1]])), closeZoom(), map.getZoom() < 17 ? 2.4 : 1.6);
   // 3. ready... whistle
   $('rope').style.display = 'block'; setRope(0);
   $('rope').querySelectorAll('.end').forEach(el => el.classList.toggle('me', el.classList.contains(side === 'taito' ? 'l' : 'r')));
   $('hud').style.display = 'block'; $('tfill').style.width = '100%'; $('meters').innerHTML = '0.00<small> m</small>'; $('effort').textContent = '';
   telop();
-  big('よーい'); say('ready', 1.4); await wait(1100);
-  big('ピッ！'); whistle(.3, .4); flash(.5); await wait(250);
+  big(tr('よーい', '준비')); say('ready', 1.4); await wait(1100);
+  big(tr('ピッ！', '삑!')); whistle(.3, .4); flash(.5); await wait(250);
   say('pull', 1.5); big();
   $('hint').style.display = 'block';
   // 4. the pull
@@ -518,7 +550,7 @@ async function play(){
       $('meters').innerHTML = `${x.toFixed(2)}<small> m</small>`;
       $('tfill').style.width = Math.max(0, 1 - t/ROUND)*100 + '%';
       const want = target(pull.rate(t));
-      $('effort').textContent = taps === 0 ? '' : want < .2 ? 'もっと！' : want < .45 ? 'いい調子！' : want < .7 ? 'すごい！' : want < .9 ? '怪力！' : '限界突破！';
+      $('effort').textContent = taps === 0 ? '' : want < .2 ? tr('もっと！', '더!') : want < .45 ? tr('いい調子！', '좋아!') : want < .7 ? tr('すごい！', '대단해!') : want < .9 ? tr('怪力！', '괴력!') : tr('限界突破！', '한계 돌파!');
       setRope(x);
       // each new rank reached during the pull gets its own pop
       const r = rankOf(x);
@@ -537,7 +569,7 @@ async function play(){
   const moved = Math.max(0, Math.min(x, room));
   view.line = s0 + me.sign * moved; view.ghost = s0;
   const save = moved >= .01 ? store.add(me.sign * moved).then(v => { netOk = true; return v; }, e => { console.warn('store', e); netOk = false; return null; }) : Promise.resolve(shared);
-  big('それまで！'); say('stop', 1.5);
+  big(tr('それまで！', '그만!')); say('stop', 1.5);
   await wait(1100); big();
   $('hud').style.display = 'none'; $('rope').style.display = 'none'; $('effort').textContent = '';
   // 6. how far
@@ -550,7 +582,7 @@ async function play(){
   const before = geo.areas(s0), after = geo.areas(view.line);
   const gain = Math.abs(after.taito - before.taito);
   // 7. back up to the whole map
-  telop('区境が動きました', `The border moved ${moved.toFixed(2)} m`);
+  telop(tr('区境が動きました', '구 경계가 움직였습니다'), `The border moved ${moved.toFixed(2)} m`);
   say('moved');
   view.tape = null; view.glow = 1;
   await new Promise(r => { map.once('moveend', r); map.flyToBounds(wardsBounds, {...overview(), duration: REDUCED ? .01 : 2.6}); });
@@ -558,44 +590,46 @@ async function play(){
   const newShared = await Promise.race([save, wait(8000).then(() => null)]);
   if (newShared != null) shared = newShared; else shared = s0 + me.sign * moved;
   view.line = shared; view.ghost = null;
-  if (moved > 0) { const at = geo.anchor(sClamp(shared)); view.mark = {at, text: `${Math.abs(at[1]) < 80 ? '桜橋' : '区境'} ${me.sign > 0 ? '→' : '←'} ${moved.toFixed(2)} m`, t0: performance.now()}; }
+  if (moved > 0) { const at = geo.anchor(sClamp(shared)); view.mark = {at, text: `${Math.abs(at[1]) < 80 ? tr('桜橋', '사쿠라바시') : tr('区境', '구 경계')} ${me.sign > 0 ? '→' : '←'} ${moved.toFixed(2)} m`, t0: performance.now()}; }
   const a = geo.areas(sClamp(shared));
   const goneKey = a.sumida < 1 ? 'sumida' : a.taito < 1 ? 'taito' : null;
-  if (goneKey) { flash(.8, '#000'); shake(14); sample('k_impactPunch_heavy_000', .5, 1); big(`${SIDE[goneKey].ja}<br>消滅`); await line('gone_' + goneKey, 1800); big(); }
+  if (goneKey) { flash(.8, '#000'); shake(14); sample('k_impactPunch_heavy_000', .5, 1); big(`${SIDE[goneKey].ja}<br>${tr('消滅', '소멸')}`); await line('gone_' + goneKey, 1800); big(); }
   if (moved > best) { best = moved; try { localStorage.setItem('border-tug.best', best); } catch {} }
   showResult({moved, r, gain, a, goneKey});
 }
 
 function showResult({moved, r, gain, a, goneKey}){
   const me = SIDE[side], other = SIDE[side === 'taito' ? 'sumida' : 'taito'];
-  $('rlabel').textContent = `${me.ja}のために引いた`;
+  $('rlabel').textContent = tr(`${me.ja}のために引いた`, `${me.ja}를 위해 당겼다`);
   $('rm').textContent = moved.toFixed(2) + ' m';
   const next = RANKS[r + 1], cm = next ? Math.max(1, Math.round((next.at - moved) * 100)) : 0;
-  $('rrank').innerHTML = `${RANKS[r].ja}<small>自己ベスト ${best.toFixed(2)} m</small>`
-    + (next && !goneKey ? `<small>「${next.ja}」まで あと${cm}cm</small>` : '');
+  $('rrank').innerHTML = `${RANKS[r].ja}<small>${tr('自己ベスト', '최고 기록')} ${best.toFixed(2)} m</small>`
+    + (next && !goneKey ? tr(`<small>「${next.ja}」まで あと${cm}cm</small>`, `<small>“${next.ja}”까지 ${cm}cm 남음</small>`) : '');
   const g = $('rgone');
-  if (goneKey) { g.style.display = 'block'; g.innerHTML = goneKey === side ? `${me.ja}が消えた！取り返せ！` : `${other.ja}は地図から消えた`; }
+  if (goneKey) { g.style.display = 'block'; g.innerHTML = goneKey === side ? tr(`${me.ja}が消えた！取り返せ！`, `${me.ja}가 사라졌다! 되찾아라!`) : tr(`${other.ja}は地図から消えた`, `${other.ja}는 지도에서 사라졌다`); }
   else g.style.display = 'none';
   $('rgain').innerHTML = moved > 0
-    ? `${other.ja}から <b>${fmtArea(gain)} m²</b> うばった（畳 ${fmtArea(gain / TATAMI)} 枚分）`
-    : (goneKey && goneKey !== side ? `もう引く土地がない` : `区境は動かなかった`);
+    ? tr(`${other.ja}から <b>${fmtArea(gain)} m²</b> うばった（畳 ${fmtArea(gain / TATAMI)} 枚分）`, `${other.ja}에서 <b>${fmtArea(gain)} m²</b> 빼앗았다 (다다미 ${fmtArea(gain / TATAMI)}장 분량)`)
+    : (goneKey && goneKey !== side ? tr(`もう引く土地がない`, `더 당길 땅이 없다`) : tr(`区境は動かなかった`, `구 경계는 움직이지 않았다`));
   areaBox($('rT'), 'taito', a.taito, side === 'taito' ? gain : -gain);
   areaBox($('rS'), 'sumida', a.sumida, side === 'sumida' ? gain : -gain);
   if (gain >= 1) for (let i = 0; i < 8; i++) setTimeout(() => sample('k_select_003', 1.2 + i*.08, .2), 120 + i*120);
   const [ja, en] = borderLine(shared);
-  $('rtotal').innerHTML = `みんなの結果：${ja.replace(/<\/?b>/g, '')}`;
+  $('rtotal').innerHTML = `${tr('みんなの結果：', '모두의 결과: ')}${ja.replace(/<\/?b>/g, '')}`;
   $('net').style.display = netOk && store.online ? 'none' : 'block';
-  $('net').textContent = !store.online ? 'オフライン：この端末にだけ記録しています。'
-    : 'いまはつながりません。この1回は、つながったら自動で送ります。';
-  const into = shared > 0 ? `墨田区側へ${fmtM(shared)}m` : shared < 0 ? `台東区側へ${fmtM(shared)}m` : '元の位置';
-  const what = moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
-  const gone = goneKey ? `\n${SIDE[goneKey].ja}は地図から消えました` : '';
-  const text = `区境つなひき！ ${what}\nいまの区境：${into}${gone}\n#区境つなひき`;
+  $('net').textContent = !store.online ? tr('オフライン：この端末にだけ記録しています。', '오프라인: 이 기기에만 기록하고 있어요.')
+    : tr('いまはつながりません。この1回は、つながったら自動で送ります。', '지금은 연결되지 않아요. 이번 한 번은 연결되면 자동으로 보낼게요.');
+  const into = KO ? (shared > 0 ? `${SIDE.sumida.ja} 쪽으로 ${fmtM(shared)}m` : shared < 0 ? `${SIDE.taito.ja} 쪽으로 ${fmtM(shared)}m` : '원래 위치')
+    : shared > 0 ? `墨田区側へ${fmtM(shared)}m` : shared < 0 ? `台東区側へ${fmtM(shared)}m` : '元の位置';
+  const what = KO ? (moved > 0 ? `${me.ja}를 위해 ${moved.toFixed(2)}m 당겨서 ${fmtArea(gain)}m² 빼앗았다 [${RANKS[r].ja}]` : `${me.ja}를 위해 당겼지만 구 경계는 움직이지 않았다`)
+    : moved > 0 ? `${me.ja}のために${moved.toFixed(2)}m引いて${fmtArea(gain)}m²うばった【${RANKS[r].ja}】` : `${me.ja}のために引いたけど、区境は動かなかった`;
+  const gone = goneKey ? tr(`\n${SIDE[goneKey].ja}は地図から消えました`, `\n${SIDE[goneKey].ja}는 지도에서 사라졌습니다`) : '';
+  const text = KO ? `구 경계 줄다리기! ${what}\n지금의 구 경계: ${into}${gone}\n#구경계줄다리기` : `区境つなひき！ ${what}\nいまの区境：${into}${gone}\n#区境つなひき`;
   // The post link must be the only link: X builds its card from the first link, and a post link becomes a quote
   // only when nothing else claims the card. The quoted post carries the game link.
   $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text)
-    + '&url=' + encodeURIComponent(QUOTE_POST || URL_PUBLIC);
-  prepareShare(text, {geo, data, shift: sClamp(shared), moved, sign: me.sign, sideJa: me.ja, rankJa: RANKS[r].ja,
+    + '&url=' + encodeURIComponent(QUOTE_POST || URL_SHARE);
+  prepareShare(text, {ko: KO, geo, data, shift: sClamp(shared), moved, sign: me.sign, sideJa: me.ja, rankJa: RANKS[r].ja,
     lineJa: ja.replace(/<\/?b>/g, ''), areas: a, gain});
   $('result').style.display = 'block';
   $('result').animate([{transform:'translate(-50%,40%) scale(.8)', opacity:0}, {transform:'translate(-50%,-3%) scale(1.02)', opacity:1, offset:.7}, {transform:'translate(-50%,0) scale(1)'}], {duration:340, easing:'ease-out'});
@@ -614,7 +648,7 @@ async function prepareShare(text, opts){
     const blob = await drawShareImage(opts);
     if (job !== shareJob || !blob) return;
     shareFile = new File([blob], 'border-tug.png', {type: 'image/png'});
-    $('save').innerHTML = canShareFile() ? '画像でシェア' : '画像を保存';
+    $('save').innerHTML = canShareFile() ? tr('画像でシェア', '이미지로 공유') : tr('画像を保存', '이미지 저장');
     $('save').style.display = TOUCH ? 'inline-block' : 'none';   // PC: the X button saves it
   } catch (e) { console.warn('share image', e); }
 }
@@ -622,7 +656,7 @@ async function prepareShare(text, opts){
 // the phone's share sheet (any app). Desktop browsers can share files too, but their sheet has no X: on PC the
 // X button saves the picture and opens the post in one click, ready to attach.
 const canShareFile = () => !!(TOUCH && shareFile && navigator.canShare && navigator.share && navigator.canShare({files: [shareFile]}));
-if (!TOUCH) $('share').innerHTML = 'Xでポスト<small>画像も保存</small>';
+if (!TOUCH) $('share').innerHTML = tr('Xでポスト<small>画像も保存</small>', 'X에 올리기<small>이미지도 저장</small>');
 $('share').addEventListener('click', e => { e.stopPropagation(); if (!TOUCH && shareFile) download(); });
 function download(){
   const a = document.createElement('a'), url = URL.createObjectURL(shareFile);
@@ -633,7 +667,7 @@ $('save').onclick = e => {
   e.stopPropagation(); e.currentTarget.blur();
   if (!shareFile) return;
   if (!canShareFile()) return download();
-  navigator.share({files: [shareFile], text: shareText, url: URL_PUBLIC}).catch(err => {
+  navigator.share({files: [shareFile], text: shareText, url: URL_SHARE}).catch(err => {
     if (err.name !== 'AbortError') { console.warn('share', err); download(); }   // AbortError: closed the sheet
   });
 };
@@ -677,7 +711,7 @@ if (!TOUCH) $('hint').querySelector('.en').textContent = 'CLICK OR MASH SPACE!';
 showStatus();
 map.fitBounds(wardsBounds, overview());
 requestAnimationFrame(frame);
-document.fonts?.load('40px "Dela Gothic One"', '台東区墨田区消滅');
+document.fonts?.load(`40px ${DFONT}`, tr('台東区墨田区消滅', '다이토구스미다구소멸'));
 refresh().then(() => { view.line = sClamp(shared); showStatus(); });
 // keep the title's numbers fresh while someone reads it
 setInterval(() => { if (phase === 'title' && !document.hidden) refresh().then(() => { view.line = sClamp(shared); showStatus(); }); }, 30000);

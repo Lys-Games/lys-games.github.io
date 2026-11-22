@@ -6,7 +6,10 @@
 
 export const W = 1200, H = 675;
 const TILE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
-const INK = '#111', YELLOW = '#ffe14a', FONT = '"Dela Gothic One", "Hiragino Sans", system-ui, sans-serif';
+const INK = '#111', YELLOW = '#ffe14a';
+const FONT_JA = '"Dela Gothic One", "Hiragino Sans", system-ui, sans-serif';
+const FONT_KO = '"Dela Gothic One", KoDisplay, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif';
+let FONT = FONT_JA;
 const COLOR = {taito: '#e8392b', sumida: '#1f78e0'};
 
 // Web Mercator, in pixels at zoom z
@@ -29,10 +32,11 @@ function text(cx, str, x, y, size, fill, {align = 'center', stroke = size * .26,
   cx.fillStyle = fill; cx.fillText(str, x, y);
 }
 
-// r: {geo, data, shift (border now), moved (this pull, m), sign (+1 Taito), sideJa, rankJa, lineJa, areas {taito, sumida}, gain}
+// r: {ko (Korean text), geo, data, shift (border now), moved (this pull, m), sign (+1 Taito), sideJa, rankJa, lineJa, areas {taito, sumida}, gain}
 export async function drawShareImage(r){
-  const {geo, data} = r;
-  await document.fonts?.load(`60px ${FONT}`, '区境つなひき台東区墨田区のために級はいま側へ消滅0123456789.+m²');
+  const {geo, data} = r, ko = !!r.ko;
+  FONT = ko ? FONT_KO : FONT_JA;
+  await document.fonts?.load(`60px ${FONT}`, ko ? '구 경계 줄다리기 다이토구스미다구를 위해 급은 지금 쪽으로 소멸 0123456789.+m²' : '区境つなひき台東区墨田区のために級はいま側へ消滅0123456789.+m²');
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const cx = cv.getContext('2d');
   cx.fillStyle = '#dfeaf2'; cx.fillRect(0, 0, W, H);
@@ -88,30 +92,30 @@ export async function drawShareImage(r){
   // text: title, the pull, rank, border line, URL
   const g = cx.createLinearGradient(0, 450, 0, H); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.35, 'rgba(255,255,255,.75)'); g.addColorStop(1, 'rgba(255,255,255,.9)');
   cx.fillStyle = g; cx.fillRect(0, 450, W, H - 450);
-  text(cx, '区境つなひき', W/2, 54, 64, YELLOW, {stroke: 16});
+  text(cx, ko ? '구 경계 줄다리기' : '区境つなひき', W/2, 54, 64, YELLOW, {stroke: 16});
   const pull = r.moved > 0 ? `+${r.moved.toFixed(2)} m` : '±0.00 m';
   text(cx, pull, W/2, 506, 92, r.sign > 0 ? '#ff6b5c' : '#5aa8ff', {stroke: 22});
-  text(cx, `${r.sideJa}のために ・ ${r.rankJa}`, W/2, 572, 36, '#fff', {stroke: 10, maxW: 640});
+  text(cx, ko ? `${r.sideJa}를 위해 ・ ${r.rankJa}` : `${r.sideJa}のために ・ ${r.rankJa}`, W/2, 572, 36, '#fff', {stroke: 10, maxW: 640});
   text(cx, r.lineJa, W/2, 614, 27, YELLOW, {stroke: 8, maxW: 640});
   text(cx, 'lys-games.github.io/mini-games/border-tug/', W/2, 652, 21, INK, {stroke: 0, font: 'system-ui, sans-serif', weight: 800, maxW: 640});
 
   // ward boxes in the side margins
-  wardBox(cx, 34, 214, 'taito', '台東区', r.areas.taito, r.sign > 0 ? r.gain : -r.gain);
-  wardBox(cx, W - 34 - 210, 214, 'sumida', '墨田区', r.areas.sumida, r.sign < 0 ? r.gain : -r.gain);
+  wardBox(cx, 34, 214, 'taito', ko ? '다이토구' : '台東区', r.areas.taito, r.sign > 0 ? r.gain : -r.gain, ko);
+  wardBox(cx, W - 34 - 210, 214, 'sumida', ko ? '스미다구' : '墨田区', r.areas.sumida, r.sign < 0 ? r.gain : -r.gain, ko);
 
   cx.font = '600 13px system-ui, sans-serif'; cx.textAlign = 'right'; cx.textBaseline = 'bottom'; cx.fillStyle = '#333';
-  cx.fillText((usedTiles ? '地理院タイル | ' : '') + '区境 © OpenStreetMap contributors', W - 10, H - 8);
+  cx.fillText((usedTiles ? (ko ? '지리원 타일 | ' : '地理院タイル | ') : '') + (ko ? '구 경계' : '区境') + ' © OpenStreetMap contributors', W - 10, H - 8);
   cx.textAlign = 'left'; cx.fillText('Lys Games', 10, H - 8);
 
   return await new Promise(res => cv.toBlob(res, 'image/png'));
 }
 
-function wardBox(cx, x, y, k, name, area, delta){
+function wardBox(cx, x, y, k, name, area, delta, ko){
   const w = 210, h = 150, gone = area < 1;
   cx.fillStyle = gone ? '#444' : COLOR[k]; cx.strokeStyle = INK; cx.lineWidth = 5;
   cx.beginPath(); cx.roundRect(x, y + 6, w, h, 18); cx.fillStyle = INK; cx.fill();
   cx.beginPath(); cx.roundRect(x, y, w, h, 18); cx.fillStyle = gone ? '#444' : COLOR[k]; cx.fill(); cx.stroke();
-  text(cx, name + (gone ? ' 消滅' : ''), x + w/2, y + 32, 30, '#fff', {stroke: 8});
+  text(cx, name + (gone ? (ko ? ' 소멸' : ' 消滅') : ''), x + w/2, y + 32, 30, '#fff', {stroke: 8});
   text(cx, Math.round(area).toLocaleString('en-US'), x + w/2, y + 78, 32, '#fff', {stroke: 8, maxW: w - 24});
   text(cx, 'm²', x + w/2, y + 108, 18, '#fff', {stroke: 5});
   if (Math.abs(delta) >= .5) text(cx, (delta > 0 ? '+' : '−') + Math.round(Math.abs(delta)).toLocaleString('en-US') + ' m²', x + w/2, y + 134, 20, YELLOW, {stroke: 6});

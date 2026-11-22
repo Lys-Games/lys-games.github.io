@@ -66,6 +66,10 @@ button.alt,.btn.alt{background:#222}
 #result .small{font-family:system-ui,sans-serif;font-size:12px;margin-top:.6em}
 #result a{color:var(--ink)}
 #result a.btn{color:#fff}
+/* Korean (?hl=ko): the web font has no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body,html:lang(ko) #rdist,html:lang(ko) #rrank,html:lang(ko) #result .btn,html:lang(ko) #result button{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) #title p,html:lang(ko) #result{font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
 </style>
 </head>
 <body>
@@ -99,6 +103,26 @@ button.alt,.btn.alt{background:#222}
 <script type="module">
 import * as THREE from './three.module.min.js';
 
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (() => { const q = new URLSearchParams(location.search).get('hl'); if (q === 'ko' || q === 'ja') return q; return /^ko/i.test(navigator.language || '') ? 'ko' : 'ja'; })();
+const KO = HL === 'ko';
+const L = (ja, ko) => KO ? ko : ja;
+const $0 = id => document.getElementById(id);
+if (KO) {
+  document.documentElement.lang = 'ko'; document.title = '이것은 펜입니다 / This is a PEN';
+  const meta = (sel, v) => document.querySelector(sel).setAttribute('content', v);
+  meta('meta[property="og:title"]', '이것은 펜입니다 / This is a PEN');
+  meta('meta[property="og:description"]', '연타해서 PEN의 “P”로 세상을 날려 버려라. Mash to charge, then blow the world away with one "P".');
+  meta('meta[property="og:url"]', 'https://lys-games.github.io/mini-games/this-is-a-pen/?hl=ko');
+  $0('title').querySelector('h1').firstChild.nodeValue = '이것은 펜입니다';
+  $0('title').querySelector('p').firstChild.nodeValue = '연타해서 PEN의 “P”로 세상을 날려 버려라.';
+  $0('start').textContent = '시작';
+  $0('result').querySelector('.label').textContent = '비거리 / DISTANCE';
+  $0('again').textContent = '한 번 더'; $0('share').textContent = 'X에 올리기';
+  const small = $0('result').querySelector('.small');
+  small.innerHTML = small.innerHTML.replace('by <a', '제작 <a').replace('Gopher It on Steam', '『Gopher It』 Steam에서 판매 중').replace('utm_campaign=pen', 'utm_campaign=pen_ko');
+}
+
 // ---------- tuning ----------
 const CHARGE_MS = 3000;
 const TOUCH = matchMedia('(pointer: coarse)').matches;
@@ -116,6 +140,11 @@ const TIERS = [ // `at` = gust distance that reaches it
   {at:1540, rank:['山頂消滅レベル','Peak remover'],    what:['山頂','the mountain top'], pop:'ゴゴゴゴ'},
   {at:MOON_AT, rank:['月面爆破レベル','Moon destroyer'], what:['月','the Moon'], pop:'宇宙到達'},
 ];
+const TIERS_KO = [   // [rank, what, pop], same order as TIERS
+  ['산들바람 레벨', '티슈'], ['재채기 레벨', '아나운서의 가발', '펄럭'], ['선풍기 레벨', '스튜디오', '와장창'], ['태풍 레벨', '스튜디오 벽', '콰직'],
+  ['회오리 레벨', '상점가', '쾅'], ['괴수 레벨', '빌딩가', '쿵쿵쿵쿵'], ['수도 괴멸 레벨', '전파탑', '뚝'], ['산꼭대기 소멸 레벨', '산꼭대기', '우르르'], ['달 폭파 레벨', '달', '우주 도달'],
+];
+if (KO) TIERS.forEach((T, i) => { T.rank[0] = TIERS_KO[i][0]; T.what[0] = TIERS_KO[i][1]; if (TIERS_KO[i][2]) T.pop = TIERS_KO[i][2]; });
 const MOON_DIST = 384400000;
 
 // ---------- renderer ----------
@@ -351,7 +380,7 @@ const bump = (el, s=1.35, ms=140) => el.animate([{transform:`scale(${s})`}, {tra
 function rankUp(i){
   const T = TIERS[i], el = $('rankup');
   if (i > 0) say('rank' + i, 1.5);
-  el.innerHTML = `${T.rank[0]}！<span class="en">${T.rank[1]}!</span>`;
+  el.innerHTML = `${T.rank[0]}${L('！', '!')}<span class="en">${T.rank[1]}!</span>`;
   el.style.color = ['#fff','#fff','#ffe14a','#ffd23a','#ffb03a','#ff8a3d','#ff5a3d','#ff3d6e','#c86bff'][i];
   el.style.fontSize = `clamp(22px, ${Math.min(6+i*.7, 84/(T.rank[0].length+1))}vw, ${40+i*6}px)`;
   el.style.display = 'block';
@@ -454,7 +483,7 @@ function onTap(e){
   sample('k_select_003', .8 + power*1.3, .35);
   G.g.position.y = .06 + power*.06; G.g.scale.setScalar(1.05*(1.04 + power*.04));
   $('taps').textContent = taps; $('fill').style.width = power*100 + '%'; bump($('taps'), 1.5, 100);
-  $('mlabel').textContent = power < .34 ? 'そよ風' : power < .67 ? '台風' : '天変地異';
+  $('mlabel').textContent = power < .34 ? L('そよ風', '산들바람') : power < .67 ? L('台風', '태풍') : L('天変地異', '천재지변');
 }
 addEventListener('pointerdown', onTap);
 addEventListener('keydown', onTap);
@@ -464,30 +493,30 @@ async function run(){
   $('combo').style.display = 'none'; $('dist').style.color = '';
   scene.background.copy(SKY);
   $('title').style.display = $('result').style.display = 'none';
-  $('fill').style.width = '0'; $('taps').textContent = '0'; $('mlabel').textContent = 'そよ風';
+  $('fill').style.width = '0'; $('taps').textContent = '0'; $('mlabel').textContent = L('そよ風', '산들바람');
   if (!played) {
     // 0. the interview opens: both behind the desk
     shot({lx:2, ly:1.3, lz:-.6, d:4.6, h:.5, yaw:.25}, true);
-    telop('英語は飛沫が多い？', "Today's topic: does English spray more?");
+    telop(L('英語は飛沫が多い？', '영어는 침이 더 튈까?'), "Today's topic: does English spray more?");
     await line('topic', 2200);
     shot({lx:2.4, ly:1.6, lz:-1, d:2.2, h:.1, yaw:.1}, true);
-    bubble('ゲストのマイクさんです', P.head); telop('ゲストのマイクさんです', 'Please welcome our guest, Mike.');
+    bubble(L('ゲストのマイクさんです', '게스트 마이크 씨입니다'), P.head); telop(L('ゲストのマイクさんです', '게스트 마이크 씨입니다'), 'Please welcome our guest, Mike.');
     await line('guest', 1800);
     shot({lx:1.5, ly:1.6, lz:-1, d:2.2, h:.1, yaw:-.1}, true);
-    bubble('Hi!', G.head); telop('マイク（アメリカ出身）', 'Mike, from the USA'); waving = true;
+    bubble('Hi!', G.head); telop(L('マイク（アメリカ出身）', '마이크 (미국 출신)'), 'Mike, from the USA'); waving = true;
     await line('hi', 1500); waving = false;
     shot({lx:2.4, ly:1.6, lz:-1, d:2.2, h:.1, yaw:.1}, true);
-    bubble('ティッシュで確かめます', P.head); telop('ティッシュで確かめます', "We'll check with a tissue.");
+    bubble(L('ティッシュで確かめます', '티슈로 확인해 볼게요'), P.head); telop(L('ティッシュで確かめます', '티슈로 확인해 볼게요'), "We'll check with a tissue.");
     await line('tissue', 1900); bubble();
     // 1. the Japanese sample (the cut hides the walk to the stand)
     place(P, SPEAKER, Math.PI/2);
     shot({lx:-.35, ly:1.55, lz:0, d:2.6, h:.15, yaw:.75}, true);
-    telop('検証：日本語の場合', 'Test: in Japanese');
+    telop(L('検証：日本語の場合', '검증: 일본어의 경우'), 'Test: in Japanese');
     await line('test_ja', 1300);
-    bubble('これはペンです', P.head);
+    bubble(L('これはペンです', '이것은 펜입니다'), P.head);
     voice('ja'); tissueVel += 1.2;
     await wait(1300);
-    pop('ふわっ…', tissue.getWorldPosition(new THREE.Vector3()), .6);
+    pop(L('ふわっ…', '사르르…'), tissue.getWorldPosition(new THREE.Vector3()), .6);
     await wait(1200); bubble();
   }
   played = true;
@@ -496,12 +525,12 @@ async function run(){
   for (const t of things) if (t.dyn) t.x = t.obj.getWorldPosition(tmp).x;
   G.g.visible = true; place(G, SPEAKER, Math.PI/2);
   shot({lx:-.3, ly:1.6, lz:0, d:3.4, h:.25, yaw:.6}, true);
-  telop('検証：英語の場合', 'Test: in English');
+  telop(L('検証：英語の場合', '검증: 영어의 경우'), 'Test: in English');
   await line('test_en', 1400);
   telop();
   for (const n of ['3','2','1']) { big(n); bump($('big'), 1.6, 300); sample('k_bong_001', 1, .5); await wait(550); }
   // 3. charge
-  big('連打！<span class="en">MASH!</span>'); bump($('big'), 1.8, 300); sample('k_confirmation_001', 1, .45); say('mash', 1.5); $('hud').style.display = 'block';
+  big(L('連打！', '연타!') + '<span class="en">MASH!</span>'); bump($('big'), 1.8, 300); sample('k_confirmation_001', 1, .45); say('mash', 1.5); $('hud').style.display = 'block';
   phase = 'charge';
   setTimeout(() => big(), 700);
   await wait(CHARGE_MS);
@@ -516,7 +545,7 @@ async function run(){
   voice('pen', power);
   G.cheeks.forEach(c => c.scale.setScalar(.01)); G.mouth.scale.set(2.6,2.6,1.6);
   launch(things.find(t => t.obj === tissue), 1);
-  pop('シュン', tissue.getWorldPosition(new THREE.Vector3()), .7);
+  pop(L('シュン', '슝'), tissue.getWorldPosition(new THREE.Vector3()), .7);
   flash(.35 + power*.3); shake = .4 + power; kick = 6 + power*10;
   shockwave(G.head.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(.4,0,0)), 1 + power*3);
   noiseBurst({dur:.5, freq:120, type:'lowpass', gain:.9});
@@ -531,19 +560,19 @@ async function run(){
   // 6. result
   if (!gust.moon) await wait(900);
   $('dist').style.display = 'none'; $('combo').style.display = 'none';   // the verdict plays over the last shot
-  telop('英語のほうが飛沫が多いことがわかりました', 'We have confirmed that English produces more droplets.');
+  telop(L('英語のほうが飛沫が多いことがわかりました', '영어 쪽이 침이 더 많이 튄다는 것을 알게 되었습니다'), 'We have confirmed that English produces more droplets.');
   await line('result', 2600); telop();
   const T = TIERS[tier];
   if (dist > best) { best = dist; try { localStorage.setItem('pen.best', best); } catch {} }
   $('rdist').textContent = fmt(dist) + ' m';
   $('rdist').style.fontSize = fmt(dist).length > 7 ? 'clamp(26px,8vw,44px)' : '';
   $('rrank').innerHTML = `${T.rank[0]}<small>${T.rank[1]}</small>`;
-  $('rwhat').innerHTML = `最後に壊したもの：${T.what[0]}<small>Furthest thing destroyed: ${T.what[1]}</small>`;
+  $('rwhat').innerHTML = `${L('最後に壊したもの：', '마지막으로 부순 것: ')}${T.what[0]}<small>Furthest thing destroyed: ${T.what[1]}</small>`;
   const next = TIERS[tier+1];
-  $('rnext').innerHTML = next ? `「${next.what[0]}」まであと <b>${fmt(Math.max(1, next.at - dist))} m</b><small>${fmt(Math.max(1, next.at - dist))} m short of ${next.what[1]}</small>` : '全部壊した！<small>You broke everything!</small>';
-  $('rbroken').textContent = `破壊数 / Destroyed: ${fmt(broken)}`;
-  $('rbest').textContent = `自己ベスト / Best: ${fmt(best)} m`;
-  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(`これはペンです！ ${fmt(dist)}m 吹き飛ばした【${T.rank[0]}】破壊数${fmt(broken)}\n#これはペンです`) + '&url=' + encodeURIComponent(location.href);
+  $('rnext').innerHTML = next ? `${L('「' + next.what[0] + '」まであと ', '“' + next.what[0] + '”까지 ')}<b>${fmt(Math.max(1, next.at - dist))} m</b>${L('', ' 남음')}<small>${fmt(Math.max(1, next.at - dist))} m short of ${next.what[1]}</small>` : L('全部壊した！', '전부 부쉈다!') + '<small>You broke everything!</small>';
+  $('rbroken').textContent = `${L('破壊数', '파괴 수')} / Destroyed: ${fmt(broken)}`;
+  $('rbest').textContent = `${L('自己ベスト', '최고 기록')} / Best: ${fmt(best)} m`;
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(KO ? `이것은 펜입니다! ${fmt(dist)}m 날려 버렸다 [${T.rank[0]}] 파괴 수 ${fmt(broken)}\n#이것은펜입니다` : `これはペンです！ ${fmt(dist)}m 吹き飛ばした【${T.rank[0]}】破壊数${fmt(broken)}\n#これはペンです`) + '&url=' + encodeURIComponent(KO ? 'https://lys-games.github.io/mini-games/this-is-a-pen/?hl=ko' : location.href);
   $('result').style.display = 'block';
   phase = 'result';
 }
@@ -567,7 +596,7 @@ function launch(t, speed){
   const at = t.obj.getWorldPosition(new THREE.Vector3());
   shatter(t, at);
   if (t.k >= 2.5) dust(new THREE.Vector3(at.x, Math.max(at.y*.3, t.k*.3), at.z), t.k);
-  broken++; const c = $('combo'); c.style.display = 'block'; c.innerHTML = `破壊 <b>${fmt(broken)}</b>`; bump(c, 1.25, 90);
+  broken++; const c = $('combo'); c.style.display = 'block'; c.innerHTML = `${L('破壊', '파괴')} <b>${fmt(broken)}</b>`; bump(c, 1.25, 90);
 }
 
 // run fn(u) every frame for ms milliseconds of world time, u going 0 → 1
@@ -583,7 +612,7 @@ async function toTheMoon(fromDist){
   ball.add(new THREE.Mesh(UNIT_BALL, new THREE.MeshBasicMaterial({color:'#ffffff'})));
   for (const [r, o] of [[2, .35], [3.4, .15]]) { const g = new THREE.Mesh(UNIT_BALL, new THREE.MeshBasicMaterial({color:'#cfefff', transparent:true, opacity:o, depthWrite:false})); g.scale.setScalar(r); ball.add(g); }
   ball.scale.setScalar(26); world.add(ball);
-  pop('宇宙到達', start, 1.3); sample('k_maximize_003', 1.6, .6);
+  pop(L('宇宙到達', '우주 도달'), start, 1.3); sample('k_maximize_003', 1.6, .6);
   noiseBurst({dur:2.2, freq:600, q:.4, gain:.35, type:'lowpass'});
   const side = new THREE.Vector3(-1, .35, 1.6).normalize();
   const earthCam = S.clone().add(new THREE.Vector3(-700, 250, 1500)), earthLook = S.clone().add(new THREE.Vector3(200, 450, 0));
@@ -616,7 +645,7 @@ async function toTheMoon(fromDist){
     t.w.set(rnd(-4,4), rnd(-4,4), rnd(-4,4));
   }
   for (let i=0;i<10;i++) effect(UNIT_BALL, '#d8d8d8', hit.clone().addScaledVector(n, rnd(10,60)).add(new THREE.Vector3().randomDirection().multiplyScalar(40)), 30, rnd(90,160), 1.4, .6);
-  pop('ドーン', hit, 1.7); boom(7);
+  pop(L('ドーン', '쿵'), hit, 1.7); boom(7);
   noiseBurst({dur:2.5, freq:70, type:'lowpass', gain:1});
   const home = space.moon.position.clone(), mat = space.moonMat;
   // 3. the moon reels, then cracks, glowing hotter and shaking harder
@@ -628,7 +657,7 @@ async function toTheMoon(fromDist){
     shake = 2.2*(1-u);
   });
   const rumble = noiseBurst({dur:1.6, freq:60, type:'lowpass', gain:.9});
-  pop('ゴゴゴゴ…', moon.clone().add(new THREE.Vector3(0, 320, 0)), 1.2);
+  pop(L('ゴゴゴゴ…', '우르르…'), moon.clone().add(new THREE.Vector3(0, 320, 0)), 1.2);
   const c2 = camera.position.clone();
   await animate(1500, u => {
     const pulse = .5 + .5*Math.sin(u*u*40);
@@ -659,7 +688,7 @@ async function toTheMoon(fromDist){
   for (const e of fx.slice(-2)) e.m.material.blending = THREE.AdditiveBlending;   // glow, then fade to space instead of to brown
   const blast = new THREE.Mesh(UNIT_RING, new THREE.MeshBasicMaterial({color:'#ffe9b0', transparent:true, opacity:.9, depthWrite:false, side:THREE.DoubleSide}));
   blast.position.copy(moon); blast.lookAt(camera.position); blast.rotateX(1.1); world.add(blast); fx.push({m:blast, from:100, to:3200, dur:1.6, t:0, opacity:.9});
-  pop('大爆発', moon, 2); rankUp(TIERS.length-1); setTimeout(() => say('boom', 1.6), 1100); boom(8); sample('k_impactMining_000', .35, 1); sample('k_impactPunch_heavy_001', .3, 1);
+  pop(L('大爆発', '대폭발'), moon, 2); rankUp(TIERS.length-1); setTimeout(() => say('boom', 1.6), 1100); boom(8); sample('k_impactMining_000', .35, 1); sample('k_impactPunch_heavy_001', .3, 1);
   noiseBurst({dur:3.5, freq:55, type:'lowpass', gain:1}); noiseBurst({dur:1.2, freq:900, q:.5, gain:.5});
   const c3 = camera.position.clone(), c4 = moon.clone().addScaledVector(n, 2600).add(new THREE.Vector3(-500, 400, 0));
   await animate(3200, u => {
