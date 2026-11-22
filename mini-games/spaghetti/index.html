@@ -120,7 +120,7 @@ const cv = $('cv'), ctx = cv.getContext('2d');
 const DISPLAY_FONT = KO?'"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
 if(KO) {
   document.documentElement.lang='ko';document.title='부러뜨리면 맘마미아!';
-  const steam='<a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=spaghetti" target="_blank" rel="noopener">『Gopher It』 Steam에서 판매 중</a>';
+  const steam='<a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=spaghetti_ko" target="_blank" rel="noopener">『Gopher It』 Steam에서 판매 중</a>';
   for(const el of document.querySelectorAll('.credit'))el.innerHTML='제작 '+steam;
   for(const el of document.querySelectorAll('.voice-credit'))el.textContent=el.textContent.replace('音声','음성');
   cv.setAttribute('aria-label','파스타 묶음을 든 두 손과 냄비 너머의 셰프. 게임 중에는 화면 어디든 탭해서 부러뜨릴 힘을 모은다.');
@@ -832,7 +832,7 @@ $('save').addEventListener('click',e=>{
   e.currentTarget.blur();
   if(!shareFile)return;
   if(!canShareFile())return download();
-  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC}).catch(err=>{
+  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC+(KO?'?hl=ko':'')}).catch(err=>{
     if(err.name!=='AbortError'){console.warn('share',err);download();}   // AbortError: the sheet was closed
   });
 });
