@@ -91,6 +91,11 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 #result .steam{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+/* Korean (?hl=ko): the web fonts have no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) .t,html:lang(ko) #count,html:lang(ko) #bubble.shout,html:lang(ko) #pieces{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+html:lang(ko) #title .eyebrow,html:lang(ko) #taps small,html:lang(ko) #pieces small{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
 </style>
 </head>
 <body>
@@ -107,8 +112,33 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (()=>{const q=new URLSearchParams(location.search).get('hl');if(q==='ko'||q==='ja')return q;return /^ko/i.test(navigator.language||'')?'ko':'ja';})();
+const KO = HL==='ko';
+const L = (ja,ko) => KO?ko:ja;
 const cv = $('cv'), ctx = cv.getContext('2d');
-const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const DISPLAY_FONT = KO?'"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+if(KO) {
+  document.documentElement.lang='ko';document.title='부러뜨리면 맘마미아!';
+  const steam='<a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=spaghetti" target="_blank" rel="noopener">『Gopher It』 Steam에서 판매 중</a>';
+  for(const el of document.querySelectorAll('.credit'))el.innerHTML='제작 '+steam;
+  for(const el of document.querySelectorAll('.voice-credit'))el.textContent=el.textContent.replace('音声','음성');
+  cv.setAttribute('aria-label','파스타 묶음을 든 두 손과 냄비 너머의 셰프. 게임 중에는 화면 어디든 탭해서 부러뜨릴 힘을 모은다.');
+  $('title').innerHTML='<span class="eyebrow">셰프가 보고 있는 3초</span><h1>부러뜨리면<span>맘마미아!</span></h1>';
+  document.querySelector('#taps small').textContent='번';
+  const ml=document.querySelectorAll('#meter-label span');ml[0].textContent='휘어짐';ml[1].textContent='어떻게 부러질지는 비밀';
+  $('meter').setAttribute('aria-label','휘어짐');
+  $('instruction').textContent='연타해서 부러뜨릴 힘을 모아라!';
+  $('bubble-text').textContent='본조르노! 난 셰프 조르조다.';
+  document.querySelector('#home .lead').textContent='파스타, 부러뜨릴래? 말래?';
+  document.querySelector('#home .sub').innerHTML='셰프가 돌아보는 3초 동안 연타로 뚝!<br>많이 칠수록 산산조각.';
+  $('go').textContent='파스타 들기';
+  $('result').setAttribute('aria-label','결과');
+  document.querySelector('#result .label').textContent='오늘의 파스타';
+  $('pieces-n').nextSibling.textContent='조각';
+  $('again').textContent='한 번 더';$('share').textContent='X에 올리기';$('save').textContent='이미지 저장';
+  $('paused').textContent='잠깐 쉬는 중';
+}
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/spaghetti/';
 const LOAD_MS = 3000, SNAP_TO_REVEAL_MS = 1700, POWDER_TAPS = 32, JACKPOT_ODDS = 1/16;
 // Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: kind to cruel.
@@ -123,6 +153,19 @@ const ENDINGS = [
   {"id":"powder","name":"パスタパウダー","verdict":"麺が、ついに粉に還った。","line":"マンマ…ミー…ア……。","hint":"折ると、16回に1回だけ誰かが見ている…。","mood":"faint"},
   {"id":"nonno","name":"じいちゃんが見てた","verdict":"大当たり！ビデオ通話のおじいちゃんが目撃。","line":"ジョルジョ…店は継がせんぞ。","who":"おじいちゃん","hint":"まだ見ていない結末を探そう。","mood":"panic"}
 ];
+// Korean text for the same endings (?hl=ko). The voices stay the Japanese recordings. The card tool reads this too.
+const ENDINGS_KO = [
+  {"id":"whole","name":"곧은 사랑","verdict":"한 가닥도 안 부러뜨리고 살며시 냄비로.","line":"그라치에…! 너야말로 진정한 파스타 동지야…!","hint":"탭하면 부러진다. 몇 번에 몇 조각?"},
+  {"id":"half","name":"딱 두 동강","verdict":"뚝 한 번, 깔끔하게 반띵.","line":"반이면 봐줄 줄 알았어? 그럴 리가 없잖아!","hint":"끝까지 기다렸다가 연타하면…?"},
+  {"id":"few","name":"뚝뚝","verdict":"포크로 못 감는 길이가 됐다.","line":"짧아… 이래선 못 감잖아…","hint":"일정한 리듬으로 3초 동안 탭해 보자."},
+  {"id":"rhythm","name":"메트로놈 꺾기","verdict":"너무 정확한 리듬으로 뚝, 뚝, 뚝.","line":"리듬이 너무 좋아서 화낼 타이밍이 없어…!","hint":"3초 동안 아무것도 안 하면…?"},
+  {"id":"betrayal","name":"마지막 배신","verdict":"안심시켜 놓고 마지막 0.5초에 빠직.","line":"믿었는데… 이 악마야!","hint":"한계까지 연타하면 어떻게 될까?"},
+  {"id":"many","name":"조각조각","verdict":"이제 몇 조각인지도 모르겠다.","line":"이건 파스타가 아니야… 그냥 파편이야…!","hint":"딱 한 번만 탭해 보자."},
+  {"id":"lots","name":"산산조각","verdict":"냄비에 들어가기도 전에 셰프 멘탈이 산산조각 났다.","line":"맘마… 나 이제 틀렸나 봐…","hint":"3초에 32번, 할 수 있겠어?"},
+  {"id":"powder","name":"파스타 가루","verdict":"면이 드디어 밀가루로 돌아갔다.","line":"맘마… 미… 아……","hint":"부러뜨리면 16번에 1번, 누군가 보고 있다…"},
+  {"id":"nonno","name":"할아버지가 보고 있었다","verdict":"대박! 영상 통화 중이던 할아버지가 목격.","line":"조르조… 가게는 못 물려준다.","who":"할아버지","hint":"아직 못 본 결말을 찾아보자."}
+];
+if(KO)for(const e of ENDINGS)Object.assign(e,ENDINGS_KO.find(k=>k.id===e.id));
 const endingById = id => ENDINGS.find(e => e.id === id);
 const INTRO_TEXT = 'チャオ！パスタ、鍋に入れといて！';
 const NOO_TEXT = 'ノォォォォォォォォォォ…';
@@ -135,6 +178,9 @@ const RELIEF_LINES = [
   {"id":"relief0","text":"お、折らない…の？"},
   {"id":"relief1","text":"ああ…よかった…！"}
 ];
+// Bubble text for the Japanese voice lines above, by line id.
+const LINES_KO = {intro:'차오! 파스타 좀 냄비에 넣어 줘!',snap0:'맘마미아!',snap1:'왜!? 도대체 왜!?',snap2:'디오 미오…!',relief0:'어, 안 부러뜨리는… 거야?',relief1:'아아… 다행이다…!'};
+const lineText = l => KO?LINES_KO[l.id]:l.text;
 // Representative tap counts so ?card=<id> draws each ending's pieces.
 const CARD_TAPS = {whole:0,half:1,few:5,rhythm:14,betrayal:9,many:13,lots:24,powder:36,nonno:20};
 const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
@@ -159,7 +205,7 @@ function measureLayout() {
   for(const id of ['title','hud','home','result'])el(id).hidden=false;
   el('tip').style.display='none';el('bubble').hidden=true;
   el('save').style.display=TOUCH?'inline-flex':'none';
-  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  el('share').innerHTML=TOUCH?L('Xでポスト','X에 올리기'):L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
   document.body.append(copy);
   const top=copy.getBoundingClientRect().top, bottom=copy.getBoundingClientRect().bottom;
   const title=el('title').getBoundingClientRect().bottom-top;
@@ -168,7 +214,7 @@ function measureLayout() {
   let resultTop=bottom;
   for(const e of ENDINGS) {
     el('ending-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
-    el('best').textContent='新記録！ 自己ベスト 99,999本';
+    el('best').textContent=L('新記録！ 自己ベスト 99,999本','신기록! 최고 기록 99,999조각');
     resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
   }
   copy.remove();
@@ -203,7 +249,7 @@ const stageToUi=(x,y)=>{const box=$('ui').getBoundingClientRect();return {x:ox+x
 let bubbleAnchor=[200,226];
 function bubble(text,{shout=false,who=null}={}) {
   $('bubble-text').textContent=text;$('bubble').style.visibility='';$('bubble').classList.toggle('shout',shout);$('bubble').classList.toggle('who-nonno',who==='nonno');
-  if(who==='nonno'){const s=document.createElement('small');s.textContent='おじいちゃん（ビデオ通話）';$('bubble-text').prepend(s);}
+  if(who==='nonno'){const s=document.createElement('small');s.textContent=L('おじいちゃん（ビデオ通話）','할아버지 (영상 통화)');$('bubble-text').prepend(s);}
   placeBubble();
 }
 function placeBubble() {
@@ -284,17 +330,17 @@ async function start() {
   if(first) {
     chefPose='front';chefMood='talk';voice('host','title');
     await wait(1100);if(g!==generation)return;
-    sayChef(INTRO_TEXT,'intro');
+    sayChef(L(INTRO_TEXT,LINES_KO.intro),'intro');
     await wait(Math.max(2400,lineMs('intro')+200));if(g!==generation)return;
   }
   // He turns to his sauce; the countdown runs behind his back.
-  chefPose='back';chefMood='proud';turnAt=performance.now();bubble('♪ふんふふ〜ん');state='count';
+  chefPose='back';chefMood='proud';turnAt=performance.now();bubble(L('♪ふんふふ〜ん','♪흥흥흐~흥'));state='count';
   for(const n of [3,2,1]){$('count').textContent=String(n);show('count',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return;}
   show('count',false);
   // He turns round: slow motion until the snap.
   state='load';loadStart=performance.now();hiddenAt=document.hidden?loadStart:0;chefPose='front';chefMood='horror';turnAt=loadStart;
   if(pendingTap){taps.push(0);pendingTap=false;updateHud();creak();}
-  bubble('ノ',{shout:true});
+  bubble(L('ノ','노'),{shout:true});
   const noo=buffers.v_noo;voice('chef','noo',noo?Math.max(1,noo.duration/2.85):1);chefUntil=loadStart+LOAD_MS-50;
   play('k_impactSoft_heavy_000',.5,.5);
 }
@@ -333,13 +379,13 @@ async function snap(forced) {
   $('timebar').style.transform='scaleX(0)';
   if(n===0) {
     chefMood='horror';play('k_impactSoft_heavy_000',.7,.8,.35);
-    setTimeout(()=>{if(g!==generation)return;chefMood='relief';const l=pick(RELIEF_LINES,lastRelief);lastRelief=l.id;sayChef(l.text,l.id);},500);
+    setTimeout(()=>{if(g!==generation)return;chefMood='relief';const l=pick(RELIEF_LINES,lastRelief);lastRelief=l.id;sayChef(lineText(l),l.id);},500);
   } else {
     spawnPieces(n);flash=1;shakeUntil=snapAt+(REDUCED?0:180+Math.min(500,n*12));chefMood=n>=POWDER_TAPS?'faint':ending.mood==='shock'?'shock':'despair';
     play('k_impactWood_medium_000',1,1.25);play('k_impactWood_heavy_000',.8,1.6,.02);
     for(let i=0;i<Math.min(6,Math.floor(n/5));i++)play('k_impactWood_medium_000',.45,rand(1.5,2.2),.05+i*.05);
     if(n>=18)play('k_impactPunch_heavy_000',.7,.8,.03);
-    setTimeout(()=>{if(g!==generation)return;const l=pick(SNAP_LINES,lastSnap);lastSnap=l.id;sayChef(l.text,l.id,{shout:true});},220);
+    setTimeout(()=>{if(g!==generation)return;const l=pick(SNAP_LINES,lastSnap);lastSnap=l.id;sayChef(lineText(l),l.id,{shout:true});},220);
   }
   await wait(SNAP_TO_REVEAL_MS);if(g!==generation)return;
   state='reveal';revealAt=performance.now();chefMood=ending.mood;
@@ -352,14 +398,16 @@ async function snap(forced) {
   $('ending-name').textContent=ending.name;$('verdict').textContent=ending.verdict;$('hint').textContent=ending.hint;
   const newBest=!CARD_MODE&&pieces>1&&(best===null||pieces>best);
   if(newBest){best=pieces;try{localStorage.setItem('spaghetti.best',String(best));}catch(_){}}
-  const bestText=best?`自己ベスト ${fmt(best)}本`:'';
-  $('best').textContent=pieces===1?['1本も折らなかった！',bestText].filter(Boolean).join(' '):newBest?'新記録！ '+bestText:bestText;
+  const bestText=best?L(`自己ベスト ${fmt(best)}本`,`최고 기록 ${fmt(best)}조각`):'';
+  $('best').textContent=pieces===1?[L('1本も折らなかった！','한 가닥도 안 부러뜨렸다!'),bestText].filter(Boolean).join(' '):newBest?L('新記録！ ','신기록! ')+bestText:bestText;
   countUp(pieces,g);
-  const who=ending.who||'ジョルジョ';
-  shareText=pieces===1
+  const who=ending.who||L('ジョルジョ','조르조');
+  shareText=KO?(pieces===1
+    ? `${who}: "${ending.line}"\n파스타를 안 부러뜨리고 냄비에 넣었다 [${ending.name}]\n여러분은 부러뜨려요? 안 부러뜨려요? #부러뜨리면맘마미아`
+    : `${who}: "${ending.line}"\n셰프 앞에서 파스타를 ${fmt(pieces)}조각으로 부러뜨렸다 [${ending.name}]\n여러분은 몇 조각? #부러뜨리면맘마미아`):pieces===1
     ? `${who}「${ending.line}」\nパスタを折らずに鍋へ入れた【${ending.name}】\nあなたは折る？折らない？ #折ったらマンマミーア`
     : `${who}「${ending.line}」\nシェフの前でパスタを${fmt(pieces)}本に折った【${ending.name}】\nあなたは何本？ #折ったらマンマミーア`;
-  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+ending.id+'.html');
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+(KO?'ko/':'')+ending.id+'.html');
   if(CARD_MODE){resize();({scale,ox,oy}=targets.result);draw(performance.now(),0);showPicture(await drawShareImage({ending}));return;}
   show('result',true);
   prepareShare({ending,pieces},g);
@@ -522,7 +570,7 @@ function drawKitchen(c,t,slow) {
   for(const [x,y] of [[328,52],[340,46],[334,40],[346,54]])ellipse(c,x,y,7,5,GREEN);
   c.fillStyle='#c97a45';c.beginPath();c.rect(-40,96,110,12);c.fill();c.stroke();
   poly(c,[[0,96],[0,58],[14,46],[28,58],[28,96]],'#fff3d6');line(c,[14,46,14,34],4);
-  c.font=`700 13px ${DISPLAY_FONT}`;c.fillStyle=RED;c.textAlign='center';c.fillText('塩',14,82);
+  c.font=`700 13px ${DISPLAY_FONT}`;c.fillStyle=RED;c.textAlign='center';c.fillText(L('塩','소금'),14,82);
 }
 function drawCounter(c,t,slow) {
   c.strokeStyle=INK;c.lineWidth=4;
@@ -657,7 +705,7 @@ function drawHomeBox(c) {
   c.beginPath();c.roundRect(-22,-120,44,120,4);c.fillStyle='#2b6cc4';c.fill();c.stroke();
   c.beginPath();c.roundRect(-14,-100,28,62,4);c.fillStyle=PASTA;c.fill();c.stroke();
   for(const x of [-6,0,6])line(c,[x,-96,x,-42],1.5,PASTA_DARK);
-  c.font=`700 12px ${DISPLAY_FONT}`;c.fillStyle='#fff';c.textAlign='center';c.fillText('パスタ',0,-16);
+  c.font=`700 12px ${DISPLAY_FONT}`;c.fillStyle='#fff';c.textAlign='center';c.fillText(L('パスタ','파스타'),0,-16);
   c.restore();
 }
 function draw(now,dt) {
@@ -689,7 +737,7 @@ function frame(now) {
     const el=now-loadStart;
     $('timebar').style.transform=`scaleX(${Math.max(0,1-el/LOAD_MS)})`;
     // The cry stretches over the whole slow motion.
-    if(!CARD_THUMB)$('bubble-text').textContent='ノ'+'ォ'.repeat(Math.floor(clamp(el/LOAD_MS,0,1)*6))+(el>LOAD_MS*.5?'…':'');
+    if(!CARD_THUMB)$('bubble-text').textContent=L('ノ','노')+L('ォ','오').repeat(Math.floor(clamp(el/LOAD_MS,0,1)*6))+(el>LOAD_MS*.5?'…':'');
     if(el>=LOAD_MS&&!CARD_THUMB)snap();
   }
   if(['intro','count','load'].includes(state)&&now>=nextBlip&&!document.hidden){blip(state==='load');nextBlip=now+(state==='load'?rand(260,520):rand(70,170));}
@@ -700,7 +748,7 @@ function frame(now) {
 /* ---------- share picture ---------- */
 // The framed picture is a crop of the live scene, including his actual reaction.
 async function drawShareImage({ending:e,card,pieces:n}) {
-  await document.fonts?.load(`60px ${DISPLAY_FONT}`,'折ったらマンマミーア！何本に折る？シェフが見ている3秒間「」0123456789,本あなたは折らない'+ENDINGS.map(x=>x.name+x.line).join(''));
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`,L('折ったらマンマミーア！何本に折る？シェフが見ている3秒間「」0123456789,本あなたは折らない','부러뜨리면 맘마미아! 파스타, 몇 조각 낼래? 셰프가 보고 있는 3초. “”0123456789,조각 여러분은 통째로 부러뜨릴래')+ENDINGS.map(x=>x.name+x.line).join(''));
   resize();({scale,ox,oy}=targets[CARD_THUMB?'play':'result']);draw(performance.now(),0);
   const c=document.createElement('canvas');c.width=1200;c.height=675;
   const x=c.getContext('2d');
@@ -721,26 +769,28 @@ async function drawShareImage({ending:e,card,pieces:n}) {
     x.beginPath();x.roundRect(-tw/2,-th/2,tw,th,size*.25);x.fillStyle='#fff';x.fill();x.lineWidth=9;x.strokeStyle=RED;x.stroke();
     x.fillStyle=RED;x.fillText(str,0,size*.04);x.restore();
   };
-  text('折ったらマンマミーア！',890,100,62,'#fff');
+  text(L('折ったらマンマミーア！','부러뜨리면 맘마미아!'),890,100,62,'#fff');
   if(card===null){
-    text('パスタ、',890,235,96,RED);text('何本に折る？',890,350,96,RED);
-    text('シェフが見ている3秒間。',890,500,44,'#fff');
+    text(L('パスタ、','파스타,'),890,235,96,RED);text(L('何本に折る？','몇 조각 낼래?'),890,350,96,RED);
+    text(L('シェフが見ている3秒間。','셰프가 보고 있는 3초.'),890,500,44,'#fff');
   } else {
     // Long names use two lines so every outlined glyph stays large.
-    const names={rhythm:['メトロノーム','折り'],betrayal:['最後の','裏切り'],powder:['パスタ','パウダー'],nonno:['じいちゃんが','見てた']};
+    const names=KO?{rhythm:['메트로놈','꺾기'],nonno:['할아버지가','보고 있었다']}:{rhythm:['メトロノーム','折り'],betrayal:['最後の','裏切り'],powder:['パスタ','パウダー'],nonno:['じいちゃんが','見てた']};
     const lines=names[e.id]||[e.name], two=lines.length>1;
     // A real round stamps the player's own count under the name; the static ?card pages have no count.
     if(n===undefined){
       lines.forEach((l,i)=>text(l,890,two?205+i*92:250,two?86:104,RED));
     } else {
       lines.forEach((l,i)=>text(l,890,two?186+i*78:212,two?74:92,RED));
-      stamp(n===1?'折らずに1本':`${fmt(n)}本`,890,two?366:338,64);
+      stamp(n===1?L('折らずに1本','통째로 1조각'):L(`${fmt(n)}本`,`${fmt(n)}조각`),890,two?366:338,64);
     }
-    const quote='「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?(two?412:400):458;
+    const quote=L('「','“')+e.line+L('」','”'), chars=Array.from(quote), qy=n===undefined?(two?412:400):458;
     x.font=`36px ${DISPLAY_FONT}`;
-    if(x.measureText(quote).width>560){const mid=Math.ceil(chars.length/2);text(chars.slice(0,mid).join(''),890,qy-12,36,'#fff');text(chars.slice(mid).join(''),890,qy+34,36,'#fff');}
+    if(x.measureText(quote).width>560){let mid=Math.ceil(chars.length/2);
+      // Korean wraps at the space nearest the middle, never inside a word.
+      if(KO){const sp=chars.map((ch,i)=>ch===' '?i:-1).filter(i=>i>0);if(sp.length)mid=sp.reduce((a,b)=>Math.abs(b-mid)<Math.abs(a-mid)?b:a)+1;}text(chars.slice(0,mid).join(''),890,qy-12,36,'#fff');text(chars.slice(mid).join(''),890,qy+34,36,'#fff');}
     else text(quote,890,qy,36,'#fff');
-    text(n===undefined||n>1?'あなたは何本に折る？':'あなたは、折る？',890,572,40,'#fff');
+    text(n===undefined||n>1?L('あなたは何本に折る？','여러분은 몇 조각 낼래요?'):L('あなたは、折る？','여러분은 부러뜨릴래요?'),890,572,40,'#fff');
   }
   return new Promise(res=>c.toBlob(res,'image/png'));
 }
@@ -753,7 +803,7 @@ async function prepareShare(shot,g) {
     shareFile=new File([blob],'mammamia.png',{type:'image/png'});
     // Phones that can share files: the picture is the main way to post, so its button leads.
     const sheet=canShareFile();
-    $('save').textContent=sheet?'画像でシェア':'画像を保存';
+    $('save').textContent=sheet?L('画像でシェア','이미지로 공유'):L('画像を保存','이미지 저장');
     $('save').className=sheet?'':'alt';
     $('save').style.display=TOUCH?'inline-flex':'none';
   } catch(err) { console.warn('share image',err); }
@@ -767,15 +817,15 @@ function download() {
 function note(text) { const el=$('tip');el.textContent=text;el.style.display='block'; }
 // On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
 // X opens after the copy, while the page still has focus.
-if(!TOUCH)$('share').innerHTML='Xでポスト<small>画像もコピー</small>';
+if(!TOUCH)$('share').innerHTML=L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
 $('share').addEventListener('click',async e=>{
   if(TOUCH||!shareFile)return;
   e.preventDefault();
   const href=$('share').href, paste=/Mac/.test(navigator.platform)?'⌘V':'Ctrl+V';
   try {
     await navigator.clipboard.write([new ClipboardItem({'image/png':shareFile})]);
-    note(`リンクに結果カードが付きます。パスタ画像も付けるなら ${paste}`);
-  } catch(err) { console.warn('clipboard',err);download();note('画像を保存しました。投稿に添付してください'); }
+    note(L(`リンクに結果カードが付きます。パスタ画像も付けるなら ${paste}`,`링크에 결과 카드가 붙어요. 파스타 이미지도 넣으려면 ${paste}`));
+  } catch(err) { console.warn('clipboard',err);download();note(L('画像を保存しました。投稿に添付してください','이미지를 저장했어요. 게시물에 첨부해 주세요')); }
   window.open(href,'_blank','noopener');
 });
 $('save').addEventListener('click',e=>{
@@ -801,7 +851,7 @@ if(CARD_MODE) {
   show('home',false);show('title',false);
   if(CARD_THUMB){
     state='load';chefPose='front';chefMood='horror';taps=Array.from({length:18},(_,i)=>i*120);loadStart=1-LOAD_MS*.8;
-    bubble('ノォォォォォォ…',{shout:true});resize();({scale,ox,oy}=targets.play);
+    bubble(L('ノォォォォォォ…','노오오오오오…'),{shout:true});resize();({scale,ox,oy}=targets.play);
     setTimeout(()=>drawShareImage({card:null}).then(showPicture),300);
   } else {
     const forced=endingById(query.get('card'))||endingById('nonno'), n=CARD_TAPS[forced.id];
