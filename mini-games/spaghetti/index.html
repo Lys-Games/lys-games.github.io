@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>折ったらマンマミーア！</title>
+<meta name="description" content="シェフが見てない3秒間、パスタを折る？折らない？タップ連打で折る力をためて、ポキッ。折り方でシェフの反応が変わる無料ミニゲーム。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="折ったらマンマミーア！">
+<meta property="og:description" content="シェフが振り向いた3秒間。パスタ、何本に折る？">
+<meta property="og:url" content="https://lys-games.github.io/mini-games/spaghetti/">
+<meta property="og:image" content="https://lys-games.github.io/mini-games/spaghetti/thumb.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://lys-games.github.io/mini-games/spaghetti/thumb.jpg">
+<meta name="theme-color" content="#ffd95a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2a1d17;--bg:#ffd95a;--red:#e8392b;--green:#2fa35a;--cream:#fffdf6;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--toolbar:calc(16vh + var(--safe-bottom))}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
+body{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:700;user-select:none;-webkit-user-select:none}
+canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.ui-box{position:fixed;top:var(--safe-top);bottom:var(--toolbar);left:50%;width:min(420px,100%);transform:translateX(-50%);pointer-events:none}
+[hidden]{display:none!important}
+.t{font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-weight:400;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .07em 0 var(--ink);line-height:1.2;letter-spacing:.02em;color:#fff}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;min-height:44px;text-decoration:none;font:inherit;font-size:20px;font-weight:800;color:#fff;background:var(--red);border:3px solid var(--ink);border-radius:16px;padding:10px 14px;box-shadow:0 4px 0 var(--ink);cursor:pointer;pointer-events:auto;touch-action:manipulation}
+button:active,.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;outline-offset:4px}
+.alt{background:var(--ink);color:#fff}
+#title{position:absolute;left:0;right:0;top:8px;text-align:center;transform:rotate(-3deg)}
+#title .eyebrow{font-family:"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif;font-size:16px;font-weight:800;display:block;-webkit-text-stroke:0;text-shadow:none;color:var(--ink)}
+#title h1{font-size:clamp(30px,5.4dvh,44px);margin:2px 0;color:#fff}
+#title h1 span{color:var(--red);display:block;font-size:1.12em;line-height:1.1}
+#count{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;position:absolute;left:0;right:0;text-align:center;font-size:clamp(84px,26vw,128px);line-height:1;color:#fff;-webkit-text-stroke:.08em var(--ink);paint-order:stroke fill;text-shadow:0 .06em 0 var(--ink);z-index:5;transform:translateY(-50%);animation:pop .3s ease-out}
+#hud{position:absolute;top:6px;left:16px;right:16px;text-align:center}
+#taps{font-size:64px;font-variant-numeric:tabular-nums;line-height:1;color:#fff}
+#taps small{font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:24px;margin-left:4px;color:var(--ink);-webkit-text-stroke:0;text-shadow:none}
+#taps.bump{animation:bump .12s ease-out}
+#meter-label{display:flex;justify-content:space-between;font-size:15px;font-weight:800;margin:6px 2px 4px}
+#meter{position:relative;height:22px;border:3px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),#ffb02e 55%,var(--red))}
+#timebar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--ink);transform-origin:left}
+#instruction{font-size:17px;font-weight:800;margin:6px 0 0}
+#bubble{position:absolute;min-height:40px;max-width:340px;text-align:center;padding:8px 12px;font-size:16px;line-height:1.4;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);z-index:4}
+#bubble::before,#bubble::after{content:"";position:absolute;left:var(--tail,50%);transform:translateX(-50%);border:solid transparent}
+#bubble::before{top:-19px;border-width:0 11px 19px;border-bottom-color:var(--ink)}
+#bubble::after{top:-13px;border-width:0 8px 15px;border-bottom-color:#fff}
+#bubble.shout{max-width:74%;font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-weight:400;font-size:28px;line-height:1.15;padding:8px 14px;color:var(--red);letter-spacing:-.02em}
+#bubble.who-nonno{background:#e6f6ff}
+#bubble.who-nonno::after{border-bottom-color:#e6f6ff}
+#bubble small{display:block;font-size:12px;color:#6b5a50}
+#home{position:absolute;left:10px;right:10px;bottom:0;text-align:center}
+#home-instructions{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:7px 10px;margin:0 4px 10px}
+#home .lead{font-size:19px;font-weight:800;line-height:1.35;margin:0}
+#home .sub{font-size:14px;font-weight:800;line-height:1.45;margin:3px 0 0}
+#go{font-size:23px;min-width:250px;min-height:52px;padding:6px 16px}
+.credit{color:var(--ink);font-size:12px;font-weight:700;line-height:1.5;text-align:center;margin:8px 0 0;pointer-events:auto}
+.credit a{color:inherit}
+.steam{color:var(--ink);font-size:13px;line-height:1.5;pointer-events:auto}
+.voice-credit{position:absolute;top:100%;left:0;right:0;margin-top:10px;font-size:10px;color:var(--ink);line-height:1.5;text-align:center}
+#result{position:absolute;left:8px;right:8px;bottom:0;max-height:calc(100% - 150px);overflow-y:auto;background:#fff;border:4px solid var(--ink);border-radius:20px;padding:8px 10px;text-align:center;pointer-events:auto;box-shadow:0 6px 0 var(--ink)}
+#result .label{font-size:13px;font-weight:800;line-height:1.4;color:#6b5a50}
+#ending-name{font-size:27px;color:var(--ink);margin:0;-webkit-text-stroke:0;text-shadow:none;white-space:nowrap}
+#pieces{font-family:"Dela Gothic One","Hiragino Sans",system-ui,sans-serif;font-size:34px;line-height:1.1;margin:2px 0;color:var(--red)}
+#pieces small{display:block;font-family:"M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif;font-weight:800;font-size:13px;color:#6b5a50;margin-top:2px}
+#verdict{font-size:15px;font-weight:800;line-height:1.4;margin:0 0 3px}
+#hint{font-size:13px;font-weight:700;line-height:1.4;margin:5px 0 0;color:#6b5a50}
+.actions{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.actions .btn,.actions button{font-size:15px;white-space:nowrap;flex:1;padding:5px 3px;min-height:46px;border-radius:12px}
+.actions small{font-size:11px;font-weight:700;line-height:1.3}
+#save{display:none}
+#tip{display:none;margin:6px 0 0;padding:6px;font-size:13px;font-weight:800;line-height:1.4;background:var(--ink);color:#fff;border-radius:10px}
+#paused{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:20;color:#fff;font-size:24px;pointer-events:none}
+@keyframes pop{from{transform:translateY(-50%) scale(.7)}to{transform:translateY(-50%) scale(1)}}
+@keyframes bump{from{transform:scale(1.18)}to{transform:scale(1)}}
+@media(max-height:700px){
+#taps{font-size:50px}
+#taps small{font-size:22px}
+#meter{height:18px}
+#meter-label{font-size:13px;margin:4px 2px 3px}
+#instruction{font-size:14px;margin-top:4px}
+#ending-name{font-size:23px}
+#pieces{font-size:28px}
+#verdict{font-size:12px;line-height:1.3}
+#hint{font-size:11px;line-height:1.3;margin-top:3px}
+#result .credit{font-size:10px;margin-top:4px}
+#result .steam{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="パスタの束を持った両手と、鍋の向こうのシェフ。プレイ中は画面のどこでもタップで折る力をためる。"></canvas>
+<div id="ui" class="ui-box">
+  <header id="title" class="t"><span class="eyebrow">シェフが見ている3秒間</span><h1>折ったら<span>マンマミーア！</span></h1></header>
+  <div id="hud" hidden><div id="taps" class="t"><span id="tap-n">0</span><small>回</small></div><div id="meter-label"><span>しなり</span><span>折れ方は、お楽しみ</span></div><div id="meter" role="progressbar" aria-label="しなり" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="fill"></div><div id="timebar"></div></div><p id="instruction">タップ連打で、折る力をためろ！</p></div>
+  <div id="count" hidden></div>
+  <div id="bubble" role="status" aria-live="polite"><span id="bubble-text">ボンジョルノ！シェフのジョルジョだ。</span></div>
+  <section id="home"><div id="home-instructions"><p class="lead">パスタ、折る？折らない？</p><p class="sub">シェフが振り向く3秒間、タップ連打でポキッ。<br>連打するほど、こなごなに。</p></div><button id="go">パスタを持つ</button><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=spaghetti" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:青山龍星 / VOICEVOX:ナースロボ＿タイプＴ / VOICEVOX:ちび式じい</div></section>
+  <section id="result" aria-label="結果" hidden><div class="label">今日のパスタ</div><h2 id="ending-name" class="t"></h2><p id="pieces"><span id="pieces-n">0</span>本<small id="best"></small></p><p id="verdict"></p><div class="actions"><button id="again">もう一回</button><a id="share" class="btn alt" target="_blank" rel="noopener">Xでポスト</a><button id="save" class="alt">画像を保存</button></div><p id="hint"></p><p id="tip" role="status"></p><div class="credit">制作 <a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=spaghetti" target="_blank" rel="noopener">『Gopher It』Steamで発売中</a></div><div class="voice-credit">音声 VOICEVOX:青山龍星 / VOICEVOX:ナースロボ＿タイプＴ / VOICEVOX:ちび式じい</div></section>
+</div>
+<div id="paused" hidden>ひと休み中</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const URL_PUBLIC = 'https://lys-games.github.io/mini-games/spaghetti/';
+const LOAD_MS = 3000, SNAP_TO_REVEAL_MS = 1700, POWDER_TAPS = 32, JACKPOT_ODDS = 1/16;
+// Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: kind to cruel.
+const ENDINGS = [
+  {"id":"whole","name":"まっすぐな愛","verdict":"1本も折らずに、そっと鍋へ。","line":"グラッツェ…！キミこそ、本物のパスタ仲間だ…！","hint":"タップすると折れる。何回で、何本に？","mood":"relief"},
+  {"id":"half","name":"真っ二つ","verdict":"ポキッと1回、きれいな半分こ。","line":"半分なら許される…わけ、ないだろう！","hint":"ギリギリまで待ってから連打すると…？","mood":"shock"},
+  {"id":"few","name":"ポキポキ","verdict":"フォークに巻けない長さになった。","line":"短い…これじゃ、巻けないよ…。","hint":"一定のリズムで、3秒間タップしてみよう。","mood":"despair"},
+  {"id":"rhythm","name":"メトロノーム折り","verdict":"正確すぎるリズムで、ポキポキポキ。","line":"リズムが良すぎて、怒るタイミングがない…！","hint":"3秒、何もしないでいると…？","mood":"stunned"},
+  {"id":"betrayal","name":"最後の裏切り","verdict":"安心させてから、最後の0.5秒でバキッ。","line":"信じてたのに…この鬼！","hint":"限界まで連打すると、どうなる？","mood":"betrayed"},
+  {"id":"many","name":"バラバラ","verdict":"もう、何本目かわからない。","line":"これはパスタじゃない…ただの破片だ…！","hint":"ちょうど1回だけ、タップしてみよう。","mood":"despair"},
+  {"id":"lots","name":"こなごな","verdict":"鍋に入る前に、シェフの心が折れた。","line":"マンマ…ボクは、もうダメかもしれない…。","hint":"3秒で32回、いけるか？","mood":"sob"},
+  {"id":"powder","name":"パスタパウダー","verdict":"麺が、ついに粉に還った。","line":"マンマ…ミー…ア……。","hint":"折ると、16回に1回だけ誰かが見ている…。","mood":"faint"},
+  {"id":"nonno","name":"じいちゃんが見てた","verdict":"大当たり！ビデオ通話のおじいちゃんが目撃。","line":"ジョルジョ…店は継がせんぞ。","who":"おじいちゃん","hint":"まだ見ていない結末を探そう。","mood":"panic"}
+];
+const endingById = id => ENDINGS.find(e => e.id === id);
+const INTRO_TEXT = 'チャオ！パスタ、鍋に入れといて！';
+const NOO_TEXT = 'ノォォォォォォォォォォ…';
+const SNAP_LINES = [
+  {"id":"snap0","text":"マンマミーア！"},
+  {"id":"snap1","text":"なんで！？どうして！？"},
+  {"id":"snap2","text":"ディオ・ミーオ…！"}
+];
+const RELIEF_LINES = [
+  {"id":"relief0","text":"お、折らない…の？"},
+  {"id":"relief1","text":"ああ…よかった…！"}
+];
+// Representative tap counts so ?card=<id> draws each ending's pieces.
+const CARD_TAPS = {whole:0,half:1,few:5,rhythm:14,betrayal:9,many:13,lots:24,powder:36,nonno:20};
+const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
+const rand = (a,b) => a + Math.random()*(b-a);
+const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
+const show = (id,on) => { $(id).hidden = !on; };
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+const fmt = n => n.toLocaleString('ja-JP');
+// Score: 0 taps = the whole bundle (1). Each tap breaks more, and fast tapping grows the count cubically.
+const piecesFor = n => n === 0 ? 1 : 1 + n + Math.floor(n**3 / 30);
+
+/* ---------- layout ---------- */
+// Stage units: 400 wide. Each screen group shows a band of the stage between its UI blocks.
+const VIEW = {home:[34,470], play:[34,650], result:[34,468]};
+let scale=1, ox=0, oy=0, dpr=1, sizes=null, targets={}, layoutState=null;
+function measureLayout() {
+  // Measure every panel with its longest content in a hidden copy, so the scene never jumps on content.
+  const ui=$('ui'), box=ui.getBoundingClientRect(), copy=ui.cloneNode(true);
+  copy.removeAttribute('id');copy.inert=true;copy.setAttribute('aria-hidden','true');copy.style.visibility='hidden';
+  const el=id=>copy.querySelector('#'+id);
+  for(const id of ['title','hud','home','result'])el(id).hidden=false;
+  el('tip').style.display='none';el('bubble').hidden=true;
+  el('save').style.display=TOUCH?'inline-flex':'none';
+  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  document.body.append(copy);
+  const top=copy.getBoundingClientRect().top, bottom=copy.getBoundingClientRect().bottom;
+  const title=el('title').getBoundingClientRect().bottom-top;
+  const hud=el('hud').getBoundingClientRect().bottom-top;
+  const homeTop=el('home').getBoundingClientRect().top-top;
+  let resultTop=bottom;
+  for(const e of ENDINGS) {
+    el('ending-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
+    el('best').textContent='新記録！ 自己ベスト 99,999本';
+    resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
+  }
+  copy.remove();
+  return {title,hud,homeTop,resultTop:resultTop-top,height:bottom-top,top:box.top};
+}
+function fit(group) {
+  const top=sizes.top+(group==='home'?sizes.title+2:group==='play'?sizes.hud+4:4);
+  const bottom=sizes.top+(group==='home'?sizes.homeTop-8:group==='play'?sizes.height:sizes.resultTop-6);
+  const [y0,y1]=VIEW[group];
+  const k=Math.max(.2,Math.min((Math.min(innerWidth,520)-8)/400,(bottom-top)/(y1-y0)));
+  const extra=Math.max(0,(bottom-top)-(y1-y0)*k);
+  return {scale:k,ox:(innerWidth-400*k)/2,oy:top-y0*k+(group==='play'?extra:extra/2)};
+}
+const layoutGroup=()=>state==='home'?'home':state==='reveal'||state==='done'?'result':'play';
+function easeLayout(dt) {
+  const t=targets[layoutGroup()];if(!t)return;
+  const a=REDUCED||!dt?1:1-Math.exp(-9*dt);
+  scale+=(t.scale-scale)*a;ox+=(t.ox-ox)*a;oy+=(t.oy-oy)*a;
+}
+function resize() {
+  layoutState=state;
+  const first=!sizes;
+  sizes=measureLayout();
+  for(const g of ['home','play','result'])targets[g]=fit(g);
+  if(first)({scale,ox,oy}=targets[layoutGroup()]);
+  dpr=Math.min(devicePixelRatio||1,2.5);
+  const w=Math.round(innerWidth*dpr), h=Math.round(innerHeight*dpr);
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+}
+const stageToUi=(x,y)=>{const box=$('ui').getBoundingClientRect();return {x:ox+x*scale-box.left,y:oy+y*scale-box.top,w:box.width};};
+// The bubble hangs under the speaker's mouth (or the phone), its tail pointing at it.
+let bubbleAnchor=[200,226];
+function bubble(text,{shout=false,who=null}={}) {
+  $('bubble-text').textContent=text;$('bubble').style.visibility='';$('bubble').classList.toggle('shout',shout);$('bubble').classList.toggle('who-nonno',who==='nonno');
+  if(who==='nonno'){const s=document.createElement('small');s.textContent='おじいちゃん（ビデオ通話）';$('bubble-text').prepend(s);}
+  placeBubble();
+}
+function placeBubble() {
+  const b=$('bubble'), p=stageToUi(...bubbleAnchor), w=b.offsetWidth, tail=18;
+  // Shouts lean right, clear of the hand he reaches out on the left.
+  const shift=b.classList.contains('shout')?w*.28:0;
+  const left=clamp(p.x-w/2+shift,6,p.w-w-6);
+  b.style.left=left+'px';b.style.top=(p.y+tail)+'px';b.style.setProperty('--tail',clamp(p.x-left,22,w-22)+'px');
+}
+addEventListener('resize',resize);
+new ResizeObserver(resize).observe($('ui'));
+document.fonts?.ready.then(resize);
+
+/* ---------- audio ---------- */
+// Optional files: a missing or undecodable recording is skipped silently.
+const AUDIO_NAMES=['k_select_003','k_bong_001','k_confirmation_001','k_impactSoft_heavy_000','k_impactWood_medium_000','k_impactWood_heavy_000','k_impactPlank_medium_000','k_impactPunch_heavy_000',
+  'v_title','v_intro','v_c3','v_c2','v_c1','v_noo',...SNAP_LINES.map(l=>'v_'+l.id),...RELIEF_LINES.map(l=>'v_'+l.id),...ENDINGS.flatMap(e=>['v_rank_'+e.id,'v_say_'+e.id])];
+const rawAudio={}, buffers={}, decoded={}, speakers={};
+for(const name of AUDIO_NAMES) rawAudio[name]=fetch('sfx/'+name+'.mp3').then(r=>r.ok?r.arrayBuffer():null).catch(()=>null);
+let ac=null, master=null;
+function initAudio() {
+  try {
+    if(ac){ac.resume().catch(()=>{});return;}
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    ac=new Ctx();master=ac.createGain();master.gain.value=.8;master.connect(ac.destination);
+    for(const name of AUDIO_NAMES) decoded[name]=rawAudio[name].then(async b=>{if(b)try{buffers[name]=await ac.decodeAudioData(b);}catch(_){}});
+    ac.resume().catch(()=>{});
+  } catch(_) {}
+}
+function play(name,volume=1,rate=1,delay=0) {
+  if(!ac||!buffers[name])return null;
+  const source=ac.createBufferSource(), gain=ac.createGain();source.buffer=buffers[name];source.playbackRate.value=rate;gain.gain.value=volume;
+  source.connect(gain);gain.connect(master);source.start(ac.currentTime+delay);return source;
+}
+// Boiling water: soft procedural bubble blips, slowed and lowered during the slow motion.
+function blip(slow) {
+  if(!ac||ac.state!=='running')return;
+  try {
+    const o=ac.createOscillator(), g=ac.createGain(), t=ac.currentTime, f=rand(260,620)*(slow?.45:1), d=slow?.22:.07;
+    o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*1.9,t+d);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(slow?.05:.035,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.02);
+  } catch(_) {}
+}
+// One voice per speaker. The chef never cuts himself off: a line waits for the current one.
+let chefUntil=0;
+function voice(speaker,name,rate=1) { try{speakers[speaker]?.stop();}catch(_){} speakers[speaker]=play('v_'+name,1,rate); }
+const lineMs=id=>(buffers['v_'+id]?.duration??1.4)*1000;
+function sayChef(text,id,opts={}) {
+  const now=performance.now();if(now<chefUntil)return false;
+  bubble(text,opts);voice('chef',id);chefUntil=now+lineMs(id)+150;return true;
+}
+async function sayChefQueued(text,id,g,opts={}) {
+  const left=chefUntil-performance.now();if(left>0)await wait(left);
+  if(g!==generation)return;sayChef(text,id,opts);
+}
+function stopVoices() { for(const s of Object.values(speakers))try{s?.stop();}catch(_){} chefUntil=0; }
+const pick=(list,last)=>{const options=list.filter(l=>l.id!==last);return options[Math.floor(Math.random()*options.length)];};
+let lastSnap=null, lastRelief=null;
+
+/* ---------- round ---------- */
+let state='home', generation=0, hasStarted=false, loadStart=0, snapAt=0, revealAt=0, hiddenAt=0, lastFrame=0, nextBlip=0;
+let taps=[], pendingTap=false, ending=null, pieces=1, shards=[], dust=[], steam=[], flash=0, shakeUntil=0, chefPose='front', chefMood='proud', turnAt=0;
+let best=null;try{const b=Number(localStorage.getItem('spaghetti.best'));if(b>0)best=b;}catch(_){}
+function updateHud() {
+  const n=taps.length;$('tap-n').textContent=String(n);
+  $('fill').style.width=Math.min(100,n/POWDER_TAPS*100)+'%';
+  $('meter').setAttribute('aria-valuenow',String(Math.min(100,Math.round(n/POWDER_TAPS*100))));
+}
+async function start() {
+  initAudio();const first=!hasStarted, g=++generation;hasStarted=true;
+  state='intro';bubbleAnchor=[200,226];taps=[];pendingTap=false;ending=null;shards=[];dust=[];flash=0;shareFile=null;stopVoices();
+  for(const id of ['title','home','result'])show(id,false);
+  show('hud',true);$('timebar').style.transform='scaleX(1)';$('save').style.display='none';$('tip').style.display='none';updateHud();
+  // The first tap creates the AudioContext; give the opening sounds a moment to decode.
+  if(first){await Promise.race([Promise.all(['k_select_003','v_title','v_intro'].map(n=>decoded[n])),wait(500)]);if(g!==generation)return;}
+  play('k_select_003',.7);
+  if(first) {
+    chefPose='front';chefMood='talk';voice('host','title');
+    await wait(1100);if(g!==generation)return;
+    sayChef(INTRO_TEXT,'intro');
+    await wait(Math.max(2400,lineMs('intro')+200));if(g!==generation)return;
+  }
+  // He turns to his sauce; the countdown runs behind his back.
+  chefPose='back';chefMood='proud';turnAt=performance.now();bubble('♪ふんふふ〜ん');state='count';
+  for(const n of [3,2,1]){$('count').textContent=String(n);show('count',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return;}
+  show('count',false);
+  // He turns round: slow motion until the snap.
+  state='load';loadStart=performance.now();hiddenAt=document.hidden?loadStart:0;chefPose='front';chefMood='horror';turnAt=loadStart;
+  if(pendingTap){taps.push(0);pendingTap=false;updateHud();creak();}
+  bubble('ノ',{shout:true});
+  const noo=buffers.v_noo;voice('chef','noo',noo?Math.max(1,noo.duration/2.85):1);chefUntil=loadStart+LOAD_MS-50;
+  play('k_impactSoft_heavy_000',.5,.5);
+}
+$('go').onclick=start;$('again').onclick=start;
+function creak() {
+  const n=taps.length;
+  play('k_impactPlank_medium_000',.16+Math.min(.3,n*.008),.45+Math.min(.9,n*.02));
+  if(!REDUCED){const el=$('taps');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}
+}
+function tap() {
+  if(document.hidden)return;
+  if(state==='count'){pendingTap=true;return;}
+  if(state!=='load')return;
+  const t=performance.now()-loadStart;if(t>=LOAD_MS)return;
+  taps.push(t);updateHud();creak();
+}
+function chooseEnding() {
+  const n=taps.length;
+  if(n===0)return endingById('whole');
+  if(Math.random()<JACKPOT_ODDS)return endingById('nonno');
+  if(n===1)return endingById('half');
+  // Every tap in the last half second, after he was relieved.
+  if(n>=3&&taps[0]>=LOAD_MS-500)return endingById('betrayal');
+  if(n>=8&&taps[n-1]-taps[0]>=2000) {
+    const gaps=taps.slice(1).map((t,i)=>t-taps[i]), mean=gaps.reduce((a,b)=>a+b,0)/gaps.length;
+    const sd=Math.sqrt(gaps.reduce((a,b)=>a+(b-mean)**2,0)/gaps.length);
+    if(sd/mean<.12)return endingById('rhythm');
+  }
+  if(n>=POWDER_TAPS)return endingById('powder');
+  return endingById(n<8?'few':n<18?'many':'lots');
+}
+async function snap(forced) {
+  if(state!=='load')return;
+  const g=generation, n=taps.length;state='snap';snapAt=performance.now();show('hud',false);$('bubble').style.visibility='hidden';
+  ending=forced||chooseEnding();pieces=piecesFor(n);
+  $('timebar').style.transform='scaleX(0)';
+  if(n===0) {
+    chefMood='horror';play('k_impactSoft_heavy_000',.7,.8,.35);
+    setTimeout(()=>{if(g!==generation)return;chefMood='relief';const l=pick(RELIEF_LINES,lastRelief);lastRelief=l.id;sayChef(l.text,l.id);},500);
+  } else {
+    spawnPieces(n);flash=1;shakeUntil=snapAt+(REDUCED?0:180+Math.min(500,n*12));chefMood=n>=POWDER_TAPS?'faint':ending.mood==='shock'?'shock':'despair';
+    play('k_impactWood_medium_000',1,1.25);play('k_impactWood_heavy_000',.8,1.6,.02);
+    for(let i=0;i<Math.min(6,Math.floor(n/5));i++)play('k_impactWood_medium_000',.45,rand(1.5,2.2),.05+i*.05);
+    if(n>=18)play('k_impactPunch_heavy_000',.7,.8,.03);
+    setTimeout(()=>{if(g!==generation)return;const l=pick(SNAP_LINES,lastSnap);lastSnap=l.id;sayChef(l.text,l.id,{shout:true});},220);
+  }
+  await wait(SNAP_TO_REVEAL_MS);if(g!==generation)return;
+  state='reveal';revealAt=performance.now();chefMood=ending.mood;
+  const kind=ending.id==='whole'||ending.id==='nonno';
+  play(kind?'k_confirmation_001':'k_bong_001',kind?.8:.4,kind?1:.7);voice('host','rank_'+ending.id);
+  if(ending.id==='whole'&&!REDUCED)for(let i=0;i<30;i++)dust.push({x:rand(40,360),y:rand(120,320),vx:rand(-50,50),vy:rand(-80,-10),r:rand(3,6),life:rand(.8,1.6),confetti:['#e8392b','#2fa35a','#fff'][i%3]});
+  setTimeout(()=>{if(g!==generation)return;bubbleAnchor=ending.who?PHONE_ANCHOR:[200,226];sayChefQueued(ending.line,'say_'+ending.id,g,{who:ending.who?'nonno':null});},1150);
+  await wait(600);if(g!==generation)return;
+  state='done';
+  $('ending-name').textContent=ending.name;$('verdict').textContent=ending.verdict;$('hint').textContent=ending.hint;
+  const newBest=!CARD_MODE&&pieces>1&&(best===null||pieces>best);
+  if(newBest){best=pieces;try{localStorage.setItem('spaghetti.best',String(best));}catch(_){}}
+  const bestText=best?`自己ベスト ${fmt(best)}本`:'';
+  $('best').textContent=pieces===1?['1本も折らなかった！',bestText].filter(Boolean).join(' '):newBest?'新記録！ '+bestText:bestText;
+  countUp(pieces,g);
+  const who=ending.who||'ジョルジョ';
+  shareText=pieces===1
+    ? `${who}「${ending.line}」\nパスタを折らずに鍋へ入れた【${ending.name}】\nあなたは折る？折らない？ #折ったらマンマミーア`
+    : `${who}「${ending.line}」\nシェフの前でパスタを${fmt(pieces)}本に折った【${ending.name}】\nあなたは何本？ #折ったらマンマミーア`;
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+ending.id+'.html');
+  if(CARD_MODE){resize();({scale,ox,oy}=targets.result);draw(performance.now(),0);showPicture(await drawShareImage({ending}));return;}
+  show('result',true);
+  prepareShare({ending,pieces},g);
+}
+function countUp(n,g) {
+  const el=$('pieces-n'), t0=performance.now(), ms=REDUCED||n<5?0:900;
+  const tick=now=>{if(g!==generation)return;const k=ms?Math.min(1,(now-t0)/ms):1;el.textContent=fmt(Math.round(n*(1-(1-k)**3)));if(k<1)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);
+}
+
+/* ---------- input: any tap or the space bar loads the break ---------- */
+cv.addEventListener('pointerdown',e=>{if(state==='load'||state==='count'||state==='intro'){e.preventDefault();initAudio();tap();}});
+addEventListener('keydown',e=>{
+  if(e.code!=='Space'&&e.key!==' ')return;
+  if(['load','count','intro','snap'].includes(state)){e.preventDefault();if(!e.repeat)tap();}
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(state==='load')hiddenAt=performance.now();ac?.suspend().catch(()=>{});}
+  else {if(hiddenAt&&state==='load'){loadStart+=performance.now()-hiddenAt;}hiddenAt=0;if(ac)ac.resume().catch(()=>{});}
+  show('paused',document.hidden&&state==='load');
+});
+
+/* ---------- art ---------- */
+const INK='#2a1d17', SKIN='#f4c29d', SKIN_DARK='#e3a37c', HAIR='#4a2f22', PASTA='#f7d36a', PASTA_DARK='#d8a63a', WHITE='#fffdf6', RED='#e8392b', GREEN='#2fa35a', BG='#ffd95a', TEAR='#6cc7ff';
+const RIM_Y=352, COUNTER_Y=432, BUNDLE_Y=502, PHONE_ANCHOR=[298,304];
+function ellipse(c,x,y,rx,ry,fill,stroke=true) { c.beginPath();c.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill();}if(stroke)c.stroke(); }
+function poly(c,points,fill) { c.beginPath();c.moveTo(...points[0]);for(const p of points.slice(1))c.lineTo(...p);c.closePath();if(fill){c.fillStyle=fill;c.fill();}c.stroke(); }
+function line(c,pts,width,color=INK) { c.beginPath();c.moveTo(pts[0],pts[1]);if(pts.length===6)c.quadraticCurveTo(pts[2],pts[3],pts[4],pts[5]);else c.lineTo(pts[2],pts[3]);c.lineWidth=width;c.strokeStyle=color;c.stroke(); }
+// Face presets. brow > 0 lifts the inner ends (worry), < 0 lowers them (anger).
+const FACES={
+  proud:{brow:-.1,eye:'happy',mouth:'grin'},
+  talk:{brow:-.05,eye:'dot',mouth:'open'},
+  horror:{brow:.6,eye:'wide',mouth:'O',sweat:2},
+  relief:{brow:.45,eye:'happy',mouth:'smileWobble',tears:'joy'},
+  shock:{brow:-.55,eye:'wide',mouth:'grit',sweat:1},
+  despair:{brow:.55,eye:'dot',mouth:'frown',tears:'drop'},
+  stunned:{brow:0,eye:'blank',mouth:'flat',sweat:1},
+  betrayed:{brow:.6,eye:'shake',mouth:'wobble',tears:'drop'},
+  sob:{brow:.65,eye:'squeeze',mouth:'wail',tears:'stream'},
+  faint:{brow:.3,eye:'spiral',mouth:'wobble'},
+  panic:{brow:.6,eye:'wide',mouth:'grit',sweat:3},
+};
+function drawEye(c,x,kind,t,side) {
+  c.strokeStyle=INK;c.lineWidth=4;
+  if(kind==='dot')ellipse(c,x,188,5.5,7.5,INK,false);
+  else if(kind==='happy')line(c,[x-10,192,x,178,x+10,192],4.5);
+  else if(kind==='wide'){ellipse(c,x,186,12,13,'#fff');ellipse(c,x+side*-1,187,3.6,3.6,INK,false);}
+  else if(kind==='blank'){ellipse(c,x,186,11,11,'#fff');}
+  else if(kind==='shake'){const j=Math.sin(t*.06+side)*1.6;ellipse(c,x+j,188,5,7,INK,false);}
+  else if(kind==='squeeze'){c.lineWidth=4.5;c.beginPath();c.moveTo(x-side*9,180);c.lineTo(x+side*5,187);c.lineTo(x-side*9,194);c.stroke();}
+  else if(kind==='spiral'){c.lineWidth=3;c.beginPath();for(let a=0;a<12;a+=.3){const r=a*.95;c.lineTo(x+Math.cos(a+t*.008*side)*r,187+Math.sin(a+t*.008*side)*r);}c.stroke();}
+}
+function drawFace(c,mood,t,p) {
+  const f=FACES[mood]||FACES.proud;
+  c.lineCap='round';
+  // Brows
+  for(const s of [-1,1]){const b=f.brow;line(c,[s*9,167-b*10,s*22,160-Math.abs(b)*2,s*36,166+b*7],7,HAIR);}
+  for(const s of [-1,1])drawEye(c,s*20,f.eye,t,s);
+  ellipse(c,0,204,10,8,SKIN_DARK);
+  // Cheeks
+  c.save();c.globalAlpha=.45;for(const s of [-1,1])ellipse(c,s*33,210,9,6,'#f0807a',false);c.restore();
+  c.strokeStyle=INK;c.lineWidth=4;
+  const m=f.mouth, mf='#8a2b2b';
+  if(m==='grin'){c.beginPath();c.moveTo(-16,218);c.quadraticCurveTo(0,240,16,218);c.closePath();c.fillStyle=mf;c.fill();c.stroke();}
+  else if(m==='open')ellipse(c,0,224,9,7+Math.abs(Math.sin(t*.018))*3,mf);
+  else if(m==='O'){const k=clamp(p,0,1);ellipse(c,0,229,9+8*k,11+15*k,mf);ellipse(c,0,236+12*k,5+4*k,3+3*k,'#e86f6f',false);}
+  else if(m==='smileWobble'){c.beginPath();c.moveTo(-15,221);for(let i=1;i<=6;i++)c.lineTo(-15+i*5,221+(i%2?4:0)+Math.sin(i/6*Math.PI)*5);c.stroke();}
+  else if(m==='grit'){c.beginPath();c.roundRect(-17,215,34,15,5);c.fillStyle='#fff';c.fill();c.stroke();for(const x of [-6,6])line(c,[x,215,x,230],2.5);line(c,[-17,222.5,17,222.5],2.5);}
+  else if(m==='frown')line(c,[-15,229,0,214,15,229],4.5);
+  else if(m==='wobble'){c.beginPath();c.moveTo(-14,224);for(let i=1;i<=6;i++)c.lineTo(-14+i*4.7,224+(i%2?-3.5:2.5));c.stroke();}
+  else if(m==='wail'){poly(c,[[-17,216],[17,216],[11,240],[-11,240]],mf);ellipse(c,0,236,6,3,'#e86f6f',false);}
+  else if(m==='flat')line(c,[-11,223,11,223],4.5);
+  // Tears and sweat
+  c.lineWidth=3;c.strokeStyle=INK;
+  if(f.tears==='joy')for(const s of [-1,1]){const k=(t*.002)%1;line(c,[s*26,190,s*40,205+k*4,s*36,232],6,TEAR);ellipse(c,s*36,236+k*10,4,5,TEAR,false);}
+  if(f.tears==='drop')for(const s of [-1,1]){const k=(t*.0012+(s>0?.5:0))%1;c.beginPath();c.ellipse(s*22,199+k*30,4,6,0,0,7);c.fillStyle=TEAR;c.fill();}
+  if(f.tears==='stream')for(const s of [-1,1]){c.save();c.globalAlpha=.85;line(c,[s*20,194,s*22+Math.sin(t*.02)*2,214,s*18,246],8,TEAR);c.restore();}
+  for(let i=0;i<(f.sweat||0);i++){const x=[44,-46,38][i], y=[150,160,128][i]+((t*.03+i*7)%6);c.beginPath();c.moveTo(x,y-9);c.quadraticCurveTo(x+7,y+3,x,y+5);c.quadraticCurveTo(x-7,y+3,x,y-9);c.fillStyle=TEAR;c.fill();c.lineWidth=2.5;c.stroke();}
+}
+function toque(c,dy=0,rot=0) {
+  c.save();c.translate(0,124+dy);c.rotate(rot);c.translate(0,-124);c.strokeStyle=INK;c.lineWidth=4;
+  for(const [x,y,r] of [[-30,92,27],[30,92,27],[0,78,33]])ellipse(c,x,y,r,r,WHITE);
+  c.beginPath();c.roundRect(-44,104,88,30,6);c.fillStyle=WHITE;c.fill();c.stroke();
+  c.lineWidth=2;for(const x of [-18,0,18])line(c,[x,108,x,130],2,'#d9d2c4');
+  c.restore();
+}
+// The chef stands behind the pot. pose 'back' while he watches his sauce.
+function drawChef(c,t) {
+  const back=chefPose==='back', mood=chefMood, faint=mood==='faint'&&(state==='reveal'||state==='done'||state==='snap');
+  const sinceSnap=snapAt?t-snapAt:0;
+  c.save();c.lineJoin=c.lineCap='round';c.strokeStyle=INK;c.lineWidth=4;
+  let tilt=0, drop=0;
+  if(faint){const k=clamp(sinceSnap/700,0,1);tilt=-.32*k;drop=34*k;}
+  const bob=state==='load'?0:Math.sin(t*.003)*1.5;
+  c.translate(200,drop+bob);c.translate(0,330);c.rotate(tilt);c.translate(0,-330);
+  // Jacket
+  c.beginPath();c.moveTo(-104,390);c.lineTo(-95,300);c.quadraticCurveTo(-88,262,-50,256);c.lineTo(50,256);c.quadraticCurveTo(88,262,95,300);c.lineTo(104,390);c.closePath();c.fillStyle=WHITE;c.fill();c.stroke();
+  if(!back){
+    for(const y of [292,320])for(const s of [-1,1])ellipse(c,s*24,y,4.5,4.5,'#c9bfae');
+    ellipse(c,0,238,19,24,SKIN);
+    poly(c,[[-30,250],[30,250],[0,284]],RED);ellipse(c,0,254,9,7,RED);
+  } else {
+    ellipse(c,0,238,19,24,SKIN);poly(c,[[-30,252],[30,252],[24,262],[-24,262]],RED);
+    // Stirring arm, swaying a little.
+    const sway=Math.sin(t*.006)*8;line(c,[60,270,96+sway,300,80+sway,330],22,INK);line(c,[60,270,96+sway,300,80+sway,330],15,WHITE);
+  }
+  for(const s of [-1,1])ellipse(c,s*52,192,9,13,SKIN);
+  ellipse(c,0,184,52,58,back?HAIR:SKIN);
+  if(back){c.lineWidth=3;for(const x of [-26,0,26])line(c,[x,150,x+6,190,x-2,232],3,'#6d4a39');c.lineWidth=4;ellipse(c,0,184,52,58,null);}
+  else {
+    // Hairline under the hat, then the face.
+    c.beginPath();c.moveTo(-52,178);c.quadraticCurveTo(-58,128,0,124);c.quadraticCurveTo(58,128,52,178);c.quadraticCurveTo(46,150,28,147);c.quadraticCurveTo(0,140,-28,147);c.quadraticCurveTo(-46,150,-52,178);c.closePath();c.fillStyle=HAIR;c.fill();c.stroke();
+    drawFace(c,mood,t,state==='load'?clamp((t-loadStart)/LOAD_MS*1.4,0,1):1);
+  }
+  toque(c,0,faint?.5*clamp(sinceSnap/700,0,1):0);
+  if(mood==='panic'&&(state==='reveal'||state==='done'))drawPhone(c,t);
+  c.restore();
+}
+function drawPhone(c,t) {
+  c.save();c.translate(98,250);c.rotate(-.12);c.strokeStyle=INK;c.lineWidth=4;
+  // His hand holding it up.
+  ellipse(c,0,48,17,14,SKIN);
+  c.beginPath();c.roundRect(-30,-50,60,100,10);c.fillStyle='#3a3a44';c.fill();c.stroke();
+  c.beginPath();c.roundRect(-24,-42,48,82,5);c.fillStyle='#8fd3f5';c.fill();
+  // The nonno on the call: flat cap, round glasses, white hair.
+  c.lineWidth=2.5;
+  ellipse(c,-15,-2,7,8,'#f2f2f2');ellipse(c,15,-2,7,8,'#f2f2f2');
+  ellipse(c,0,-2,15,17,SKIN);
+  c.beginPath();c.moveTo(-17,-12);c.quadraticCurveTo(0,-30,17,-12);c.lineTo(20,-10);c.lineTo(-20,-10);c.closePath();c.fillStyle='#7a5a3a';c.fill();c.stroke();
+  ellipse(c,-6,-2,5,5,'#ffffff99');ellipse(c,6,-2,5,5,'#ffffff99');line(c,[-1,-2,1,-2],2);
+  line(c,[-6,9,0,6,6,9],2.5);
+  c.beginPath();c.moveTo(-24,40);c.quadraticCurveTo(0,18,24,40);c.fillStyle='#4f6fb0';c.fill();
+  c.fillStyle=RED;ellipse(c,16,-34,3,3,RED,false);
+  c.restore();
+  // Two fingers on the case.
+  c.save();c.translate(98,250);ellipse(c,-31,10,7,10,SKIN);ellipse(c,-31,28,7,10,SKIN);c.restore();
+}
+// His hand reaching out over the pot in slow motion.
+function drawReach(c,t) {
+  const p=state==='load'?clamp((t-loadStart)/LOAD_MS,0,1):state==='snap'?1-clamp((t-snapAt)/500,0,1)*.4:0;
+  if(p<=0||chefPose==='back')return;
+  const sx=118, sy=280, hx=118-p*34, hy=280+p*92, r=16+p*20;
+  c.save();c.lineCap='round';
+  line(c,[sx,sy,sx-14,sy+30,hx,hy],30+p*10,INK);line(c,[sx,sy,sx-14,sy+30,hx,hy],23+p*10,WHITE);
+  c.strokeStyle=INK;c.lineWidth=4;
+  for(let i=0;i<4;i++){const a=-2.3+i*.42, fx=hx+Math.cos(a)*r*1.25, fy=hy+Math.sin(a)*r*1.25;c.save();c.translate(fx,fy);c.rotate(a+Math.PI/2);ellipse(c,0,0,r*.26,r*.55,SKIN);c.restore();}
+  ellipse(c,hx+r*.75,hy+r*.1,r*.26,r*.5,SKIN);
+  ellipse(c,hx,hy,r,r*.95,SKIN);
+  c.restore();
+}
+function drawKitchen(c,t,slow) {
+  // Wall tiles, counter, stove flames.
+  c.strokeStyle='#f2c440';c.lineWidth=3;
+  for(let y=-400;y<COUNTER_Y;y+=56){c.beginPath();c.moveTo(-600,y);c.lineTo(1000,y);c.stroke();}
+  for(let row=0,y=-400;y<COUNTER_Y;row++,y+=56)for(let x=-600+(row%2)*28;x<1000;x+=56){c.beginPath();c.moveTo(x,y);c.lineTo(x,y+56);c.stroke();}
+  // Shelf with a basil pot, kept off the chef.
+  c.strokeStyle=INK;c.lineWidth=4;
+  c.fillStyle='#c97a45';c.beginPath();c.rect(300,86,140,12);c.fill();c.stroke();
+  poly(c,[[322,86],[350,86],[346,62],[326,62]],'#d9653a');
+  for(const [x,y] of [[328,52],[340,46],[334,40],[346,54]])ellipse(c,x,y,7,5,GREEN);
+  c.fillStyle='#c97a45';c.beginPath();c.rect(-40,96,110,12);c.fill();c.stroke();
+  poly(c,[[0,96],[0,58],[14,46],[28,58],[28,96]],'#fff3d6');line(c,[14,46,14,34],4);
+  c.font=`700 13px ${DISPLAY_FONT}`;c.fillStyle=RED;c.textAlign='center';c.fillText('塩',14,82);
+}
+function drawCounter(c,t,slow) {
+  c.strokeStyle=INK;c.lineWidth=4;
+  c.fillStyle='#d9e2e8';c.beginPath();c.rect(-600,COUNTER_Y-8,1600,22);c.fill();c.stroke();
+  c.fillStyle='#b9673f';c.beginPath();c.rect(-600,COUNTER_Y+14,1600,900);c.fill();c.stroke();
+  c.strokeStyle='#9a5232';c.lineWidth=3;for(let x=-560;x<1000;x+=80)line(c,[x,COUNTER_Y+30,x,COUNTER_Y+900],3,'#9a5232');
+  // Flames under the pot
+  for(let i=0;i<7;i++){const x=128+i*24, h=10+Math.sin(t*.02*(slow?.2:1)+i)*3;c.beginPath();c.moveTo(x-7,COUNTER_Y-8);c.quadraticCurveTo(x,COUNTER_Y-8-h*2,x+7,COUNTER_Y-8);c.fillStyle='#4aa3ff';c.fill();}
+}
+function drawPotBack(c,t,slow) {
+  c.strokeStyle=INK;c.lineWidth=4;
+  ellipse(c,200,RIM_Y,96,20,'#7d8a93');
+  ellipse(c,200,RIM_Y+4,86,15,'#cdeefa',false);
+  // Rolling boil on the surface
+  for(let i=0;i<9;i++){const ph=(t*.0012*(slow?.18:1)+i*.37)%1, x=130+((i*53)%140), y=RIM_Y+2+((i*17)%9);c.lineWidth=2;c.strokeStyle='#8cc8dd';ellipse(c,x,y,3+ph*5,2+ph*3,'#ffffff');}
+  if(ending?.id==='whole'&&['reveal','done'].includes(state)||state==='snap'&&taps.length===0&&t-snapAt>650)drawPastaInPot(c,t);
+  // Pieces that landed in the water float above the front.
+}
+function drawPastaInPot(c,t) {
+  // The whole bundle stands in the pot and fans out, the classic way.
+  const k=state==='snap'?clamp((t-snapAt-650)/500,0,1):1;
+  c.lineCap='round';
+  for(let i=0;i<22;i++){
+    const a=(i/21-.5)*(.5+.7*k), bx=200+(i/21-.5)*60, by=RIM_Y+30;
+    const tx=bx+Math.sin(a)*135, ty=by-Math.cos(a)*135;
+    line(c,[bx,by,tx,ty],5.5,INK);line(c,[bx,by,tx,ty],3,PASTA);
+  }
+}
+function drawPotFront(c) {
+  c.strokeStyle=INK;c.lineWidth=4;
+  c.beginPath();c.moveTo(104,RIM_Y);c.lineTo(110,COUNTER_Y-12);c.quadraticCurveTo(112,COUNTER_Y-4,124,COUNTER_Y-4);c.lineTo(276,COUNTER_Y-4);c.quadraticCurveTo(288,COUNTER_Y-4,290,COUNTER_Y-12);c.lineTo(296,RIM_Y);
+  c.quadraticCurveTo(200,RIM_Y+44,104,RIM_Y);c.closePath();c.fillStyle='#c9d4dc';c.fill();c.stroke();
+  line(c,[124,RIM_Y+30,124,COUNTER_Y-20],6,'#e6eef3');
+  for(const s of [-1,1]){c.beginPath();c.roundRect(s<0?82:296,RIM_Y+8,22,12,5);c.fillStyle='#555f66';c.fill();c.stroke();}
+}
+function updateSteam(dt,slow) {
+  const rate=slow?.25:1;
+  if(Math.random()<dt*14*rate)steam.push({x:rand(130,270),y:RIM_Y-6,r:rand(9,18),life:0,max:rand(1.1,1.9),drift:rand(-12,12)});
+  for(let i=steam.length-1;i>=0;i--){const s=steam[i];s.life+=dt*rate;s.y-=dt*rate*48;s.x+=dt*rate*s.drift;s.r+=dt*rate*9;if(s.life>s.max)steam.splice(i,1);}
+}
+function drawSteam(c) {
+  c.save();for(const s of steam){c.globalAlpha=.5*Math.sin(Math.PI*s.life/s.max);ellipse(c,s.x,s.y,s.r,s.r*.85,'#ffffff',false);}c.restore();
+}
+// The bundle bends further with every tap: the middle rises, the hands tilt in and shake.
+function bundleBend(n) { return 58*(1-Math.exp(-n/9)); }
+function drawHands(c,t) {
+  const n=taps.length, live=state==='load'||state==='count'||state==='intro';
+  let lift=0, alpha=1, lower=0;
+  if(state==='snap'){const k=clamp((t-snapAt)/(n===0?650:420),0,1);if(n===0){lower=k;lift=clamp((t-snapAt-700)/450,0,1);}else lift=k;}
+  else if(!live&&!CARD_THUMB)return;
+  const b=n===0&&state==='snap'?0:bundleBend(n), shake=live||state==='snap'&&n>0?Math.min(7,n*.28)+(state==='load'?.6:0):0;
+  const jx=REDUCED?0:(Math.random()-.5)*shake, jy=REDUCED?0:(Math.random()-.5)*shake;
+  c.save();c.translate(jx,jy+lift*260+lower*40);c.globalAlpha=alpha;c.lineCap=c.lineJoin='round';
+  const Y=BUNDLE_Y-lower*90, ang=b*.0075;
+  // Forearms in green sleeves from the bottom of the view.
+  for(const s of [-1,1]){
+    const hx=200+s*112, hy=Y+12+b*.28;
+    line(c,[hx,hy,hx+s*30,hy+150,hx+s*70,hy+330],58,INK);line(c,[hx,hy,hx+s*30,hy+150,hx+s*70,hy+330],50,SKIN);
+    line(c,[hx+s*34,hy+170,hx+s*50,hy+250,hx+s*76,hy+340],74,INK);line(c,[hx+s*34,hy+170,hx+s*50,hy+250,hx+s*76,hy+340],66,GREEN);
+  }
+  if(state!=='snap'||n===0&&lower<.95){
+    // Bundle
+    const x0=36, x1=364, ends=Y+b*.3, mid=Y-b*1.7;
+    c.save();if(lower>0){c.translate(200,Y);c.rotate(-lower*1.2);c.scale(1-lower*.45,1-lower*.45);c.translate(-200,-Y);}
+    line(c,[x0,ends,200,mid,x1,ends],27,INK);line(c,[x0,ends,200,mid,x1,ends],20,PASTA);
+    for(let i=0;i<6;i++){const o=(i-2.5)*3;line(c,[x0+4,ends+o,200,mid+o,x1-4,ends+o],1.3,PASTA_DARK);}
+    for(const x of [x0,x1])ellipse(c,x,ends,4,10,PASTA);
+    // Hairline cracks at the top of the bend once it is badly strained.
+    if(n>=6&&state!=='snap'){c.strokeStyle='#fff';c.lineWidth=2.5;const cy=Y-b*.85;c.beginPath();c.moveTo(194,cy-9);c.lineTo(200,cy-2);c.lineTo(195,cy+3);c.lineTo(202,cy+9);c.stroke();if(n>=18){c.beginPath();c.moveTo(214,cy-7);c.lineTo(219,cy);c.lineTo(214,cy+6);c.stroke();c.beginPath();c.moveTo(183,cy-6);c.lineTo(188,cy+1);c.lineTo(183,cy+7);c.stroke();}}
+    c.restore();
+  }
+  // Fists over the bundle, tilting inward as it bends.
+  for(const s of [-1,1]){
+    const hx=200+s*112, hy=Y+b*.24;
+    c.save();c.translate(hx,hy);c.rotate(-s*ang);c.strokeStyle=INK;c.lineWidth=4;
+    c.beginPath();c.roundRect(-32,-26,64,52,18);c.fillStyle=SKIN;c.fill();c.stroke();
+    for(let i=0;i<3;i++){const kx=(i-1)*16;line(c,[kx-6,-19,kx,-25,kx+6,-19],3,SKIN_DARK);}
+    ellipse(c,s*-20,-14,12,9,SKIN);
+    c.restore();
+  }
+  c.restore();
+}
+function spawnPieces(n) {
+  // Draw a readable, capped number of pieces; the exact count is the score.
+  const drawn=Math.min(piecesFor(n),48), b=bundleBend(n), len=clamp(320/drawn,5,160), w=drawn<=4?20:drawn<=12?9:4;
+  shards=[];
+  for(let i=0;i<drawn;i++){
+    const u=(i+.5)/drawn, x=36+u*328, y=BUNDLE_Y-b*1.7*(1-(2*u-1)**2)+b*.3;
+    const power=1+Math.min(1.4,n/25);
+    shards.push({x,y,vx:(x-200)*rand(.6,1.4)*(drawn<=2?.5:1)+rand(-60,60),vy:-rand(560,760)*Math.min(1.25,power*.85),rot:rand(-.3,.3),vr:rand(-6,6)*power,len:len*rand(.8,1.05),w,settled:false,py:y});
+  }
+  dust=[];
+  if(n>=14)for(let i=0;i<Math.min(110,(n-10)*4);i++)dust.push({x:rand(120,280),y:BUNDLE_Y-b,vx:rand(-200,200),vy:rand(-420,-80),r:rand(2,5)+(n>=POWDER_TAPS?rand(0,5):0),life:rand(1,2.4),grav:rand(60,160)});
+}
+const floorAt=x=>Math.abs(x-200)<84?RIM_Y+6+((x*7)%8):COUNTER_Y-8;
+function updatePieces(dt) {
+  for(const s of shards){
+    if(s.settled)continue;
+    s.py=s.y;s.vy+=1250*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.rot+=s.vr*dt;
+    const f=floorAt(s.x);
+    if(s.vy>0&&s.py<=f&&s.y>=f){s.y=f;s.settled=true;s.rot=Math.abs(s.x-200)<84?s.rot:Math.round(s.rot/Math.PI)*Math.PI+rand(-.15,.15);}
+    if(s.y>1400)s.settled=true;
+  }
+  for(let i=dust.length-1;i>=0;i--){const d=dust[i];d.life-=dt;if(d.life<=0){dust.splice(i,1);continue;}d.x+=d.vx*dt;d.y+=d.vy*dt;d.vx*=1-dt*1.5;d.vy+=(d.grav??100)*dt;}
+}
+function drawPieces(c) {
+  c.lineCap='round';
+  for(const s of shards){
+    c.save();c.translate(s.x,s.y);c.rotate(s.rot);
+    line(c,[-s.len/2,0,s.len/2,0],s.w+6,INK);line(c,[-s.len/2,0,s.len/2,0],s.w,PASTA);
+    if(s.w>=9)for(const o of [-s.w/4,s.w/4])line(c,[-s.len/2+3,o,s.len/2-3,o],1.2,PASTA_DARK);
+    c.restore();
+  }
+  // Powder settles as little heaps on the counter.
+  if(taps.length>=POWDER_TAPS&&(state==='reveal'||state==='done'||state==='snap'&&performance.now()-snapAt>700)){
+    c.strokeStyle=INK;c.lineWidth=3;
+    for(const [x,w,h] of [[60,46,16],[330,52,18],[200,40,10],[262,30,9],[138,28,8]]){c.beginPath();c.moveTo(x-w,COUNTER_Y-8);c.quadraticCurveTo(x,COUNTER_Y-8-h*2,x+w,COUNTER_Y-8);c.closePath();c.fillStyle='#f6e2a6';c.fill();c.stroke();}
+  }
+  for(const d of dust){c.save();c.globalAlpha=Math.min(1,d.life*1.5)*(d.confetti?1:.75);if(d.confetti){c.fillStyle=d.confetti;c.translate(d.x,d.y);c.rotate(d.life*6);c.fillRect(-d.r,-d.r,d.r*2,d.r*2);}else ellipse(c,d.x,d.y,d.r,d.r,'#f6e2a6',false);c.restore();}
+}
+function drawSlowMo(c,t) {
+  // Manga speed lines round the edge and a cool tint: everything is in slow motion.
+  const p=clamp((t-loadStart)/250,0,1);
+  c.save();c.globalAlpha=.14*p;c.fillStyle='#3050c0';c.fillRect(-800,-800,2000,2400);
+  c.globalAlpha=.32*p;c.strokeStyle=INK;c.lineWidth=3;
+  for(let i=0;i<54;i++){const a=i/54*Math.PI*2+Math.sin(i*7.1)*.05+t*.00005, r0=250+((i*37)%60);c.beginPath();c.moveTo(200+Math.cos(a)*r0,330+Math.sin(a)*r0*1.25);c.lineTo(200+Math.cos(a)*900,330+Math.sin(a)*1100);c.stroke();}
+  c.restore();
+}
+function drawHomeBox(c) {
+  // The spaghetti package waiting on the counter.
+  c.save();c.translate(340,COUNTER_Y-8);c.rotate(.08);c.strokeStyle=INK;c.lineWidth=4;
+  c.beginPath();c.roundRect(-22,-120,44,120,4);c.fillStyle='#2b6cc4';c.fill();c.stroke();
+  c.beginPath();c.roundRect(-14,-100,28,62,4);c.fillStyle=PASTA;c.fill();c.stroke();
+  for(const x of [-6,0,6])line(c,[x,-96,x,-42],1.5,PASTA_DARK);
+  c.font=`700 12px ${DISPLAY_FONT}`;c.fillStyle='#fff';c.textAlign='center';c.fillText('パスタ',0,-16);
+  c.restore();
+}
+function draw(now,dt) {
+  if(layoutState!==state)resize();
+  easeLayout(dt);
+  const t=CARD_THUMB?CARD_THUMB:now, slow=state==='load'&&!CARD_THUMB?true:CARD_THUMB?true:false;
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle=BG;ctx.fillRect(0,0,innerWidth,innerHeight);
+  let sx=0, sy=0;if(now<shakeUntil){const k=(shakeUntil-now)/400;sx=(Math.random()-.5)*14*k;sy=(Math.random()-.5)*14*k;}
+  ctx.setTransform(dpr*scale,0,0,dpr*scale,(ox+sx)*dpr,(oy+sy)*dpr);
+  if(!CARD_THUMB){updateSteam(dt,slow);if(state!=='done'||shards.some(s=>!s.settled)||dust.length)updatePieces(dt);}
+  drawKitchen(ctx,t,slow);
+  drawChef(ctx,t);
+  drawCounter(ctx,t,slow);
+  drawPotBack(ctx,t,slow);
+  drawPotFront(ctx);
+  if(state==='home')drawHomeBox(ctx);
+  drawSteam(ctx);
+  drawReach(ctx,t);
+  drawPieces(ctx);
+  if(state==='load'||CARD_THUMB)drawSlowMo(ctx,t);
+  drawHands(ctx,t);
+  if(flash>0){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=flash;ctx.fillStyle='#fff';ctx.fillRect(0,0,innerWidth,innerHeight);ctx.globalAlpha=1;flash=Math.max(0,flash-dt*4);}
+  placeBubble();
+  $('count').style.top=(stageToUi(200,BUNDLE_Y-150).y)+'px';
+}
+function frame(now) {
+  const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;
+  if(state==='load'&&!document.hidden){
+    const el=now-loadStart;
+    $('timebar').style.transform=`scaleX(${Math.max(0,1-el/LOAD_MS)})`;
+    // The cry stretches over the whole slow motion.
+    if(!CARD_THUMB)$('bubble-text').textContent='ノ'+'ォ'.repeat(Math.floor(clamp(el/LOAD_MS,0,1)*6))+(el>LOAD_MS*.5?'…':'');
+    if(el>=LOAD_MS&&!CARD_THUMB)snap();
+  }
+  if(['intro','count','load'].includes(state)&&now>=nextBlip&&!document.hidden){blip(state==='load');nextBlip=now+(state==='load'?rand(260,520):rand(70,170));}
+  if(!document.hidden||CARD_MODE)draw(now,dt);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- share picture ---------- */
+// The framed picture is a crop of the live scene, including his actual reaction.
+async function drawShareImage({ending:e,card,pieces:n}) {
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`,'折ったらマンマミーア！何本に折る？シェフが見ている3秒間「」0123456789,本あなたは折らない'+ENDINGS.map(x=>x.name+x.line).join(''));
+  resize();({scale,ox,oy}=targets[CARD_THUMB?'play':'result']);draw(performance.now(),0);
+  const c=document.createElement('canvas');c.width=1200;c.height=675;
+  const x=c.getContext('2d');
+  x.fillStyle='#ffe9a8';x.fillRect(0,0,1200,675);
+  const FX=20, FY=42, FW=560, FH=591, y0=CARD_THUMB?120:60, y1=CARD_THUMB?600:466;
+  const k=Math.max(FW/400,FH/(y1-y0)), sw=FW/k, sh=FH/k, sxs=(400-sw)/2, sys=y0;
+  x.drawImage(cv,(ox+sxs*scale)*dpr,(oy+sys*scale)*dpr,sw*scale*dpr,sh*scale*dpr,FX,FY,FW,FH);
+  x.lineWidth=8;x.strokeStyle=INK;x.strokeRect(FX,FY,FW,FH);
+  const text=(str,tx,ty,size,fill,maxW=560)=>{
+    x.font=`${size}px ${DISPLAY_FONT}`;x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    const tw=x.measureText(str).width;if(tw>maxW){size*=maxW/tw;x.font=`${size}px ${DISPLAY_FONT}`;}
+    x.lineWidth=fill==='#fff'?Math.min(size*.13,10):5;x.strokeStyle=INK;
+    x.strokeText(str,tx,ty+size*.06);x.strokeText(str,tx,ty);x.fillStyle=fill;x.fillText(str,tx,ty);
+  };
+  const stamp=(str,tx,ty,size)=>{
+    x.save();x.translate(tx,ty);x.rotate(-.06);x.font=`${size}px ${DISPLAY_FONT}`;x.textAlign='center';x.textBaseline='middle';
+    const tw=x.measureText(str).width+size*.9, th=size*1.35;
+    x.beginPath();x.roundRect(-tw/2,-th/2,tw,th,size*.25);x.fillStyle='#fff';x.fill();x.lineWidth=9;x.strokeStyle=RED;x.stroke();
+    x.fillStyle=RED;x.fillText(str,0,size*.04);x.restore();
+  };
+  text('折ったらマンマミーア！',890,100,62,'#fff');
+  if(card===null){
+    text('パスタ、',890,235,96,RED);text('何本に折る？',890,350,96,RED);
+    text('シェフが見ている3秒間。',890,500,44,'#fff');
+  } else {
+    // Long names use two lines so every outlined glyph stays large.
+    const names={rhythm:['メトロノーム','折り'],betrayal:['最後の','裏切り'],powder:['パスタ','パウダー'],nonno:['じいちゃんが','見てた']};
+    const lines=names[e.id]||[e.name], two=lines.length>1;
+    // A real round stamps the player's own count under the name; the static ?card pages have no count.
+    if(n===undefined){
+      lines.forEach((l,i)=>text(l,890,two?205+i*92:250,two?86:104,RED));
+    } else {
+      lines.forEach((l,i)=>text(l,890,two?186+i*78:212,two?74:92,RED));
+      stamp(n===1?'折らずに1本':`${fmt(n)}本`,890,two?366:338,64);
+    }
+    const quote='「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?(two?412:400):458;
+    x.font=`36px ${DISPLAY_FONT}`;
+    if(x.measureText(quote).width>560){const mid=Math.ceil(chars.length/2);text(chars.slice(0,mid).join(''),890,qy-12,36,'#fff');text(chars.slice(mid).join(''),890,qy+34,36,'#fff');}
+    else text(quote,890,qy,36,'#fff');
+    text(n===undefined||n>1?'あなたは何本に折る？':'あなたは、折る？',890,572,40,'#fff');
+  }
+  return new Promise(res=>c.toBlob(res,'image/png'));
+}
+let shareFile=null, shareText='';
+async function prepareShare(shot,g) {
+  try {
+    const blob=await drawShareImage(shot);
+    ({scale,ox,oy}=targets.result);
+    if(g!==generation||!blob)return;
+    shareFile=new File([blob],'mammamia.png',{type:'image/png'});
+    // Phones that can share files: the picture is the main way to post, so its button leads.
+    const sheet=canShareFile();
+    $('save').textContent=sheet?'画像でシェア':'画像を保存';
+    $('save').className=sheet?'':'alt';
+    $('save').style.display=TOUCH?'inline-flex':'none';
+  } catch(err) { console.warn('share image',err); }
+}
+const canShareFile=()=>!!(TOUCH&&shareFile&&navigator.canShare&&navigator.share&&navigator.canShare({files:[shareFile]}));
+function download() {
+  const a=document.createElement('a'), url=URL.createObjectURL(shareFile);
+  a.href=url;a.download=shareFile.name;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+function note(text) { const el=$('tip');el.textContent=text;el.style.display='block'; }
+// On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
+// X opens after the copy, while the page still has focus.
+if(!TOUCH)$('share').innerHTML='Xでポスト<small>画像もコピー</small>';
+$('share').addEventListener('click',async e=>{
+  if(TOUCH||!shareFile)return;
+  e.preventDefault();
+  const href=$('share').href, paste=/Mac/.test(navigator.platform)?'⌘V':'Ctrl+V';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({'image/png':shareFile})]);
+    note(`リンクに結果カードが付きます。パスタ画像も付けるなら ${paste}`);
+  } catch(err) { console.warn('clipboard',err);download();note('画像を保存しました。投稿に添付してください'); }
+  window.open(href,'_blank','noopener');
+});
+$('save').addEventListener('click',e=>{
+  e.currentTarget.blur();
+  if(!shareFile)return;
+  if(!canShareFile())return download();
+  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC}).catch(err=>{
+    if(err.name!=='AbortError'){console.warn('share',err);download();}   // AbortError: the sheet was closed
+  });
+});
+function showPicture(blob) {
+  const i=new Image();i.id='preview';i.src=URL.createObjectURL(blob);
+  i.style.cssText='position:fixed;left:0;top:0;width:1200px;height:675px;z-index:99';document.body.append(i);
+}
+
+/* ---------- boot ---------- */
+const query=new URLSearchParams(location.search), CARD_MODE=query.has('card');
+// ?card (no id) freezes a moment of the slow motion for the thumbnail.
+const CARD_THUMB=CARD_MODE&&!query.get('card')?1:0;
+resize();placeBubble();
+requestAnimationFrame(frame);
+if(CARD_MODE) {
+  show('home',false);show('title',false);
+  if(CARD_THUMB){
+    state='load';chefPose='front';chefMood='horror';taps=Array.from({length:18},(_,i)=>i*120);loadStart=1-LOAD_MS*.8;
+    bubble('ノォォォォォォ…',{shout:true});resize();({scale,ox,oy}=targets.play);
+    setTimeout(()=>drawShareImage({card:null}).then(showPicture),300);
+  } else {
+    const forced=endingById(query.get('card'))||endingById('nonno'), n=CARD_TAPS[forced.id];
+    state='load';chefPose='front';chefMood='horror';loadStart=performance.now();
+    taps=Array.from({length:n},(_,i)=>i*(LOAD_MS/(n+1)));
+    snap(forced);
+  }
+}
+</script>
+</body>
+</html>
