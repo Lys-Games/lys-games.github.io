@@ -96,6 +96,12 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 #result .steam{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+/* Korean (?hl=ko): the web fonts have no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) #bubble{word-break:keep-all}
+html:lang(ko) .t,html:lang(ko) #count,html:lang(ko) #bubble.shout,html:lang(ko) #pearls,html:lang(ko) #suck{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+html:lang(ko) #title .eyebrow,html:lang(ko) #score small,html:lang(ko) #pearls .unit,html:lang(ko) #pearls small{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
 </style>
 </head>
 <body>
@@ -300,9 +306,34 @@ function chooseEndingId(w,jackpot=false){
 
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
-const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (()=>{const q=new URLSearchParams(location.search).get('hl');if(q==='ko'||q==='ja')return q;return /^ko/i.test(navigator.language||'')?'ko':'ja';})();
+const KO = HL==='ko';
+const L = (ja,ko) => KO?ko:ja;
+const DISPLAY_FONT = KO?'"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+if(KO) {
+  document.documentElement.lang='ko';document.title='마지막 타피오카';
+  document.querySelector('meta[name=description]').content='밀크티 바닥에 남은 마지막 타피오카, 빨대로 전부 건질 수 있을까? 누르는 동안만 빨아들일 수 있는 6초. 빨아들이는 방식에 따라 점원의 반응이 달라지는 무료 미니게임.';
+  const steam='<a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=pearl_ko" target="_blank" rel="noopener">『Gopher It』 Steam에서 판매 중</a>';
+  for(const el of document.querySelectorAll('.credit'))el.innerHTML='제작 '+steam;
+  for(const el of document.querySelectorAll('.voice-credit'))el.textContent=el.textContent.replace('音声','음성');
+  cv.setAttribute('aria-label','얼음과 타피오카가 바닥에 남은 투명한 컵과 굵은 빨대, 안쪽에서 지켜보는 점원. 플레이 중에는 빨대를 드래그하거나 마우스로 움직이고, 누르는 동안 빨아들인다.');
+  $('title').innerHTML='<span class="eyebrow">컵 바닥에 남은, 그 알갱이</span><h1>마지막<span>타피오카</span></h1>';
+  $('score-of').textContent='알';
+  const ml=document.querySelectorAll('#meter-label span');ml[0].textContent='남은 차';ml[1].textContent='6초에 몇 알?';
+  $('meter').setAttribute('aria-label','남은 차');
+  $('suck').textContent='빨기';
+  $('bubble-text').textContent='어서 오세요! 점원 모치코예요.';
+  document.querySelector('#home .lead').textContent='바닥의 타피오카, 전부 마실 수 있어?';
+  $('go').textContent='빨대 들기';
+  $('result').setAttribute('aria-label','결과');
+  document.querySelector('#result .label').textContent='오늘의 타피오카';
+  document.querySelector('#pearls .unit').textContent='점';
+  $('again').textContent='한 잔 더';$('share').textContent='X에 올리기';$('save').textContent='이미지 저장';
+  $('paused').textContent='잠깐 쉬는 중';
+}
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/pearl/';
-const HASHTAG = '#最後のタピオカ';
+const HASHTAG = L('#最後のタピオカ','#마지막타피오카');
 const ROUND_MS = ROUND_S*1000, END_TO_REVEAL_MS = 1400, JACKPOT_ODDS = 1/16;
 // Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: kind to cruel.
 const ENDINGS = [
@@ -316,9 +347,22 @@ const ENDINGS = [
   {"id":"zugogo","name":"ズゴゴゴ魔","verdict":"空っぽのカップで、ずっとズゴゴゴ。","line":"お店じゅうに響いてるから！もうやめて〜！","hint":"粒をねらって、短く吸ってみよう。","mood":"angry"},
   {"id":"nothing","name":"手つかず","verdict":"ひと口も飲まずに、帰っていった。","line":"せっかく作ったのに…飲まないんだ…。","hint":"押しているあいだだけ、ストローで吸えるよ。","mood":"sad"}
 ];
+// Korean text for the same endings (?hl=ko). The voices stay the Japanese recordings. The card tool reads this too.
+const ENDINGS_KO = [
+  {"id":"refill","name":"리필 무료","verdict":"대박! 16잔에 1잔, 모치코가 리필을 서비스.","line":"잘 마시네요! 리필, 서비스로 드릴게요!","hint":"아직 못 본 결말을 찾아보자."},
+  {"id":"sniper","name":"알갱이만 쏙쏙","verdict":"차는 제대로 남기고 타피오카만 전부.","line":"어, 알갱이만 전부요!? 빨아들이는 솜씨가 프로예요…!","hint":"차도 타피오카도 전부 마시면…?"},
+  {"id":"kanin","name":"싹 비움","verdict":"한 알도 안 남기고 깔끔하게 다 마셨다.","line":"다 마셔 줬다… 만들길 잘했어…!","hint":"차는 남기고 알갱이만 전부 건질 수 있을까?"},
+  {"id":"most","name":"한 끗 차이","verdict":"남은 건 아주 조금. 빨대가 한 끗 모자랐다.","line":"아까워! 조금만 더였는데~!","hint":"얼음 옆에서 빨면 얼음이 움직여."},
+  {"id":"half","name":"반반","verdict":"절반은 컵 바닥에 두고 왔다.","line":"남은 애들, 좀 쓸쓸해 보여….","hint":"알갱이 바로 위에서 짧게 쪽 빠는 게 요령."},
+  {"id":"few","name":"쪼끔","verdict":"대부분의 알갱이가 얼음 밑에서 집을 지키고 있다.","line":"어, 벌써 가요? 아직 많이 남았는데…?","hint":"계속 누르고 있으면 차가 금방 없어져."},
+  {"id":"teaonly","name":"차만 홀짝","verdict":"차만 마시고 타피오카는 전부 남겼다.","line":"타피오카 가게에서 그러기야…?","hint":"16잔에 1잔, 모치코가 뭔가 해 준대…."},
+  {"id":"zugogo","name":"쭈욱쭈욱 마왕","verdict":"빈 컵으로 계속 쭈르륵.","line":"가게 전체에 울리잖아요! 이제 그만~!","hint":"알갱이를 노려서 짧게 빨아 보자."},
+  {"id":"nothing","name":"손도 안 댐","verdict":"한 모금도 안 마시고 돌아갔다.","line":"열심히 만들었는데… 안 마시는구나….","hint":"누르고 있는 동안만 빨대로 빨아들일 수 있어."}
+];
+if(KO)for(const e of ENDINGS)Object.assign(e,ENDINGS_KO.find(k=>k.id===e.id));
 const endingById = id => ENDINGS.find(e => e.id === id);
-const CLERK_NAME = 'もちこ';
-const INTRO_TEXT = '底のタピオカ、残さず飲んでってね！';
+const CLERK_NAME = L('もちこ','모치코');
+const INTRO_TEXT = L('底のタピオカ、残さず飲んでってね！','바닥의 타피오카, 남기지 말고 마셔요!');
 const CATCH_LINES = [
   {"id":"catch0","text":"いい音！"},
   {"id":"catch1","text":"ナイス！"},
@@ -334,6 +378,9 @@ const IDLE_LINES = [
   {"id":"idle0","text":"…飲まないの？"},
   {"id":"idle1","text":"あれ？どうしたの？"}
 ];
+// Bubble text for the Japanese voice lines above, by line id (?hl=ko).
+const LINES_KO = {catch0:'좋은 소리!',catch1:'나이스!',catch2:'잘하네~!',catch3:'그대로 쭉!',slurp0:'잠깐, 소리!',slurp1:'이제 텅 빈 컵이에요!?',slurp2:'쭈르륵은 그만~!',idle0:'…안 마셔요?',idle1:'어? 무슨 일이에요?'};
+if(KO)for(const list of [CATCH_LINES,SLURP_LINES,IDLE_LINES])for(const l of list)l.text=LINES_KO[l.id];
 // What ?card=<id> leaves in the cup: pearls caught and tea left.
 const CARD_STATE = {refill:{n:16,tea:0},sniper:{n:20,tea:.45},kanin:{n:20,tea:0},most:{n:16,tea:0},half:{n:10,tea:0},few:{n:4,tea:.1},teaonly:{n:0,tea:0},zugogo:{n:8,tea:0},nothing:{n:0,tea:1}};
 const clamp = clampN;
@@ -347,7 +394,9 @@ const TOUCH = matchMedia('(pointer: coarse)').matches;
 // the drag controls on a PC.
 const TOUCH_PARAM = new URLSearchParams(location.search).get('touch');
 const DRAG = TOUCH_PARAM==='drag' || (TOUCH && TOUCH_PARAM!=='direct');
-const HOW = DRAG ? ['ストローをドラッグして、粒の真上へ。<br>吸うボタンを押して、短くチュッと。','ストローをドラッグ、吸うボタンでチュッ！']
+const HOW = KO ? (DRAG ? ['빨대를 드래그해서 알갱이 바로 위로.<br>빨기 버튼을 눌러 짧게 쪽!','빨대를 드래그, 빨기 버튼으로 쪽!']
+  : ['누르고 있는 동안 빨대로 빨아들여.<br>알갱이 바로 위에서 짧게 쪽!<br><small>화살표 키와 스페이스바로도 할 수 있어요</small>','알갱이를 노리고, 눌러서 빨기!'])
+  : DRAG ? ['ストローをドラッグして、粒の真上へ。<br>吸うボタンを押して、短くチュッと。','ストローをドラッグ、吸うボタンでチュッ！']
   : ['押しているあいだ、ストローで吸う。<br>粒の真上で、短くチュッと。<br><small>矢印キーとスペースでも遊べます</small>','粒をねらって、押して吸う！'];
 $('how').innerHTML=HOW[0];$('instruction').textContent=HOW[1];
 
@@ -364,7 +413,7 @@ function measureLayout() {
   el('suck').hidden=!DRAG;
   el('tip').style.display='none';el('bubble').hidden=true;
   el('save').style.display=TOUCH?'inline-flex':'none';
-  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  el('share').innerHTML=TOUCH?L('Xでポスト','X에 올리기'):L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
   document.body.append(copy);
   const top=copy.getBoundingClientRect().top, bottom=copy.getBoundingClientRect().bottom;
   const title=el('title').getBoundingClientRect().bottom-top;
@@ -374,7 +423,7 @@ function measureLayout() {
   let resultTop=bottom;
   for(const e of ENDINGS) {
     el('ending-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
-    el('best').textContent='20粒 / 20粒 · 新記録！ 自己ベスト 3,100点';
+    el('best').textContent=L('20粒 / 20粒 · 新記録！ 自己ベスト 3,100点','20알 / 20알 · 신기록! 최고 기록 3,100점');
     resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
   }
   copy.remove();
@@ -519,7 +568,7 @@ let best=null;try{const b=Number(localStorage.getItem('pearl.bestScore'));if(b>0
 const fmt = n => n.toLocaleString('ja-JP');
 function setMood(m,ms=0) { mood=m;moodUntil=ms?performance.now()+ms:0; }
 function updateHud() {
-  $('score-n').textContent=String(world.caught);$('score-of').textContent=`粒 / ${world.total}`;
+  $('score-n').textContent=String(world.caught);$('score-of').textContent=L(`粒 / ${world.total}`,`알 / ${world.total}`);
   $('fill').style.width=(world.tea*100)+'%';
   $('meter').setAttribute('aria-valuenow',String(Math.round(world.tea*100)));
 }
@@ -543,7 +592,7 @@ async function start() {
   }
   // The countdown: aim now, the straw already follows the finger.
   state='count';setMood('watch');
-  bubble('じーっ…');
+  bubble(L('じーっ…','빤히…'));
   for(const n of [3,2,1]){$('count').textContent=String(n);show('count',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return;}
   show('count',false);
   state='play';playStart=performance.now();hiddenAt=document.hidden?playStart:0;world.t=0;
@@ -554,7 +603,7 @@ $('go').onclick=start;$('again').onclick=start;
 function onCatch(e) {
   plop();updateHud();
   if(!REDUCED){const el=$('score');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}
-  fx.push({text:'チュポッ',x:world.tip.x,y:world.tip.y-40,born:performance.now(),life:700,color:'#fff'});
+  fx.push({text:L('チュポッ','쏙'),x:world.tip.x,y:world.tip.y-40,born:performance.now(),life:700,color:'#fff'});
   setMood('happy',800);
   // Randomized and not on every pearl, so the lines stay a reaction and not a metronome.
   if(Math.random()<.45){const l=pick(CATCH_LINES,lastCatch);if(sayClerk(l.text,l.id))lastCatch=l.id;}
@@ -564,7 +613,7 @@ function playTick(now) {
   const events=stepWorld(world,aimInput(dtFrame,true),dtFrame);
   for(const e of events){
     if(e.type==='catch')onCatch(e);
-    else if(e.type==='out')fx.push({text:'ゴクッ',x:world.tip.x+44,y:STRAW_TOP+6,born:now,life:500,color:'#fff',size:22});
+    else if(e.type==='out')fx.push({text:L('ゴクッ','꿀꺽'),x:world.tip.x+44,y:STRAW_TOP+6,born:now,life:500,color:'#fff',size:22});
     else if(e.type==='clink'&&now-lastClink>110){lastClink=now;clink();}
   }
   updateSlurp(world.emptyNow?'empty':world.sucking?'tea':null);
@@ -583,7 +632,7 @@ async function finish(forced) {
   const g=generation;state='end';endAt=performance.now();finger.down=keyDown=false;releaseSuck();updateSlurp(null);
   ending=forced||endingById(chooseEndingId(world,Math.random()<JACKPOT_ODDS));
   $('timebar').style.transform='scaleX(0)';show('hud',false);show('suck',false);
-  if(!forced){$('count').textContent='そこまで！';$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);}
+  if(!forced){$('count').textContent=L('そこまで！','거기까지!');$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);}
   setMood('talk');
   await wait(forced?300:END_TO_REVEAL_MS);if(g!==generation)return;
   show('count',false);
@@ -598,13 +647,15 @@ async function finish(forced) {
   $('ending-name').textContent=ending.name;$('verdict').textContent=ending.verdict;$('hint').textContent=ending.hint;
   const newBest=!CARD_MODE&&score>0&&(best===null||score>best);
   if(newBest){best=score;try{localStorage.setItem('pearl.bestScore',String(best));}catch(_){}}
-  const parts=[`${n}粒 / ${world.total}粒`];if(best)parts.push((newBest?'新記録！ ':'')+`自己ベスト ${fmt(best)}点`);
+  const parts=[L(`${n}粒 / ${world.total}粒`,`${n}알 / ${world.total}알`)];if(best)parts.push((newBest?L('新記録！ ','신기록! '):'')+L(`自己ベスト ${fmt(best)}点`,`최고 기록 ${fmt(best)}점`));
   $('best').textContent=parts.join(' · ');
   countUp(score,g);
-  shareText=n===0
+  shareText=KO?(n===0
+    ? `${CLERK_NAME}: "${ending.line}"\n타피오카를 한 알도 안 마셨다 [${ending.name}]\n여러분은 전부 마실 수 있어요? ${HASHTAG}`
+    : `${CLERK_NAME}: "${ending.line}"\n타피오카 ${n}알로 ${fmt(score)}점 [${ending.name}]\n여러분은 몇 점? ${HASHTAG}`):n===0
     ? `${CLERK_NAME}「${ending.line}」\nタピオカを1粒も飲まなかった【${ending.name}】\nあなたは全部飲める？ ${HASHTAG}`
     : `${CLERK_NAME}「${ending.line}」\nタピオカ${n}粒で${fmt(score)}点【${ending.name}】\nあなたは何点？ ${HASHTAG}`;
-  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText+'\n'+URL_PUBLIC+'card/'+ending.id+'.html');
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText+'\n'+URL_PUBLIC+'card/'+(KO?'ko/':'')+ending.id+'.html');
   if(CARD_MODE){resize();({scale,ox,oy}=targets.result);showPicture(await drawShareImage({ending}));return;}
   show('result',true);
   prepareShare({ending,pearls:n,score},g);
@@ -741,7 +792,7 @@ function drawClerk(c,t) {
   c.beginPath();c.moveTo(-50,380);c.lineTo(-46,286);c.quadraticCurveTo(0,276,46,286);c.lineTo(50,380);c.closePath();c.fillStyle=MUSTARD;c.fill();c.stroke();
   line(c,[-42,288,-30,252],5);line(c,[42,288,30,252],5);
   c.beginPath();c.roundRect(-30,302,60,24,6);c.fillStyle='#fff';c.fill();c.stroke();
-  c.font=`700 15px ${DISPLAY_FONT}`;c.fillStyle=INK;c.textAlign='center';c.textBaseline='middle';c.fillText('もちこ',0,315);
+  c.font=`700 15px ${DISPLAY_FONT}`;c.fillStyle=INK;c.textAlign='center';c.textBaseline='middle';c.fillText(L('もちこ','모치코'),0,315);
   ellipse(c,0,240,17,20,SKIN);
   // Hair: two buns, then the head and the fringe.
   for(const s of [-1,1]){ellipse(c,s*44,122,24,23,HAIR);ellipse(c,s*30,136,9,6,MUSTARD);}
@@ -843,7 +894,7 @@ function outlined(c,str,x,y,size,fill,rot=0) {
 function drawFx(c,w,t) {
   for(const f of fx){const k=(t-f.born)/f.life;if(k<0||k>1)continue;c.globalAlpha=k>.7?(1-k)/.3:1;outlined(c,f.text,clamp(f.x,60,340),f.y-k*30,f.size||28,f.color,-.08);c.globalAlpha=1;}
   fx=fx.filter(f=>t-f.born<f.life);
-  if(w.emptyNow){const j=REDUCED?0:Math.sin(t*.07)*3;outlined(c,'ズゴゴゴ…',clamp(w.tip.x,130,270)+j,CUP.rimY+70+(REDUCED?0:Math.sin(t*.11)*2),38,PINK,-.06);}
+  if(w.emptyNow){const j=REDUCED?0:Math.sin(t*.07)*3;outlined(c,L('ズゴゴゴ…','쭈우욱…'),clamp(w.tip.x,130,270)+j,CUP.rimY+70+(REDUCED?0:Math.sin(t*.11)*2),38,PINK,-.06);}
   for(const p of confetti){c.fillStyle=p.color;c.fillRect(p.x-p.r,p.y-p.r*.5,p.r*2,p.r);}
 }
 function updateConfetti(dt) {
@@ -892,7 +943,7 @@ function frame(now) {
 /* ---------- share picture ---------- */
 // The framed picture is the live scene redrawn at card size, including her actual reaction.
 async function drawShareImage({ending:e,card,pearls:n,score}) {
-  await document.fonts?.load(`60px ${DISPLAY_FONT}`,'最後のタピオカ底の、何粒すくえる？ストロー1本6秒間「」0123456789,/粒点あなたは全部飲めるとれるもちこ'+ENDINGS.map(x=>x.name+x.line).join(''));
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`,L('最後のタピオカ底の、何粒すくえる？ストロー1本6秒間「」0123456789,/粒点あなたは全部飲めるとれるもちこ','마지막 타피오카 바닥의 몇 알 건질래? 빨대 하나, 6초. “”0123456789,/알점여러분은 전부 마실 수 있어요 모치코 점수')+ENDINGS.map(x=>x.name+x.line).join(''));
   const c=document.createElement('canvas');c.width=1200;c.height=675;
   const x=c.getContext('2d');
   x.fillStyle='#8fe3cc';x.fillRect(0,0,1200,675);
@@ -921,28 +972,30 @@ async function drawShareImage({ending:e,card,pearls:n,score}) {
     x.fillStyle=PINK;x.fillText(str,0,size*.04);x.restore();
   };
   // Title: 最後の in dark, タピオカ in pink, as on the page.
-  x.font=`66px ${DISPLAY_FONT}`;const w1=x.measureText('最後の').width, w2=x.measureText('タピオカ').width, left=CX-(w1+w2)/2;
-  text('最後の',left,100,66,INK,MAXW,'left');text('タピオカ',left+w1,100,66,PINK,MAXW,'left');
+  x.font=`66px ${DISPLAY_FONT}`;const T1=L('最後の','마지막 '), T2=L('タピオカ','타피오카'), w1=x.measureText(T1).width, w2=x.measureText(T2).width, left=CX-(w1+w2)/2;
+  text(T1,left,100,66,INK,MAXW,'left');text(T2,left+w1,100,66,PINK,MAXW,'left');
   if(card===null){
-    text('底のタピオカ、',CX,238,92,PINK);text('何粒すくえる？',CX,352,92,PINK);
-    text('ストロー1本、6秒間。',CX,498,46,INK);
+    text(L('底のタピオカ、','바닥의 타피오카,'),CX,238,92,PINK);text(L('何粒すくえる？','몇 알 건질래?'),CX,352,92,PINK);
+    text(L('ストロー1本、6秒間。','빨대 하나, 6초.'),CX,498,46,INK);
   } else {
     // Long names use two lines so every glyph stays large.
-    const names={sniper:['粒だけ','一本釣り'],refill:['おかわり','無料'],teaonly:['お茶だけ','飲み']};
+    const names=KO?{sniper:['알갱이만','쏙쏙'],refill:['리필','무료'],teaonly:['차만','홀짝']}:{sniper:['粒だけ','一本釣り'],refill:['おかわり','無料'],teaonly:['お茶だけ','飲み']};
     const lines=names[e.id]||[e.name], two=lines.length>1;
     // A real round stamps the player's own score and pearls under the name; the static ?card pages have none.
     if(n===undefined){
       lines.forEach((l,i)=>text(l,CX,two?205+i*96:250,two?90:110,PINK));
     } else {
       lines.forEach((l,i)=>text(l,CX,two?180+i*78:206,two?74:94,PINK));
-      stamp(`${fmt(score)}点`,CX,two?352:322,60);
-      text(`タピオカ ${n}粒 / ${PEARLS}粒`,CX,two?418:390,32,INK);
+      stamp(L(`${fmt(score)}点`,`${fmt(score)}점`),CX,two?352:322,60);
+      text(L(`タピオカ ${n}粒 / ${PEARLS}粒`,`타피오카 ${n}알 / ${PEARLS}알`),CX,two?418:390,32,INK);
     }
-    const quote=CLERK_NAME+'「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?(two?412:400):476;
+    const quote=KO?CLERK_NAME+': “'+e.line+'”':CLERK_NAME+'「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?(two?412:400):476;
     x.font=`36px ${DISPLAY_FONT}`;
-    if(x.measureText(quote).width>MAXW){let mid=Math.ceil(chars.length/2);{let best=-1;chars.forEach((ch,i)=>{if('、。！？…」'.includes(ch)&&i+1<chars.length&&Math.abs(i+1-chars.length/2)<chars.length/4&&(best<0||Math.abs(i+1-chars.length/2)<Math.abs(best-chars.length/2)))best=i+1;});if(best>0)mid=best;}text(chars.slice(0,mid).join(''),CX,qy-14,34,INK);text(chars.slice(mid).join(''),CX,qy+30,34,INK);}
+    if(x.measureText(quote).width>MAXW){let mid=Math.ceil(chars.length/2);{let best=-1;chars.forEach((ch,i)=>{if('、。！？…」'.includes(ch)&&i+1<chars.length&&Math.abs(i+1-chars.length/2)<chars.length/4&&(best<0||Math.abs(i+1-chars.length/2)<Math.abs(best-chars.length/2)))best=i+1;});if(best>0)mid=best;}
+      // Korean wraps at the space nearest the middle, never inside a word.
+      if(KO){const sp=chars.map((ch,i)=>ch===' '?i:-1).filter(i=>i>0);if(sp.length)mid=sp.reduce((a,b)=>Math.abs(b-chars.length/2)<Math.abs(a-chars.length/2)?b:a)+1;}text(chars.slice(0,mid).join(''),CX,qy-14,34,INK);text(chars.slice(mid).join(''),CX,qy+30,34,INK);}
     else text(quote,CX,qy,36,INK);
-    text(n===undefined?'あなたは何粒すくえる？':n===0?'あなたは、全部飲める？':'あなたは何点とれる？',CX,580,42,INK);
+    text(n===undefined?L('あなたは何粒すくえる？','여러분은 몇 알 건질래요?'):n===0?L('あなたは、全部飲める？','여러분은 전부 마실 수 있어요?'):L('あなたは何点とれる？','여러분은 몇 점 낼래요?'),CX,580,42,INK);
   }
   return new Promise(res=>c.toBlob(res,'image/png'));
 }
@@ -954,7 +1007,7 @@ async function prepareShare(shot,g) {
     shareFile=new File([blob],'tapioca.png',{type:'image/png'});
     // Phones that can share files: the picture is the main way to post, so its button leads.
     const sheet=canShareFile();
-    $('save').textContent=sheet?'画像でシェア':'画像を保存';
+    $('save').textContent=sheet?L('画像でシェア','이미지로 공유'):L('画像を保存','이미지 저장');
     $('save').className=sheet?'':'alt';
     $('save').style.display=TOUCH?'inline-flex':'none';
   } catch(err) { console.warn('share image',err); }
@@ -968,22 +1021,22 @@ function download() {
 function note(text) { const el=$('tip');el.textContent=text;el.style.display='block'; }
 // On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
 // X opens after the copy, while the page still has focus.
-if(!TOUCH)$('share').innerHTML='Xでポスト<small>画像もコピー</small>';
+if(!TOUCH)$('share').innerHTML=L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
 $('share').addEventListener('click',async e=>{
   if(TOUCH||!shareFile)return;
   e.preventDefault();
   const href=$('share').href, paste=/Mac/.test(navigator.platform)?'⌘V':'Ctrl+V';
   try {
     await navigator.clipboard.write([new ClipboardItem({'image/png':shareFile})]);
-    note(`リンクに結果カードが付きます。タピオカ画像も付けるなら ${paste}`);
-  } catch(err) { console.warn('clipboard',err);download();note('画像を保存しました。投稿に添付してください'); }
+    note(L(`リンクに結果カードが付きます。タピオカ画像も付けるなら ${paste}`,`링크에 결과 카드가 붙어요. 타피오카 이미지도 넣으려면 ${paste}`));
+  } catch(err) { console.warn('clipboard',err);download();note(L('画像を保存しました。投稿に添付してください','이미지를 저장했어요. 게시물에 첨부해 주세요')); }
   window.open(href,'_blank','noopener');
 });
 $('save').addEventListener('click',e=>{
   e.currentTarget.blur();
   if(!shareFile)return;
   if(!canShareFile())return download();
-  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC}).catch(err=>{
+  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC+(KO?'?hl=ko':'')}).catch(err=>{
     if(err.name!=='AbortError'){console.warn('share',err);download();}   // AbortError: the sheet was closed
   });
 });
@@ -1004,7 +1057,7 @@ if(CARD_MODE) {
     world=createWorld(11);state='play';
     const p=world.pearls.reduce((a,b)=>Math.abs(b.x-200)<Math.abs(a.x-200)?b:a);
     world.tip.x=p.x;world.tip.y=clamp(p.y-STRAW_R-p.r+4,TIP_MIN_Y,CUP.floorY-STRAW_R-1);p.state='straw';p.s=.35;world.caught=5;world.tea=.55;world.sucking=true;
-    setMood('happy');fx.push({text:'チュポッ',x:p.x+40,y:world.tip.y-120,born:performance.now(),life:1e9});
+    setMood('happy');fx.push({text:L('チュポッ','쏙'),x:p.x+40,y:world.tip.y-120,born:performance.now(),life:1e9});
     resize();setTimeout(()=>drawShareImage({card:null}).then(showPicture),300);
   } else {
     const forced=endingById(query.get('card'))||endingById('refill'), s=CARD_STATE[forced.id];

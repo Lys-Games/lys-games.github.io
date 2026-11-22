@@ -89,6 +89,11 @@ button:disabled{background:#354c4c;color:#fff;cursor:wait;box-shadow:none}
 #result .steam{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+/* Korean (?hl=ko): the web fonts have no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) .t,html:lang(ko) #intro,html:lang(ko) #count{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+html:lang(ko) #title .eyebrow,html:lang(ko) #clock small,html:lang(ko) #meter-label,html:lang(ko) #count small{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
 </style>
 </head>
 <body>
@@ -108,8 +113,37 @@ button:disabled{background:#354c4c;color:#fff;cursor:wait;box-shadow:none}
 'use strict';
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
-const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
-const UI_FONT = '"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (()=>{const q=new URLSearchParams(location.search).get('hl');if(q==='ko'||q==='ja')return q;return /^ko/i.test(navigator.language||'')?'ko':'ja';})();
+const KO = HL==='ko';
+const L = (ja,ko) => KO?ko:ja;
+const DISPLAY_FONT = KO?'"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const UI_FONT = KO?'"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'"M PLUS Rounded 1c","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+// Bubble and banner lines that are plain strings in the code, Japanese to Korean (?hl=ko). Voices stay Japanese.
+const KO_TEXT = {'今日は、どんな髪型に？':'오늘은 어떤 머리로 할까요?','薄井です。まだ、あきらめてません。':'우스이입니다. 아직 포기 안 했어요.','5秒で、ふさふさにしてください！':'5초 만에 풍성하게 해 주세요!','ゴシゴシ！':'박박!','毛根のみなさん、起きてー！':'모근 여러분, 일어나세요~!','そこまで！':'거기까지!','流しますよー！':'헹굴게요~!','……どきどき。':'……두근두근.','あははっ、くすぐったい！':'하하, 간지러워요!','おっ？毛根が、ざわざわ！':'오? 모근이 웅성웅성!','いい感じ！そこそこ！':'좋아요! 거기 거기!','来てる！未来が来てる！':'오고 있어! 미래가 오고 있어!'};
+const T = text => KO?(KO_TEXT[text]??text):text;
+if(KO) {
+  document.documentElement.lang='ko';document.title='문질러서 키워라!';
+  document.querySelector('meta[name=description]').content='우스이 씨의 머리를 5초 샴푸! 문지를수록 자라고, 문지르는 방식에 따라 머리 모양이 바뀐다. 당신은 어떤 헤어? 무료 미니게임.';
+  const steam='<a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shampoo_ko" target="_blank" rel="noopener">『Gopher It』 Steam에서 판매 중</a>';
+  for(const el of document.querySelectorAll('.credit'))el.innerHTML='제작 '+steam;
+  for(const el of document.querySelectorAll('.voice-credit'))el.textContent=el.textContent.replace('音声','음성');
+  cv.setAttribute('aria-label','우스이 씨의 머리. 누른 채로 손가락이나 마우스로 문질러 줘.');
+  $('title').innerHTML='<span class="eyebrow">우스이 씨의 머리를 샴푸</span><h1>문질러서<span>키워라!</span></h1>';
+  document.querySelector('#clock small').textContent=' 초';
+  const ml=document.querySelectorAll('#meter-label span');ml[0].textContent='자라는 파워';ml[1].textContent='어떤 머리일지는 비밀!';
+  $('meter').setAttribute('aria-label','자라는 파워');
+  $('instruction').textContent='머리를 누른 채로 박박!';
+  $('bubble-text').textContent=T('薄井です。まだ、あきらめてません。');
+  document.querySelector('#home .lead').textContent='5초 문질러서, 머리카락아 나와라!';
+  document.querySelector('#home .sub').innerHTML='머리를 누른 채로 박박.<br>문지르는 방식에 따라 뜻밖의 머리 모양이!?';
+  $('go').textContent='샴푸하기';
+  $('result').setAttribute('aria-label','샴푸 결과');
+  document.querySelector('#result .label').textContent='오늘의 우스이 씨';
+  $('count-n').nextSibling.textContent='가닥';
+  $('again').textContent='한 번 더';$('share').textContent='X에 올리기';$('save').textContent='이미지 저장';
+  $('paused').textContent='잠깐 쉬는 중';
+}
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/shampoo/';
 const ROUND_MS = 5000, GAUGE_MAX = 3750;
 const RINSE_MS = 1500, SUSPENSE_MS = 650;
@@ -128,6 +162,22 @@ const STYLES = [
   {"id":"afro","name":"もこもこアフロ","verdict":"毛量、定員オーバー。","line":"ドア、横向きで通ります。","hint":"隅々まで洗うと、たまに奇跡が？"},
   {"id":"rainbow","name":"虹色アフロ","verdict":"大当たり！毛根に虹がかかった。","line":"天気予報に、載れますか？","hint":"隅々までたっぷり洗うと、16回に1回の奇跡。"}
 ];
+// Korean text for the same styles (?hl=ko). The voices stay the Japanese recordings. The card tool reads this too.
+const STYLES_KO = [
+  {"id":"neglect","name":"노터치","verdict":"머리카락보다 먼저 마음이 빠졌다.","line":"예약, 오늘 맞죠…?","hint":"5초 동안 거의 안 만지고 지켜본 결과."},
+  {"id":"tsurutsuru","name":"반질반질","verdict":"머리는 그대로. 기대는 제로로.","line":"거울, 엎어 놔 주세요….","hint":"머리 위를 조금 더 문질러 주자."},
+  {"id":"ubuge","name":"배냇털","verdict":"기대는 풍성. 현실은 세 가닥.","line":"이게 완성이라고… 하시는 거예요?","hint":"머리 위를 크게 여러 번 왔다 갔다 하자."},
+  {"id":"beard","name":"덥수룩 수염","verdict":"모근이 부서를 잘못 찾아갔다.","line":"원했던 건 위쪽인데요.","hint":"턱과 얼굴선을 듬뿍 박박."},
+  {"id":"short","name":"산뜻한 숏컷","verdict":"모근, 무사히 출근.","line":"바람이 이런 느낌이었구나.","hint":"구석구석 문지르면 더 자란다."},
+  {"id":"shichisan","name":"칼 가르마","verdict":"한쪽으로 치우친 사랑으로 딱 정해졌다.","line":"일 잘하게 보이네요.","hint":"좌우 중 한쪽을 집중해서 박박."},
+  {"id":"mohawk","name":"일직선 모히칸","verdict":"가운데만 반항기.","line":"머리 위만 기세등등이에요.","hint":"머리 한가운데를 세로로 박박."},
+  {"id":"regent","name":"압도적 리젠트","verdict":"앞머리만 먼저 도착.","line":"앞머리용 자리도 부탁드려요.","hint":"옆으로 크게 여러 번 왔다 갔다 하자."},
+  {"id":"fusafusa","name":"풍성풍성","verdict":"어서 와, 그날의 볼륨.","line":"내일 미용실 예약할 거예요.","hint":"아직 멀었다, 볼륨의 저편으로."},
+  {"id":"long","name":"찰랑찰랑 장발","verdict":"머리끝이 어깨에 실례합니다.","line":"돌아볼 때마다 주인공이에요.","hint":"옆만, 세로만. 문지르는 방식도 시도해 보자."},
+  {"id":"afro","name":"뭉게뭉게 아프로","verdict":"모량, 정원 초과.","line":"문, 옆으로 서서 지나갈게요.","hint":"구석구석 감으면 가끔 기적이?"},
+  {"id":"rainbow","name":"무지개 아프로","verdict":"대박! 모근에 무지개가 떴다.","line":"일기예보에 나올 수 있나요?","hint":"구석구석 듬뿍 감으면 16번에 1번의 기적."}
+];
+const IDLE_KO = {idle_worried:'어…?',idle_plead:'계속… 안 해 주시는 거예요?',idle_hurt:'아직 여기 있어요….',idle_crushed:'기대해서 죄송해요….'};
 const styleById = id => STYLES.find(s => s.id === id);
 const IDLE_LINES = [
   {"id":"idle_worried","after":600,"mood":"worried","text":"あれ…？"},
@@ -135,11 +185,12 @@ const IDLE_LINES = [
   {"id":"idle_hurt","after":2900,"mood":"crushed","text":"まだ、ここにいますよ…。"},
   {"id":"idle_crushed","after":4100,"mood":"crushed","text":"期待して、すみません…。"}
 ];
+if(KO){for(const st of STYLES)Object.assign(st,STYLES_KO.find(k=>k.id===st.id));for(const l of IDLE_LINES)l.text=IDLE_KO[l.id];}
 const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
 const rand = (a,b) => a + Math.random()*(b-a);
 const wait = ms => new Promise(resolve => setTimeout(resolve,ms));
 const show = (id,on) => { $(id).hidden = !on; };
-const bubble = text => { $('bubble-text').textContent = text; };
+const bubble = text => { $('bubble-text').textContent = T(text); };
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches;
 let scale=1, ox=0, oy=0, dpr=1;
@@ -155,19 +206,19 @@ function measureLayout() {
   for(const id of ['title','hud','home','result'])el(id).hidden=false;
   el('result').style.maxHeight='none';el('tip').style.display='none';
   el('save').style.display=TOUCH?'inline-flex':'none';
-  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  el('share').innerHTML=TOUCH?L('Xでポスト','X에 올리기'):L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
   document.body.append(copy);
   const title=el('title').getBoundingClientRect().bottom+12;
   const hud=el('hud').getBoundingClientRect().bottom+12;
   const voice=el('home').querySelector('.voice-credit').getBoundingClientRect().height+12;
   let bubbleHeight=0, resultHeight=0;
-  for(const text of [...STYLES.map(s=>s.line),...IDLE_LINES.map(s=>s.text),'薄井です。まだ、あきらめてません。','5秒で、ふさふさにしてください！','あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','毛根のみなさん、起きてー！']) {
+  for(const text of [...STYLES.map(s=>s.line),...IDLE_LINES.map(s=>s.text),...['薄井です。まだ、あきらめてません。','5秒で、ふさふさにしてください！','あははっ、くすぐったい！','おっ？毛根が、ざわざわ！','毛根のみなさん、起きてー！'].map(T)]) {
     el('bubble-text').textContent=text;
     bubbleHeight=Math.max(bubbleHeight,el('bubble').getBoundingClientRect().height);
   }
   for(const style of STYLES) {
     el('style-name').textContent=style.name;el('verdict').textContent=style.verdict;
-    el('collection').textContent='初めての結末！ 発見 12 / 12 種';el('style-hint').textContent=style.hint;
+    el('collection').textContent=L('初めての結末！ 発見 12 / 12 種','첫 결말! 발견 12 / 12종');el('style-hint').textContent=style.hint;
     resultHeight=Math.max(resultHeight,el('result').getBoundingClientRect().height);
   }
   const home=el('home').getBoundingClientRect().height+voice;
@@ -288,7 +339,7 @@ async function start() {
   }
   $('intro').style.fontSize='';for(const n of [3,2,1]) { $('intro').textContent=String(n);show('intro',true);voice('host','c'+n);play('k_bong_001',.5,1+(3-n)*.1);await wait(650);if(g!==generation)return; }
   state='play'; rubAt=performance.now(); deadline=rubAt+ROUND_MS; hiddenAt=document.hidden?rubAt:0;
-  $('intro').textContent='ゴシゴシ！';$('intro').style.fontSize='clamp(44px,15vw,76px)';show('intro',true);bubble('毛根のみなさん、起きてー！');voice('host','go');
+  $('intro').textContent=T('ゴシゴシ！');$('intro').style.fontSize='clamp(44px,15vw,76px)';show('intro',true);bubble('毛根のみなさん、起きてー！');voice('host','go');
   setTimeout(()=>{if(g===generation)show('intro',false);},650);
 }
 $('go').onclick=start; $('again').onclick=start;
@@ -336,15 +387,15 @@ async function finish(forced) {
   await wait(600);if(g!==generation)return;
   state='done';$('style-name').textContent=result.name;$('verdict').textContent=result.verdict;
   const isNew=!collection.has(result.id); if(!CARD_MODE){collection.add(result.id);try{localStorage.setItem('shampoo.collection',JSON.stringify([...collection]));}catch(_){}}
-  $('collection').textContent=(isNew&&!CARD_MODE?'初めての結末！ ':'')+`発見 ${collection.size} / ${STYLES.length} 種`;
+  $('collection').textContent=(isNew&&!CARD_MODE?L('初めての結末！ ','첫 결말! '):'')+L(`発見 ${collection.size} / ${STYLES.length} 種`,`발견 ${collection.size} / ${STYLES.length}종`);
   $('style-hint').textContent=result.hint;
   const hairs=CARD_MODE?0:hairCount(), newBest=!CARD_MODE&&hairs>0&&(best===null||hairs>best);
   if(newBest){best=hairs;try{localStorage.setItem('shampoo.best',String(hairs));}catch(_){}}
-  $('best').textContent=newBest?'新記録！':best?`自己ベスト ${fmtHairs(best)}本`:'';
+  $('best').textContent=newBest?L('新記録！','신기록!'):best?L(`自己ベスト ${fmtHairs(best)}本`,`최고 기록 ${fmtHairs(best)}가닥`):'';
   countUp(hairs,g);
   if(!CARD_MODE)show('result',true);
-  shareText=`薄井さん「${result.line}」\n5秒シャンプーで${fmtHairs(hairs)}本生やした【${result.name}】\nあなたは何本？ #こすって生やせ`;
-  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+result.id+'.html');
+  shareText=KO?`우스이 씨: "${result.line}"\n5초 샴푸로 ${fmtHairs(hairs)}가닥 길렀다 [${result.name}]\n여러분은 몇 가닥? #문질러서키워라`:`薄井さん「${result.line}」\n5秒シャンプーで${fmtHairs(hairs)}本生やした【${result.name}】\nあなたは何本？ #こすって生やせ`;
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+(KO?'ko/':'')+result.id+'.html');
   if(CARD_MODE){resize();draw(performance.now(),0);showPicture(await drawShareImage({style:result}));return;}
   prepareShare({style:result,hairs},g);
 }
@@ -565,7 +616,7 @@ function draw(now,dt) {
   if(state==='home') {
     ctx.save();ctx.translate(322,451);ctx.rotate(.18);ctx.lineWidth=4;ctx.strokeStyle=INK;
     path(ctx,[[-20,-46],[20,-46],[22,36],[-22,36]],'#f74976');path(ctx,[[-13,-59],[12,-59],[12,-46],[-13,-46]],'#fff');
-    ctx.fillStyle=INK;ctx.font=`800 16px ${UI_FONT}`;ctx.textAlign='center';ctx.fillText('毛',0,-6);ctx.fillText('来い',0,14);ctx.restore();
+    ctx.fillStyle=INK;ctx.font=`800 16px ${UI_FONT}`;ctx.textAlign='center';ctx.fillText(L('毛','발모'),0,-6);ctx.fillText(L('来い','쑥쑥'),0,14);ctx.restore();
   }
   const rinse=state==='rinse'?clamp((now-rinseAt)/RINSE_MS,0,1):0;
   if(state==='play'&&!document.hidden)for(let i=foam.length-1;i>=0;i--){foam[i].life-=dt;if(foam[i].life<=0)foam.splice(i,1);}
@@ -586,7 +637,7 @@ function frame(now) {
 /* ---------- share picture ---------- */
 // The framed picture is a crop of the live scene, including his actual ending.
 async function drawShareImage({ style, card, hairs }) {
-  await document.fonts?.load(`60px ${DISPLAY_FONT}`, 'こすって生やせ！何ヘアになる？5秒で毛よ、来い！こするほど、生える。結末/「」0123456789,本あなたは何本生やせる？' + STYLES.map(s=>s.name+s.line).join(''));
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`, L('こすって生やせ！何ヘアになる？5秒で毛よ、来い！こするほど、生える。結末/「」0123456789,本あなたは何本生やせる？','문질러서 키워라! 어떤 헤어가 될까? 5초 만에 자라나라! 문지를수록 자란다. 결말/“”0123456789,가닥 여러분은 몇 가닥 키울래요? 어떤 헤어가 될까요') + STYLES.map(s=>s.name+s.line).join(''));
   resize();draw(performance.now(),0);
   const c = document.createElement('canvas'); c.width = 1200; c.height = 675;
   const x = c.getContext('2d');
@@ -607,22 +658,24 @@ async function drawShareImage({ style, card, hairs }) {
     x.beginPath(); x.roundRect(-tw / 2, -th / 2, tw, th, size * .25); x.fillStyle = '#fff'; x.fill(); x.lineWidth = 9; x.strokeStyle = '#e8392b'; x.stroke();
     x.fillStyle = '#e8392b'; x.fillText(str, 0, size * .04); x.restore();
   };
-  text('こすって生やせ！', 890, 105, 72, '#fff');
+  text(L('こすって生やせ！','문질러서 키워라!'), 890, 105, 72, '#fff');
   if (card === null) {
-    text('5秒で', 890, 245, 100, '#e8392b'); text('毛よ、来い！', 890, 360, 100, '#e8392b');
-    text('こするほど、生える。', 890, 510, 46, '#fff');
+    text(L('5秒で','5초 만에'), 890, 245, 100, '#e8392b'); text(L('毛よ、来い！','자라나라!'), 890, 360, 100, '#e8392b');
+    text(L('こするほど、生える。','문지를수록 자란다.'), 890, 510, 46, '#fff');
   } else {
     // Long style names use two lines so every outlined glyph remains at least 38px.
-    const names = {'beard':['もじゃもじゃ','ヒゲ'],'short':['さわやか','ショート'],'shichisan':['きっちり','七三'],'mohawk':['一直線','モヒカン'],'regent':['ど迫力','リーゼント'],'long':['さらさら','ロン毛'],'afro':['もこもこ','アフロ']};
+    const names = KO?{'beard':['덥수룩','수염'],'short':['산뜻한','숏컷'],'mohawk':['일직선','모히칸'],'regent':['압도적','리젠트'],'long':['찰랑찰랑','장발'],'afro':['뭉게뭉게','아프로']}:{'beard':['もじゃもじゃ','ヒゲ'],'short':['さわやか','ショート'],'shichisan':['きっちり','七三'],'mohawk':['一直線','モヒカン'],'regent':['ど迫力','リーゼント'],'long':['さらさら','ロン毛'],'afro':['もこもこ','アフロ']};
     const lines=names[style.id]||[style.name];
     lines.forEach((line,i)=>text(line,890,lines.length===1?235:205+i*76,lines.length===1?90:72,'#e8392b'));
-    stamp(hairs===undefined?`結末 ${STYLES.indexOf(style)+1}/${STYLES.length}`:`${fmtHairs(hairs)}本`, 890, lines.length===1?360:374, 58);
+    stamp(hairs===undefined?L(`結末 ${STYLES.indexOf(style)+1}/${STYLES.length}`,`결말 ${STYLES.indexOf(style)+1}/${STYLES.length}`):L(`${fmtHairs(hairs)}本`,`${fmtHairs(hairs)}가닥`), 890, lines.length===1?360:374, 58);
     // Split long dialogue into two legible lines without reducing the font.
-    const quote='「'+style.line+'」', chars=Array.from(quote);
+    const quote=KO?'우스이 씨: “'+style.line+'”':'「'+style.line+'」', chars=Array.from(quote);
     x.font=`38px ${DISPLAY_FONT}`;
-    if(x.measureText(quote).width>560){const mid=Math.ceil(chars.length/2);text(chars.slice(0,mid).join(''),890,444,38,'#fff');text(chars.slice(mid).join(''),890,492,38,'#fff');}
+    if(x.measureText(quote).width>560){let mid=Math.ceil(chars.length/2);
+      // Korean wraps at the space nearest the middle, never inside a word.
+      if(KO){const sp=chars.map((ch,i)=>ch===' '?i:-1).filter(i=>i>0);if(sp.length)mid=sp.reduce((a,b)=>Math.abs(b-chars.length/2)<Math.abs(a-chars.length/2)?b:a)+1;}text(chars.slice(0,mid).join(''),890,444,38,'#fff');text(chars.slice(mid).join(''),890,492,38,'#fff');}
     else text(quote,890,455,38,'#fff');
-    text(hairs===undefined?'あなたは何ヘアになる？':'あなたは何本生やせる？', 890, 565, 40, '#fff');
+    text(hairs===undefined?L('あなたは何ヘアになる？','여러분은 어떤 헤어가 될까요?'):L('あなたは何本生やせる？','여러분은 몇 가닥 키울래요?'), 890, 565, 40, '#fff');
   }
   return new Promise(res => c.toBlob(res, 'image/png'));
 }
@@ -634,7 +687,7 @@ async function prepareShare(shot, g) {
     shareFile = new File([blob], 'kosutte-hayase.png', { type: 'image/png' });
     // phones that can share files: the picture is the main way to post, so its button leads
     const sheet = canShareFile();
-    $('save').textContent = sheet ? '画像でシェア' : '画像を保存';
+    $('save').textContent = sheet ? L('画像でシェア','이미지로 공유') : L('画像を保存','이미지 저장');
     $('save').className = sheet ? '' : 'alt';
     $('save').style.display = TOUCH ? 'inline-block' : 'none';   // PC: the X button copies it
   } catch (e) { console.warn('share image', e); }
@@ -648,22 +701,22 @@ function download() {
 function note(text) { const el = $('tip'); el.textContent = text; el.style.display = 'block'; }
 // On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
 // X opens after the copy, while the page still has focus.
-if (!TOUCH) $('share').innerHTML = 'Xでポスト<small>画像もコピー</small>';
+if (!TOUCH) $('share').innerHTML = L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
 $('share').addEventListener('click', async e => {
   if (TOUCH || !shareFile) return;
   e.preventDefault();
   const href = $('share').href, paste = /Mac/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
   try {
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': shareFile })]);
-    note(`リンクに結果カードが付きます。シャンプー画像も付けるなら ${paste}`);
-  } catch (err) { console.warn('clipboard', err); download(); note('画像を保存しました。投稿に添付してください'); }
+    note(L(`リンクに結果カードが付きます。シャンプー画像も付けるなら ${paste}`,`링크에 결과 카드가 붙어요. 샴푸 이미지도 넣으려면 ${paste}`));
+  } catch (err) { console.warn('clipboard', err); download(); note(L('画像を保存しました。投稿に添付してください','이미지를 저장했어요. 게시물에 첨부해 주세요')); }
   window.open(href, '_blank', 'noopener');
 });
 $('save').addEventListener('click', e => {
   e.currentTarget.blur();
   if (!shareFile) return;
   if (!canShareFile()) return download();
-  navigator.share({ files: [shareFile], text: shareText, url: URL_PUBLIC }).catch(err => {
+  navigator.share({ files: [shareFile], text: shareText, url: URL_PUBLIC + (KO ? '?hl=ko' : '') }).catch(err => {
     if (err.name !== 'AbortError') { console.warn('share', err); download(); }   // AbortError: the sheet was closed
   });
 });

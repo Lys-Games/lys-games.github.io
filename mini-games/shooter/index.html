@@ -95,6 +95,12 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:4px solid #fff;o
 #result .steam{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+/* Korean (?hl=ko): the web fonts have no Hangul, so Hangul falls back to a heavy local system face. */
+@font-face{font-family:"KoDisplay";src:local("AppleSDGothicNeo-Heavy"),local("Apple SD Gothic Neo Heavy"),local("AppleSDGothicNeo-ExtraBold"),local("Malgun Gothic Bold"),local("MalgunGothicBold"),local("NotoSansKR-Black"),local("Noto Sans KR Black"),local("NotoSansCJKkr-Black"),local("Noto Sans CJK KR Black");unicode-range:U+1100-11FF,U+3130-318F,U+A960-A97F,U+AC00-D7FF}
+html:lang(ko) body{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;word-break:keep-all}
+html:lang(ko) #bubble{word-break:keep-all}
+html:lang(ko) .t,html:lang(ko) #count,html:lang(ko) #bubble.shout,html:lang(ko) #points{font-family:"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+html:lang(ko) #title .eyebrow,html:lang(ko) #score small,html:lang(ko) #points .unit{font-family:"M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
 </style>
 </head>
 <body>
@@ -408,10 +414,34 @@ function chooseRankId(w){
 
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
-const DISPLAY_FONT = '"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
-const ROUND_FONT = '800 X "M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif';
+// ?hl=ko or ?hl=ja forces the language; otherwise Korean browsers get Korean and everyone else Japanese.
+const HL = (()=>{const q=new URLSearchParams(location.search).get('hl');if(q==='ko'||q==='ja')return q;return /^ko/i.test(navigator.language||'')?'ko':'ja';})();
+const KO = HL==='ko';
+const L = (ja,ko) => KO?ko:ja;
+const DISPLAY_FONT = KO?'"Dela Gothic One",KoDisplay,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'"Dela Gothic One","Hiragino Sans","Yu Gothic",system-ui,sans-serif';
+const ROUND_FONT = KO?'800 X "M PLUS Rounded 1c","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif':'800 X "M PLUS Rounded 1c","Hiragino Sans",system-ui,sans-serif';
+if(KO) {
+  document.documentElement.lang='ko';document.title='타피오카 사격';
+  document.querySelector('meta[name=description]').content='축제 야시장에서 타피오카를 빨대로 쏘아 컵 피라미드를 쓰러뜨리는 사격 게임. 꾹 눌러 빨고, 떼면 발사. 너무 빨면 삼키고 사레들린다. 10알로 몇 개 떨어뜨릴까? 무료 미니게임.';
+  const steam='<a href="https://lys-games.github.io/" target="_blank" rel="noopener">Lys Games</a> · <a class="steam" href="https://store.steampowered.com/app/5398160/?utm_source=lysgames&amp;utm_medium=web&amp;utm_campaign=shooter_ko" target="_blank" rel="noopener">『Gopher It』 Steam에서 판매 중</a>';
+  for(const el of document.querySelectorAll('.credit'))el.innerHTML='제작 '+steam;
+  for(const el of document.querySelectorAll('.voice-credit'))el.textContent=el.textContent.replace('音声','음성');
+  cv.setAttribute('aria-label','축제의 사격 가게. 선반에 빈 컵이 피라미드로 쌓여 있고, 앞쪽 컵의 빨대로 타피오카를 쏜다. 꾹 눌러 빨고, 떼면 발사. 누른 채로 위아래로 움직이면 조준이 바뀐다.');
+  $('title').innerHTML='<span class="eyebrow">축제의 밤, 빨대로 승부</span><h1>타피오카<span>사격</span></h1>';
+  document.querySelector('#score small').textContent='점';
+  const ml=document.querySelectorAll('#ammo-label span');ml[0].textContent='남은 타피오카';
+  $('ammo').setAttribute('aria-label','남은 타피오카');
+  $('bubble-text').textContent='어서 와! 사격 가게 주인 폰키치야!';
+  document.querySelector('#home .lead').textContent='10알로, 컵을 몇 개 떨어뜨릴 수 있을까?';
+  $('go').textContent='10알로 도전!';
+  $('result').setAttribute('aria-label','결과');
+  document.querySelector('#result .label').textContent='오늘의 경품';
+  document.querySelector('#points .unit').textContent='점';
+  $('again').textContent='한 번 더';$('share').textContent='X에 올리기';$('save').textContent='이미지 저장';
+  $('paused').textContent='잠깐 쉬는 중';
+}
 const URL_PUBLIC = 'https://lys-games.github.io/mini-games/shooter/';
-const HASHTAG = '#タピオカ射的';
+const HASHTAG = L('#タピオカ射的','#타피오카사격');
 const END_TO_REVEAL_MS = 1300;
 // Kept as JSON so the voice and card tools read the same names, verdicts and ids. Collection order: prizes, then
 // the ranks for how you played.
@@ -427,9 +457,23 @@ const RANKS = [
   {"id":"zero","name":"かすりもせず","verdict":"カップには、1粒も届かなかった。","line":"どんまい！カップは逃げないよ！","hint":"押したまま上下になぞって、ねらいを合わせよう。","mood":"sad"},
   {"id":"gulp","name":"ごちそうさま","verdict":"10粒ぜんぶ、1発も撃たずに飲みこんだ。","line":"射的屋で、タピオカ完食とはねえ！","hint":"ゲージが赤に入る前に、指を離そう。","mood":"laugh"}
 ];
+// Korean text for the same ranks (?hl=ko). The voices stay the Japanese recordings. The card tool reads this too.
+const RANKS_KO = [
+  {"id":"tokusho","name":"특상","verdict":"선반의 컵을 몽땅 떨어뜨렸다.","line":"졌다 졌어! 대박이다!","hint":"선반을 전부 비우면 남은 알도 보너스가 돼."},
+  {"id":"perfect","name":"백발백중","verdict":"쏜 알이 하나도 빠짐없이 컵을 떨어뜨렸다.","line":"전탄 명중! 이러면 장사 망했네!","hint":"특상은 4,000점부터."},
+  {"id":"oneshot","name":"일망타진","verdict":"단 1알로 피라미드를 통째로 무너뜨렸다.","line":"한 방에 통째로!? 처음 보는데!","hint":"1알도 안 빗맞히고 다 쏘면…?"},
+  {"id":"first","name":"1등","verdict":"컵 더미를 차례차례 무너뜨렸다.","line":"솜씨 좋은데! 또 와!","hint":"위쪽 선반은 포물선으로 사뿐히."},
+  {"id":"second","name":"2등","verdict":"조준도 기세도 제법이었다.","line":"조금만 더였는데!","hint":"피라미드는 아랫단을 노리면 잘 무너져."},
+  {"id":"third","name":"3등","verdict":"몇 개는 제대로 떨어뜨렸다.","line":"다음엔 더 할 수 있어!","hint":"게이지가 가득 찼을 때 떼면 가장 세게 날아가."},
+  {"id":"sanka","name":"참가상","verdict":"컵은 대부분 선반에 남았다.","line":"또 놀러 와!","hint":"누른 채로 위아래로 훑어서 조준을 맞춰 보자."},
+  {"id":"cough","name":"콜록 명인","verdict":"알의 절반 이상을 삼키고 사레들렸다.","line":"너무 빨았다니까! 차라도 마실래?","hint":"게이지가 빨강에 들어가면 바로 떼자."},
+  {"id":"zero","name":"스치지도 못함","verdict":"컵에 1알도 닿지 않았다.","line":"괜찮아! 컵은 도망 안 가!","hint":"누른 채로 위아래로 훑어서 조준을 맞춰 보자."},
+  {"id":"gulp","name":"잘 먹었습니다","verdict":"10알 전부 한 발도 안 쏘고 삼켰다.","line":"사격장에서 타피오카 완식이라니!","hint":"게이지가 빨강에 들어가기 전에 손가락을 떼자."}
+];
+if(KO)for(const e of RANKS)Object.assign(e,RANKS_KO.find(k=>k.id===e.id));
 const rankById = id => RANKS.find(e => e.id === id);
-const OWNER_NAME = 'ぽん吉';
-const INTRO_TEXT = 'らっしゃい！タピオカ10粒で、カップを落としてごらん！';
+const OWNER_NAME = L('ぽん吉','폰키치');
+const INTRO_TEXT = L('らっしゃい！タピオカ10粒で、カップを落としてごらん！','어서 와! 타피오카 10알로 컵을 떨어뜨려 봐!');
 const HIT_LINES = [
   {"id":"hit0","text":"お見事！"},
   {"id":"hit1","text":"やるねえ！"},
@@ -459,6 +503,9 @@ const LAST_LINES = [
   {"id":"last0","text":"ラスト一粒！"},
   {"id":"last1","text":"最後の一発だよ！"}
 ];
+// Bubble text for the Japanese voice lines above, by line id (?hl=ko).
+const LINES_KO = {hit0:'훌륭해!',hit1:'잘하는데!',hit2:'좋은 소리!',hit3:'딱이야!',big0:'몽땅 갔다!',big1:'이거 졌다!',miss0:'아깝다!',miss1:'어라, 빗나갔네!',miss2:'괜찮아!',miss3:'조금만 더!',cough0:'어이쿠, 삼켰네!',cough1:'너무 빠는데!',cough2:'괜찮아?',clear0:'전부 떨어졌다! 다음 간다!',clear1:'훌륭해! 다음 더미야!',last0:'마지막 한 알!',last1:'마지막 한 발이야!'};
+if(KO)for(const list of [HIT_LINES,BIG_LINES,MISS_LINES,COUGH_LINES,CLEAR_LINES,LAST_LINES])for(const l of list)l.text=LINES_KO[l.id];
 // What ?card=<id> leaves on the shelf: the set shown, cups taken off its top, cups dropped.
 const CARD_STATE = {tokusho:{set:3,gone:13},perfect:{set:2,gone:5},oneshot:{set:1,gone:0},first:{set:2,gone:3},second:{set:1,gone:4},third:{set:1,gone:0},sanka:{set:0,gone:1},cough:{set:0,gone:3},zero:{set:0,gone:0},gulp:{set:0,gone:0}};
 const clamp = clampN;
@@ -469,7 +516,9 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches;
 // The aim follows the finger's (or mouse's) vertical travel while it is held, never the spot it lands on.
 const AIM_GAIN = .45*DEG, KEY_AIM = 55*DEG;
-const HOW = TOUCH ? ['長押しでタピオカを吸って、離して発射！<br>押したまま上下になぞると、ねらいが動く。<br>吸いすぎると、飲みこんじゃう。','長押しで吸って、離して発射！']
+const HOW = KO ? (TOUCH ? ['꾹 눌러서 타피오카를 빨고, 떼서 발사!<br>누른 채로 위아래로 훑으면 조준이 움직여.<br>너무 빨면 삼켜 버려.','꾹 눌러 빨고, 떼서 발사!']
+  : ['꾹 눌러서 타피오카를 빨고, 떼서 발사!<br>누른 채로 위아래로 움직이면 조준이 움직여.<br>너무 빨면 삼켜 버려.<br><small>스페이스와 ↑↓ 키로도 할 수 있어요</small>','꾹 눌러 빨고, 떼서 발사!'])
+  : TOUCH ? ['長押しでタピオカを吸って、離して発射！<br>押したまま上下になぞると、ねらいが動く。<br>吸いすぎると、飲みこんじゃう。','長押しで吸って、離して発射！']
   : ['長押しでタピオカを吸って、離して発射！<br>押したまま上下に動かすと、ねらいが動く。<br>吸いすぎると、飲みこんじゃう。<br><small>スペースと↑↓キーでも遊べます</small>','長押しで吸って、離して発射！'];
 $('how').innerHTML=HOW[0];$('instruction').textContent=HOW[1];
 $('ammo').innerHTML='<i></i>'.repeat(PEARLS);
@@ -486,7 +535,7 @@ function measureLayout() {
   for(const id of ['title','hud','home','result'])el(id).hidden=false;
   el('tip').style.display='none';el('bubble').hidden=true;
   el('save').style.display=TOUCH?'inline-flex':'none';
-  el('share').innerHTML=TOUCH?'Xでポスト':'Xでポスト<small>画像もコピー</small>';
+  el('share').innerHTML=TOUCH?L('Xでポスト','X에 올리기'):L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
   document.body.append(copy);
   const top=copy.getBoundingClientRect().top, bottom=copy.getBoundingClientRect().bottom;
   const title=el('title').getBoundingClientRect().bottom-top;
@@ -495,7 +544,7 @@ function measureLayout() {
   let resultTop=bottom;
   for(const e of RANKS) {
     el('rank-name').textContent=e.name;el('verdict').textContent=e.verdict;el('hint').textContent=e.hint;
-    el('best').textContent='カップ 41個 · 新記録！ 自己ベスト 8,800点';
+    el('best').textContent=L('カップ 41個 · 新記録！ 自己ベスト 8,800点','컵 41개 · 신기록! 최고 기록 8,800점');
     resultTop=Math.min(resultTop,el('result').getBoundingClientRect().top);
   }
   copy.remove();
@@ -686,7 +735,7 @@ const fmt = n => n.toLocaleString('ja-JP');
 function setMood(m,ms=0) { mood=m;moodUntil=ms?performance.now()+ms:0; }
 function updateHud() {
   $('score-n').textContent=fmt(scoreOf(world));
-  $('cups-n').textContent=`カップ ${world.cups}個`;
+  $('cups-n').textContent=L(`カップ ${world.cups}個`,`컵 ${world.cups}개`);
   const dots=$('ammo').children, left=world.ammo+(world.phase==='charge'?1:0);
   for(let i=0;i<dots.length;i++)dots[i].classList.toggle('used',i>=left);
 }
@@ -718,16 +767,16 @@ function onEvents(events,now) {
     if(e.type==='charge'){updateHud();}
     else if(e.type==='shot'){
       puff(e.p);updateHud();judge={shot:world.shots.length-1,at:0};trail=[];setAvMood('spit',320);av.recoil=1;
-      fx.push({text:e.p>=1?'プッ！！':'プッ',x:muzzle(world.aim).x+18,y:muzzle(world.aim).y-24,born:now,life:500,color:'#fff',size:e.p>=1?26:20});
+      fx.push({text:e.p>=1?L('プッ！！','퓻!!'):L('プッ','퓻'),x:muzzle(world.aim).x+18,y:muzzle(world.aim).y-24,born:now,life:500,color:'#fff',size:e.p>=1?26:20});
     }
     else if(e.type==='gulp'){
       gulpSound();coughSound();updateHud();shake=REDUCED?0:1;
       av.coughAt=now;
-      fx.push({text:'ゴクッ',x:muzzle(world.aim).x+44,y:muzzle(world.aim).y-26,born:now,life:600,color:'#ffd84a',size:28});
+      fx.push({text:L('ゴクッ','꿀꺽'),x:muzzle(world.aim).x+44,y:muzzle(world.aim).y-26,born:now,life:600,color:'#ffd84a',size:28});
       // ゲホッ in the rounded font: in Dela Gothic One its ゲ reads like グ at this size.
       // ゴクッ first; the coughs start once it has faded, higher up, so the two never overlap.
-      fx.push({text:'ゲホッ',x:NECK.x+86,y:NECK.y-118,born:now+620,life:800,color:'#fff',size:30,font:ROUND_FONT});
-      fx.push({text:'ゲホッ',x:NECK.x+118,y:NECK.y-160,born:now+900,life:800,color:'#fff',size:30,font:ROUND_FONT});
+      fx.push({text:L('ゲホッ','콜록'),x:NECK.x+86,y:NECK.y-118,born:now+620,life:800,color:'#fff',size:30,font:ROUND_FONT});
+      fx.push({text:L('ゲホッ','콜록'),x:NECK.x+118,y:NECK.y-160,born:now+900,life:800,color:'#fff',size:30,font:ROUND_FONT});
       setMood('shock',1300);react(COUGH_LINES,1,true);
     }
     else if(e.type==='hit')hitSound(e);
@@ -738,12 +787,12 @@ function onEvents(events,now) {
     }
     else if(e.type==='clear'){
       play('k_confirmation_001',.8);updateHud();bump();flash=REDUCED?0:.35;
-      fx.push({text:`ぜんぶ落とした！ +${e.pts}`,x:260,y:300,born:now,life:1500,color:'#ffd84a',size:26});
+      fx.push({text:L(`ぜんぶ落とした！ +${e.pts}`,`전부 떨어뜨렸다! +${e.pts}`),x:260,y:300,born:now,life:1500,color:'#ffd84a',size:26});
       if(!REDUCED)for(let i=0;i<30;i++)confetti.push({x:rand(170,390),y:rand(160,330),vx:rand(-70,70),vy:rand(-160,-30),r:rand(3,6),life:rand(1,1.7),color:['#e8383d','#ffc83a','#fff','#7fd8ff'][i%4]});
       setMood('laugh',1500);judge=null;
       if(!e.final)react(CLEAR_LINES,1,true);
     }
-    else if(e.type==='spawn'){play('k_maximize_003',.4,1.2);fx.push({text:`${e.set+1}段目！`,x:270,y:200,born:now,life:1100,color:'#fff',size:30});}
+    else if(e.type==='spawn'){play('k_maximize_003',.4,1.2);fx.push({text:L(`${e.set+1}段目！`,`${e.set+1}단째!`),x:270,y:200,born:now,life:1100,color:'#fff',size:30});}
     else if(e.type==='over')finish();
   }
 }
@@ -775,14 +824,14 @@ async function finish(forced) {
   const g=++generation;state='end';endAt=performance.now();finger.down=keyDown=false;finger.id=null;updateSlurp(null);
   rank=forced||rankById(chooseRankId(world));
   show('hud',false);
-  if(!forced){$('count').textContent='おしまい！';$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);ownerUntil=0;sayOwner('おしまい！','end',{shout:true});}
+  if(!forced){$('count').textContent=L('おしまい！','끝!');$('count').classList.add('small');show('count',true);play('k_bong_001',.6,.8);ownerUntil=0;sayOwner(L('おしまい！','끝!'),'end',{shout:true});}
   setMood('talk');
   await wait(forced?300:END_TO_REVEAL_MS);if(g!==generation)return;
   show('count',false);
   state='reveal';setMood(rank.mood);setAvMood(AV_RESULT[rank.id]||'idle');
   const prize=['tokusho','perfect','oneshot','first'].includes(rank.id);
   play(prize?'k_confirmation_001':'k_bong_001',prize?.8:.4,prize?1:.7);
-  ownerUntil=0;sayOwner(rank.name+'！','rank_'+rank.id,{shout:true});
+  ownerUntil=0;sayOwner(rank.name+L('！','!'),'rank_'+rank.id,{shout:true});
   if(prize&&!REDUCED)for(let i=0;i<40;i++)confetti.push({x:rand(150,390),y:rand(250,400),vx:rand(-60,60),vy:rand(-140,-20),r:rand(3,6),life:rand(1,1.8),color:['#e8383d','#ffc83a','#fff','#7fd8ff'][i%4]});
   sayOwnerQueued(rank.line,'say_'+rank.id,g);
   await wait(600);if(g!==generation)return;
@@ -791,13 +840,15 @@ async function finish(forced) {
   $('rank-name').textContent=rank.name;$('verdict').textContent=rank.verdict;$('hint').textContent=rank.hint;
   const newBest=!CARD_MODE&&score>0&&(best===null||score>best);
   if(newBest){best=score;try{localStorage.setItem('shooter.bestScore',String(best));}catch(_){}}
-  const parts=[`カップ ${n}個`];if(best)parts.push((newBest?'新記録！ ':'')+`自己ベスト ${fmt(best)}点`);
+  const parts=[L(`カップ ${n}個`,`컵 ${n}개`)];if(best)parts.push((newBest?L('新記録！ ','신기록! '):'')+L(`自己ベスト ${fmt(best)}点`,`최고 기록 ${fmt(best)}점`));
   $('best').textContent=parts.join(' · ');
   countUp(score,g);
-  shareText=rank.id==='gulp'
+  shareText=KO?(rank.id==='gulp'
+    ? `${OWNER_NAME}: "${rank.line}"\n타피오카 10알, 전부 삼켜 버렸다 [${rank.name}]\n여러분은 몇 개 떨어뜨려요? ${HASHTAG}`
+    : `${OWNER_NAME}: "${rank.line}"\n타피오카 10알로 컵 ${n}개, ${fmt(score)}점 [${rank.name}]\n여러분은 몇 점? ${HASHTAG}`):rank.id==='gulp'
     ? `${OWNER_NAME}「${rank.line}」\nタピオカ10粒、ぜんぶ飲んじゃった【${rank.name}】\nあなたは何個落とせる？ ${HASHTAG}`
     : `${OWNER_NAME}「${rank.line}」\nタピオカ10粒でカップ${n}個、${fmt(score)}点【${rank.name}】\nあなたは何点？ ${HASHTAG}`;
-  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+rank.id+'.html');
+  $('share').href='https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(URL_PUBLIC+'card/'+(KO?'ko/':'')+rank.id+'.html');
   if(CARD_MODE){resize();({scale,ox,oy}=targets.result);showPicture(await drawShareImage({rank}));return;}
   show('result',true);
   prepareShare({rank,cups:n,score},g);
@@ -933,8 +984,8 @@ function drawStall(c,t,w) {
   if(state!=='home'){c.save();c.translate(70,170);c.rotate(-.05);c.lineWidth=3;c.strokeStyle=INK;
   line(c,[-18,-46,0,-30],2);line(c,[18,-46,0,-30],2);
   c.beginPath();c.roundRect(-42,-30,84,52,8);c.fillStyle=WOOD;c.fill();c.stroke();
-  c.font=`20px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=INK;c.fillText(`${Math.max(1,w.set+1)}段目`,0,-6);
-  c.font=`800 12px "M PLUS Rounded 1c",system-ui,sans-serif`;c.fillText(`全${SETS.length}段`,0,12);
+  c.font=`20px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=INK;c.fillText(L(`${Math.max(1,w.set+1)}段目`,`${Math.max(1,w.set+1)}단째`),0,-6);
+  c.font=`800 12px "M PLUS Rounded 1c",system-ui,sans-serif`;c.fillText(L(`全${SETS.length}段`,`총 ${SETS.length}단`),0,12);
   c.restore();}
   // Posts.
   c.lineWidth=4;c.strokeStyle=INK;
@@ -1159,7 +1210,7 @@ function drawCounter(c) {
   // A cloth panel on the counter front.
   c.beginPath();c.roundRect(160,612,120,64,6);c.fillStyle=INDIGO;c.fill();c.stroke();
   ellipse(c,220,644,26,26,'#fff');
-  c.font=`26px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=RED;c.fillText('的',220,646);
+  c.font=`${L(26,19)}px ${DISPLAY_FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillStyle=RED;c.fillText(L('的','사격'),220,646);
   // His hands on the counter.
   for(const s of [-1,1])ellipse(c,OWNER.x+s*48,588,13,10,SKIN);
   c.restore();
@@ -1223,7 +1274,7 @@ function frame(now) {
 /* ---------- share picture ---------- */
 // The framed picture is the live scene redrawn at card size, including his actual reaction.
 async function drawShareImage({rank:e,card,cups:n,score}) {
-  await document.fonts?.load(`60px ${DISPLAY_FONT}`,'タピオカ射的10粒で、カップを何個落とせる？ストロー1本「」0123456789,個点あなたはぽん吉段目全'+RANKS.map(x=>x.name+x.line).join(''));
+  await document.fonts?.load(`60px ${DISPLAY_FONT}`,L('タピオカ射的10粒で、カップを何個落とせる？ストロー1本「」0123456789,個点あなたはぽん吉段目全','타피오카 사격 10알로, 컵을 몇 개 떨어뜨릴래? 꾹 눌러 빨고, 떼서 발사! 너무 빨면, 꿀꺽. “”0123456789,개점여러분은 폰키치 단째 총 사격')+RANKS.map(x=>x.name+x.line).join(''));
   const c=document.createElement('canvas');c.width=1200;c.height=675;
   const x=c.getContext('2d');
   x.fillStyle='#1b1d4a';x.fillRect(0,0,1200,675);
@@ -1252,26 +1303,28 @@ async function drawShareImage({rank:e,card,cups:n,score}) {
     x.fillStyle=RED;x.fillText(str,0,size*.04);x.restore();
   };
   // Title: タピオカ in dark, 射的 in red, as on the page.
-  x.font=`66px ${DISPLAY_FONT}`;const w1=x.measureText('タピオカ').width, w2=x.measureText('射的').width, left=CX-(w1+w2)/2;
-  text('タピオカ',left,100,66,INK,MAXW,'left');text('射的',left+w1,100,66,RED,MAXW,'left');
+  x.font=`66px ${DISPLAY_FONT}`;const T1=L('タピオカ','타피오카 '), T2=L('射的','사격'), w1=x.measureText(T1).width, w2=x.measureText(T2).width, left=CX-(w1+w2)/2;
+  text(T1,left,100,66,INK,MAXW,'left');text(T2,left+w1,100,66,RED,MAXW,'left');
   if(card===null){
-    text('タピオカ10粒で、',CX,238,80,RED);text('何個落とせる？',CX,346,92,RED);
-    text('長押しで吸って、離して発射！',CX,480,40,INK);
-    text('吸いすぎると、ゴクッ。',CX,548,40,INK);
+    text(L('タピオカ10粒で、','타피오카 10알로,'),CX,238,80,RED);text(L('何個落とせる？','몇 개 떨어뜨릴래?'),CX,346,92,RED);
+    text(L('長押しで吸って、離して発射！','꾹 눌러 빨고, 떼서 발사!'),CX,480,40,INK);
+    text(L('吸いすぎると、ゴクッ。','너무 빨면, 꿀꺽.'),CX,548,40,INK);
   } else {
     // A real game stamps the player's own score and cups under the rank; the static ?card pages have none.
     if(n===undefined){
       text(e.name,CX,250,e.name.length>4?96:120,RED);
     } else {
       text(e.name,CX,200,e.name.length>4?84:100,RED);
-      stamp(`${fmt(score)}点`,CX,326,60);
-      text(`タピオカ10粒で、カップ ${n}個`,CX,398,32,INK);
+      stamp(L(`${fmt(score)}点`,`${fmt(score)}점`),CX,326,60);
+      text(L(`タピオカ10粒で、カップ ${n}個`,`타피오카 10알로 컵 ${n}개`),CX,398,32,INK);
     }
-    const quote=OWNER_NAME+'「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?412:476;
+    const quote=KO?OWNER_NAME+': “'+e.line+'”':OWNER_NAME+'「'+e.line+'」', chars=Array.from(quote), qy=n===undefined?412:476;
     x.font=`36px ${DISPLAY_FONT}`;
-    if(x.measureText(quote).width>MAXW){let mid=Math.ceil(chars.length/2);{let best=-1;chars.forEach((ch,i)=>{if('、。！？…」'.includes(ch)&&i+1<chars.length&&!'、。！？…」'.includes(chars[i+1])&&Math.abs(i+1-chars.length/2)<chars.length/4&&(best<0||Math.abs(i+1-chars.length/2)<Math.abs(best-chars.length/2)))best=i+1;});if(best>0)mid=best;}text(chars.slice(0,mid).join(''),CX,qy-14,34,INK);text(chars.slice(mid).join(''),CX,qy+30,34,INK);}
+    if(x.measureText(quote).width>MAXW){let mid=Math.ceil(chars.length/2);{let best=-1;chars.forEach((ch,i)=>{if('、。！？…」'.includes(ch)&&i+1<chars.length&&!'、。！？…」'.includes(chars[i+1])&&Math.abs(i+1-chars.length/2)<chars.length/4&&(best<0||Math.abs(i+1-chars.length/2)<Math.abs(best-chars.length/2)))best=i+1;});if(best>0)mid=best;}
+      // Korean wraps at the space nearest the middle, never inside a word.
+      if(KO){const sp=chars.map((ch,i)=>ch===' '?i:-1).filter(i=>i>0);if(sp.length)mid=sp.reduce((a,b)=>Math.abs(b-chars.length/2)<Math.abs(a-chars.length/2)?b:a)+1;}text(chars.slice(0,mid).join(''),CX,qy-14,34,INK);text(chars.slice(mid).join(''),CX,qy+30,34,INK);}
     else text(quote,CX,qy,36,INK);
-    text(e.id==='gulp'?'あなたは何個落とせる？':'あなたは何点とれる？',CX,580,42,INK);
+    text(e.id==='gulp'?L('あなたは何個落とせる？','여러분은 몇 개 떨어뜨릴래요?'):L('あなたは何点とれる？','여러분은 몇 점 낼래요?'),CX,580,42,INK);
   }
   return new Promise(res=>c.toBlob(res,'image/png'));
 }
@@ -1283,7 +1336,7 @@ async function prepareShare(shot,g) {
     shareFile=new File([blob],'tapioca-shateki.png',{type:'image/png'});
     // Phones that can share files: the picture is the main way to post, so its button leads.
     const sheet=canShareFile();
-    $('save').textContent=sheet?'画像でシェア':'画像を保存';
+    $('save').textContent=sheet?L('画像でシェア','이미지로 공유'):L('画像を保存','이미지 저장');
     $('save').className=sheet?'':'alt';
     $('save').style.display=TOUCH?'inline-flex':'none';
   } catch(err) { console.warn('share image',err); }
@@ -1297,22 +1350,22 @@ function download() {
 function note(text) { const el=$('tip');el.textContent=text;el.style.display='block'; }
 // On PC the picture goes to the clipboard first (⌘V / Ctrl+V into the post), falling back to a download;
 // X opens after the copy, while the page still has focus.
-if(!TOUCH)$('share').innerHTML='Xでポスト<small>画像もコピー</small>';
+if(!TOUCH)$('share').innerHTML=L('Xでポスト<small>画像もコピー</small>','X에 올리기<small>이미지도 복사</small>');
 $('share').addEventListener('click',async e=>{
   if(TOUCH||!shareFile)return;
   e.preventDefault();
   const href=$('share').href, paste=/Mac/.test(navigator.platform)?'⌘V':'Ctrl+V';
   try {
     await navigator.clipboard.write([new ClipboardItem({'image/png':shareFile})]);
-    note(`リンクに結果カードが付きます。射的の画像も付けるなら ${paste}`);
-  } catch(err) { console.warn('clipboard',err);download();note('画像を保存しました。投稿に添付してください'); }
+    note(L(`リンクに結果カードが付きます。射的の画像も付けるなら ${paste}`,`링크에 결과 카드가 붙어요. 사격 이미지도 넣으려면 ${paste}`));
+  } catch(err) { console.warn('clipboard',err);download();note(L('画像を保存しました。投稿に添付してください','이미지를 저장했어요. 게시물에 첨부해 주세요')); }
   window.open(href,'_blank','noopener');
 });
 $('save').addEventListener('click',e=>{
   e.currentTarget.blur();
   if(!shareFile)return;
   if(!canShareFile())return download();
-  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC}).catch(err=>{
+  navigator.share({files:[shareFile],text:shareText,url:URL_PUBLIC+(KO?'?hl=ko':'')}).catch(err=>{
     if(err.name!=='AbortError'){console.warn('share',err);download();}   // AbortError: the sheet was closed
   });
 });
@@ -1333,7 +1386,7 @@ if(CARD_MODE) {
     world=createWorld();state='play';world.aim=34*DEG;world.ammo=7;world.cups=0;
     const m=muzzle(world.aim), pearl=circleBody('pearl',m.x+98,m.y-52,PEARL_R,PEARL_M,PEARL_FRICTION);
     world.bodies.push(pearl);world.pearl=pearl;for(let i=1;i<=6;i++)trail.push([m.x+98-i*15,m.y-52+i*7.5]);
-    setMood('amazed');fx.push({text:'プッ！',x:m.x+44,y:m.y-46,born:performance.now(),life:1e9,color:'#fff',size:26});
+    setMood('amazed');fx.push({text:L('プッ！','퓻!'),x:m.x+44,y:m.y-46,born:performance.now(),life:1e9,color:'#fff',size:26});
     resize();setTimeout(()=>drawShareImage({card:null}).then(showPicture),300);
   } else {
     const forced=rankById(query.get('card'))||rankById('tokusho'), s=CARD_STATE[forced.id];
@@ -1342,7 +1395,7 @@ if(CARD_MODE) {
     const cups=world.bodies.filter(b=>b.kind==='cup').sort((a,b)=>a.y-b.y);
     for(const b of cups.slice(0,s.gone))removeBody(world,b);
     world.ammo=0;
-    if(forced.id==='cough'){av.cough=1;fx.push({text:'ゲホッ',x:NECK.x+92,y:NECK.y-132,born:performance.now(),life:1e9,color:'#fff',size:30,font:ROUND_FONT});}
+    if(forced.id==='cough'){av.cough=1;fx.push({text:L('ゲホッ','콜록'),x:NECK.x+92,y:NECK.y-132,born:performance.now(),life:1e9,color:'#fff',size:30,font:ROUND_FONT});}
     state='play';finish(forced);
   }
 }
